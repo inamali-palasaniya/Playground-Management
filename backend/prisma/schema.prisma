@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Enums
+enum UserRole {
+  MANAGEMENT
+  NORMAL
+}
+
+enum FeeType {
+  DAILY_FEE
+  FINE
+  MONTHLY_ARREARS
+  PAYMENT
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+  ABANDONED
+}
+
+// Module 1: Management
+
+model Game {
+  id          Int          @id @default(autoincrement())
+  name        String
+  tournaments Tournament[]
+}
+
+model UserGroup {
+  id    Int    @id @default(autoincrement())
+  name  String
+  users User[]
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  name           String
+  phone          String   @unique
+  email          String?  @unique
+  role           UserRole @default(NORMAL)
+  deposit_amount Float    @default(0.0)
+  group_id       Int?
+  group          UserGroup? @relation(fields: [group_id], references: [id])
+  
+  subscriptions  Subscription[]
+  attendances    Attendance[]
+  fee_ledger     FeeLedger[]
+  fines          UserFine[]
+  
+  // Scoring Module Relations
+  player_teams   TeamPlayer[]
+}
+
+model SubscriptionPlan {
+  id                  Int     @id @default(autoincrement())
+  name                String
+  rate_daily          Float
+  rate_monthly        Float
+  is_deposit_required Boolean @default(false)
+  subscriptions       Subscription[]
+}
+
+model Subscription {
+  id          Int                @id @default(autoincrement())
+  user_id     Int
+  user        User               @relation(fields: [user_id], references: [id])
+  plan_id     Int
+  plan        SubscriptionPlan   @relation(fields: [plan_id], references: [id])
+  start_date  DateTime
+  end_date    DateTime?
+  amount_paid Float              @default(0.0)
+  status      SubscriptionStatus @default(ACTIVE)
+}
+
+model Attendance {
+  id                Int      @id @default(autoincrement())
+  user_id           Int
+  user              User     @relation(fields: [user_id], references: [id])
+  date              DateTime @default(now())
+  is_present        Boolean  @default(true)
+  daily_fee_charged Float    @default(0.0)
+}
+
+model FeeLedger {
+  id      Int      @id @default(autoincrement())
+  user_id Int
+  user    User     @relation(fields: [user_id], references: [id])
+  type    FeeType
+  amount  Float // Positive for charges, Negative for payments (or handle via logic)
+  date    DateTime @default(now())
+  is_paid Boolean  @default(false)
+}
+
+model FineRule {
+  id                    Int        @id @default(autoincrement())
+  name                  String
+  first_time_fine       Float
+  subsequent_multiplier Float      @default(1.0)
+  fines                 UserFine[]
+}
+
+model UserFine {
+  id             Int      @id @default(autoincrement())
+  user_id        Int
+  user           User     @relation(fields: [user_id], references: [id])
+  rule_id        Int
+  rule           FineRule @relation(fields: [rule_id], references: [id])
+  date           DateTime @default(now())
+  occurrence     Int      @default(1)
+  amount_charged Float
+}
+
+model Expense {
+  id       Int      @id @default(autoincrement())
+  name     String
+  category String
+  amount   Float
+  date     DateTime @default(now())
+  notes    String?
+}
+
+// Module 2: Scoring
+
+model Tournament {
+  id         Int      @id @default(autoincrement())
+  name       String
+  game_id    Int
+  game       Game     @relation(fields: [game_id], references: [id])
+  start_date DateTime
+  end_date   DateTime?
+  matches    Match[]
+  teams      Team[]
+}
+
+model Team {
+  id            Int          @id @default(autoincrement())
+  name          String
+  tournament_id Int
+  tournament    Tournament   @relation(fields: [tournament_id], references: [id])
+  players       TeamPlayer[]
+  matches_as_a  Match[]      @relation("TeamA")
+  matches_as_b  Match[]      @relation("TeamB")
+}
+
+model TeamPlayer {
+  id      Int  @id @default(autoincrement())
+  team_id Int
+  team    Team @relation(fields: [team_id], references: [id])
+  user_id Int
+  user    User @relation(fields: [user_id], references: [id])
+}
+
+model Match {
+  id            Int         @id @default(autoincrement())
+  tournament_id Int
+  tournament    Tournament  @relation(fields: [tournament_id], references: [id])
+  team_a_id     Int
+  team_a        Team        @relation(fields: [team_a_id], references: [id], name: "TeamA")
+  team_b_id     Int
+  team_b        Team        @relation(fields: [team_b_id], references: [id], name: "TeamB")
+  start_time    DateTime
+  status        MatchStatus @default(SCHEDULED)
+  overs         Int         @default(20)
+  
+  // Scoring details could be expanded here or in separate tables
+  // For simplicity, we might store current score in Match or separate Score table
+  // But for a full system, we need Ball-by-Ball
+  ball_events   BallEvent[]
+}
+
+model BallEvent {
+  id           Int      @id @default(autoincrement())
+  match_id     Int
+  match        Match    @relation(fields: [match_id], references: [id])
+  over_number  Int
+  ball_number  Int
+  bowler_id    Int // References User/Player
+  striker_id   Int // References User/Player
+  runs_scored  Int      @default(0)
+  is_wicket    Boolean  @default(false)
+  wicket_type  String?
+  extras       Int      @default(0)
+  extra_type   String?
+  timestamp    DateTime @default(now())
+}
