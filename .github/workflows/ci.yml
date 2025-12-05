@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: '20'
       - run: npm ci
+      - run: npx prisma generate
       - run: npx tsc --noEmit
 
   mobile-check:
