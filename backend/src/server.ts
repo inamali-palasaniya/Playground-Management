@@ -12,6 +12,7 @@ app.use(express.json());
 
 import userRoutes from './routes/user.routes';
 import subscriptionRoutes from './routes/subscription.routes';
+import subscriptionPlanRoutes from './routes/subscription-plan.routes';
 import expenseRoutes from './routes/expense.routes';
 import matchRoutes from './routes/match.routes';
 import { WebSocketServer } from 'ws';
@@ -19,6 +20,7 @@ import http from 'http';
 
 app.use('/api/users', userRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/subscription-plans', subscriptionPlanRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/matches', matchRoutes);
 
