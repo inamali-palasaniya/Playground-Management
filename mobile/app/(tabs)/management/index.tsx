@@ -1,8 +1,10 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text, Card, Button, useTheme } from 'react-native-paper';
+import { useRouter } from 'expo-router';
 
 export default function ManagementDashboard() {
     const theme = useTheme();
+    const router = useRouter();
 
     return (
         <ScrollView style={styles.container}>
@@ -26,8 +28,11 @@ export default function ManagementDashboard() {
             <Card style={styles.card}>
                 <Card.Title title="Quick Actions" />
                 <Card.Content style={styles.actionsContent}>
-                    <Button mode="contained" icon="account-plus" style={styles.actionButton} onPress={() => { }}>
+                    <Button mode="contained" icon="account-plus" style={styles.actionButton} onPress={() => router.push('/management/add-user')}>
                         Add User
+                    </Button>
+                    <Button mode="contained" icon="card-account-details" style={styles.actionButton} onPress={() => router.push('/management/subscription-plans')}>
+                        Subscriptions
                     </Button>
                     <Button mode="contained" icon="cash-plus" style={styles.actionButton} onPress={() => { }}>
                         Add Fee
