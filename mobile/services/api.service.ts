@@ -156,6 +156,34 @@ class ApiService {
             body: JSON.stringify({ status, end_date }),
         });
     }
+
+    // Attendance endpoints
+    async checkIn(user_id: number, date?: string): Promise<any> {
+        return this.request<any>('/api/attendance/check-in', {
+            method: 'POST',
+            body: JSON.stringify({ user_id, date }),
+        });
+    }
+
+    async getUserAttendance(userId: number, startDate?: string, endDate?: string): Promise<any[]> {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return this.request<any[]>(`/api/attendance/user/${userId}${query}`);
+    }
+
+    async getAttendanceByDate(date: string): Promise<any[]> {
+        return this.request<any[]>(`/api/attendance/date/${date}`);
+    }
+
+    async getAttendanceSummary(userId: number, startDate?: string, endDate?: string): Promise<any> {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return this.request<any>(`/api/attendance/summary/${userId}${query}`);
+    }
 }
 
 export default new ApiService();
