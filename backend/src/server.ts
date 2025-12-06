@@ -16,6 +16,7 @@ import subscriptionPlanRoutes from './routes/subscription-plan.routes';
 import attendanceRoutes from './routes/attendance.routes';
 import fineRoutes from './routes/fine.routes';
 import paymentRoutes from './routes/payment.routes';
+import analyticsRoutes from './routes/analytics.routes';
 import expenseRoutes from './routes/expense.routes';
 import matchRoutes from './routes/match.routes';
 import { WebSocketServer } from 'ws';
@@ -27,6 +28,7 @@ app.use('/api/subscription-plans', subscriptionPlanRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/fines', fineRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/analytics', analyticsRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/matches', matchRoutes);
 

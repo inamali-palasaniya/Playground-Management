@@ -256,6 +256,31 @@ class ApiService {
         const query = params.toString() ? `?${params.toString()}` : '';
         return this.request<any[]>(`/api/payments/ledger/${userId}${query}`);
     }
+
+    // Analytics endpoints
+    async getFinancialSummary(startDate?: string, endDate?: string): Promise<any> {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return this.request<any>(`/api/analytics/financial-summary${query}`);
+    }
+
+    async getAttendanceStats(startDate?: string, endDate?: string): Promise<any> {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return this.request<any>(`/api/analytics/attendance-stats${query}`);
+    }
+
+    async getIncomeExpenseReport(startDate?: string, endDate?: string): Promise<any> {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return this.request<any>(`/api/analytics/income-expense${query}`);
+    }
 }
 
 export default new ApiService();
