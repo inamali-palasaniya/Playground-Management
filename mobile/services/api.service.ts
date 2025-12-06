@@ -281,6 +281,72 @@ class ApiService {
         const query = params.toString() ? `?${params.toString()}` : '';
         return this.request<any>(`/api/analytics/income-expense${query}`);
     }
+
+    // Tournament endpoints
+    async getTournaments(): Promise<any[]> {
+        return this.request<any[]>('/api/tournaments');
+    }
+
+    async getTournamentById(id: number): Promise<any> {
+        return this.request<any>(`/api/tournaments/${id}`);
+    }
+
+    async createTournament(data: any): Promise<any> {
+        return this.request<any>('/api/tournaments', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async updateTournament(id: number, data: any): Promise<any> {
+        return this.request<any>(`/api/tournaments/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async deleteTournament(id: number): Promise<any> {
+        return this.request<any>(`/api/tournaments/${id}`, {
+            method: 'DELETE',
+        });
+    }
+
+    async getTeamsByTournament(tournamentId: number): Promise<any[]> {
+        return this.request<any[]>(`/api/tournaments/${tournamentId}/teams`);
+    }
+
+    async createTeam(tournamentId: number, name: string): Promise<any> {
+        return this.request<any>(`/api/tournaments/${tournamentId}/teams`, {
+            method: 'POST',
+            body: JSON.stringify({ name }),
+        });
+    }
+
+    async updateTeam(teamId: number, name: string): Promise<any> {
+        return this.request<any>(`/api/tournaments/teams/${teamId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ name }),
+        });
+    }
+
+    async deleteTeam(teamId: number): Promise<any> {
+        return this.request<any>(`/api/tournaments/teams/${teamId}`, {
+            method: 'DELETE',
+        });
+    }
+
+    async addPlayerToTeam(teamId: number, userId: number): Promise<any> {
+        return this.request<any>(`/api/tournaments/teams/${teamId}/players`, {
+            method: 'POST',
+            body: JSON.stringify({ user_id: userId }),
+        });
+    }
+
+    async removePlayerFromTeam(teamId: number, playerId: number): Promise<any> {
+        return this.request<any>(`/api/tournaments/teams/${teamId}/players/${playerId}`, {
+            method: 'DELETE',
+        });
+    }
 }
 
 export default new ApiService();
