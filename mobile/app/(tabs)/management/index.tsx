@@ -34,6 +34,9 @@ export default function ManagementDashboard() {
                     <Button mode="contained" icon="card-account-details" style={styles.actionButton} onPress={() => router.push('/management/subscription-plans')}>
                         Subscriptions
                     </Button>
+                    <Button mode="contained" icon="calendar-check" style={styles.actionButton} onPress={() => router.push('/management/attendance')}>
+                        Attendance
+                    </Button>
                     <Button mode="contained" icon="cash-plus" style={styles.actionButton} onPress={() => { }}>
                         Add Fee
                     </Button>

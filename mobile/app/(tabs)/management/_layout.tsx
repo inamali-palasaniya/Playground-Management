@@ -8,6 +8,7 @@ export default function ManagementLayout() {
             <Stack.Screen name="add-user" />
             <Stack.Screen name="subscription-plans" options={{ title: 'Subscription Plans' }} />
             <Stack.Screen name="add-plan" options={{ title: 'Add Plan' }} />
+            <Stack.Screen name="attendance" options={{ title: 'Attendance' }} />
         </Stack>
     );
 }
