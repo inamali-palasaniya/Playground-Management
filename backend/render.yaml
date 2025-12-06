@@ -2,7 +2,7 @@ services:
   - type: web
     name: sports-community-hub-api
     runtime: node
-    buildCommand: npm install && npx prisma generate && npm run build
+    buildCommand: npm install && npx prisma generate
     startCommand: npm start
     envVars:
       - key: NODE_ENV
