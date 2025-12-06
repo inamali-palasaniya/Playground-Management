@@ -1,19 +1,52 @@
-import { View, StyleSheet } from 'react-native';
-import { TextInput, Button, Text } from 'react-native-paper';
+import { View, StyleSheet, Alert } from 'react-native';
+import { TextInput, Button, Text, ActivityIndicator } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import apiService from '../../../services/api.service';
 
 export default function CreateMatch() {
     const router = useRouter();
     const [teamA, setTeamA] = useState('');
     const [teamB, setTeamB] = useState('');
     const [overs, setOvers] = useState('20');
+    const [loading, setLoading] = useState(false);
 
-    const handleStart = () => {
-        // Call API to create match
-        // For now, mock navigation to live scoring
-        const matchId = '123';
-        router.replace(`/scoring/live/${matchId}`);
+    const handleStart = async () => {
+        if (!teamA.trim() || !teamB.trim()) {
+            Alert.alert('Error', 'Please enter both team names');
+            return;
+        }
+
+        const oversNum = parseInt(overs);
+        if (isNaN(oversNum) || oversNum <= 0) {
+            Alert.alert('Error', 'Please enter a valid number of overs');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // For now, we'll use the first tournament from seeded data (ID: 1)
+            // In a real app, you'd let the user select the tournament
+            const match = await apiService.createMatch({
+                tournament_id: 1,
+                team_a_id: 1, // Warriors
+                team_b_id: 2, // Titans
+                start_time: new Date().toISOString(),
+                overs: oversNum,
+            });
+
+            Alert.alert('Success', 'Match created successfully!', [
+                {
+                    text: 'OK',
+                    onPress: () => router.replace(`/scoring/live/${match.id}`),
+                },
+            ]);
+        } catch (error) {
+            console.error('Failed to create match:', error);
+            Alert.alert('Error', 'Failed to create match. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -25,12 +58,14 @@ export default function CreateMatch() {
                 value={teamA}
                 onChangeText={setTeamA}
                 style={styles.input}
+                disabled={loading}
             />
             <TextInput
                 label="Team B Name"
                 value={teamB}
                 onChangeText={setTeamB}
                 style={styles.input}
+                disabled={loading}
             />
             <TextInput
                 label="Overs"
@@ -38,10 +73,16 @@ export default function CreateMatch() {
                 onChangeText={setOvers}
                 keyboardType="numeric"
                 style={styles.input}
+                disabled={loading}
             />
 
-            <Button mode="contained" onPress={handleStart} style={styles.button}>
-                Start Match
+            <Button
+                mode="contained"
+                onPress={handleStart}
+                style={styles.button}
+                disabled={loading}
+            >
+                {loading ? <ActivityIndicator color="white" /> : 'Start Match'}
             </Button>
         </View>
     );

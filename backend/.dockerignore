@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+.env.local
+*.log
+.DS_Store
+prisma.config.ts.bak
+tsconfig.seed.json
+prisma/seed.js
+prisma/seed.ts
+prisma/seed-direct.js
