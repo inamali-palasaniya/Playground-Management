@@ -228,6 +228,34 @@ class ApiService {
     async getFineSummary(userId: number): Promise<any> {
         return this.request<any>(`/api/fines/summary/${userId}`);
     }
+
+    // Payment endpoints
+    async recordPayment(user_id: number, amount: number, payment_method?: string, notes?: string): Promise<any> {
+        return this.request<any>('/api/payments/record', {
+            method: 'POST',
+            body: JSON.stringify({ user_id, amount, payment_method, notes }),
+        });
+    }
+
+    async getOutstandingBalance(userId: number): Promise<any> {
+        return this.request<any>(`/api/payments/balance/${userId}`);
+    }
+
+    async getPaymentHistory(userId: number, startDate?: string, endDate?: string): Promise<any> {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return this.request<any>(`/api/payments/history/${userId}${query}`);
+    }
+
+    async getUserLedger(userId: number, startDate?: string, endDate?: string): Promise<any[]> {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return this.request<any[]>(`/api/payments/ledger/${userId}${query}`);
+    }
 }
 
 export default new ApiService();
