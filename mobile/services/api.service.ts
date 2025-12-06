@@ -41,7 +41,10 @@ interface CreateUserData {
 class ApiService {
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        const url = `${API_BASE_URL}${endpoint}`;
+        console.log('API Request:', url);
+
+        const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           ...options?.headers,
@@ -49,13 +52,23 @@ class ApiService {
         ...options,
       });
 
+        console.log('API Response Status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+          const errorText = await response.text();
+          console.error('API Error Response:', errorText);
+          throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
 
-      return await response.json();
+        const data = await response.json();
+        console.log('API Response Data:', data);
+        return data;
     } catch (error) {
       console.error('API request failed:', error);
+        if (error instanceof Error) {
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+        }
       throw error;
     }
   }
