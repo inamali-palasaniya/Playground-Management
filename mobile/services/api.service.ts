@@ -104,6 +104,58 @@ class ApiService {
       body: JSON.stringify(data),
     });
   }
+
+    // Subscription Plan endpoints
+    async getSubscriptionPlans(): Promise<any[]> {
+        return this.request<any[]>('/api/subscription-plans');
+    }
+
+    async getSubscriptionPlanById(id: number): Promise<any> {
+        return this.request<any>(`/api/subscription-plans/${id}`);
+    }
+
+    async createSubscriptionPlan(data: any): Promise<any> {
+        return this.request<any>('/api/subscription-plans', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async updateSubscriptionPlan(id: number, data: any): Promise<any> {
+        return this.request<any>(`/api/subscription-plans/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async deleteSubscriptionPlan(id: number): Promise<any> {
+        return this.request<any>(`/api/subscription-plans/${id}`, {
+            method: 'DELETE',
+        });
+    }
+
+    // User Subscription endpoints
+    async getUserSubscriptions(userId: number): Promise<any[]> {
+        return this.request<any[]>(`/api/subscriptions/user/${userId}`);
+    }
+
+    async getActiveSubscription(userId: number): Promise<any> {
+        return this.request<any>(`/api/subscriptions/active/${userId}`);
+    }
+
+    async createSubscription(data: any): Promise<any> {
+        return this.request<any>('/api/subscriptions', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async updateSubscriptionStatus(id: number, status: string, end_date?: string): Promise<any> {
+        return this.request<any>(`/api/subscriptions/${id}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status, end_date }),
+        });
+    }
 }
 
 export default new ApiService();
