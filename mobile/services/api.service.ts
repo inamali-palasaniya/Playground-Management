@@ -347,6 +347,44 @@ class ApiService {
             method: 'DELETE',
         });
     }
+
+    // Match endpoints
+    async createMatch(data: any): Promise<any> {
+        return this.request<any>('/api/matches', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async getMatches(tournament_id?: number, status?: string): Promise<any[]> {
+        const params = new URLSearchParams();
+        if (tournament_id) params.append('tournament_id', tournament_id.toString());
+        if (status) params.append('status', status);
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return this.request<any[]>(`/api/matches${query}`);
+    }
+
+    async getMatchById(id: number): Promise<any> {
+        return this.request<any>(`/api/matches/${id}`);
+    }
+
+    async updateMatchStatus(id: number, status: string): Promise<any> {
+        return this.request<any>(`/api/matches/${id}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status }),
+        });
+    }
+
+    async recordBallEvent(matchId: number, data: any): Promise<any> {
+        return this.request<any>(`/api/matches/${matchId}/ball-event`, {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async getLiveScore(matchId: number): Promise<any> {
+        return this.request<any>(`/api/matches/${matchId}/live-score`);
+    }
 }
 
 export default new ApiService();
