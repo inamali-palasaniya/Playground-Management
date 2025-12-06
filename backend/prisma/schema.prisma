@@ -13,16 +13,18 @@ enum UserRole {
   NORMAL
 }
 
-enum FeeType {
+enum LedgerType {
   DAILY_FEE
+  MONTHLY_FEE
   FINE
-  MONTHLY_ARREARS
   PAYMENT
+  DEPOSIT
 }
 
 enum SubscriptionStatus {
   ACTIVE
   EXPIRED
+  CANCELLED
 }
 
 enum MatchStatus {
@@ -66,12 +68,13 @@ model User {
 }
 
 model SubscriptionPlan {
-  id                  Int     @id @default(autoincrement())
-  name                String
-  rate_daily          Float
-  rate_monthly        Float
-  is_deposit_required Boolean @default(false)
+  id                  Int            @id @default(autoincrement())
+  name                String         @unique
+  rate_daily          Float?
+  rate_monthly        Float?
+  is_deposit_required Boolean        @default(false)
   subscriptions       Subscription[]
+  createdAt           DateTime       @default(now())
 }
 
 model Subscription {
@@ -82,35 +85,50 @@ model Subscription {
   plan        SubscriptionPlan   @relation(fields: [plan_id], references: [id])
   start_date  DateTime
   end_date    DateTime?
-  amount_paid Float              @default(0.0)
+  amount_paid Float
   status      SubscriptionStatus @default(ACTIVE)
+  createdAt   DateTime           @default(now())
+  
+  @@index([user_id])
+  @@index([plan_id])
 }
 
 model Attendance {
   id                Int      @id @default(autoincrement())
   user_id           Int
   user              User     @relation(fields: [user_id], references: [id])
-  date              DateTime @default(now())
+  date              DateTime @db.Date
   is_present        Boolean  @default(true)
-  daily_fee_charged Float    @default(0.0)
+  daily_fee_charged Float?
+  createdAt         DateTime @default(now())
+  
+  @@unique([user_id, date])
+  @@index([user_id])
+  @@index([date])
 }
 
 model FeeLedger {
-  id      Int      @id @default(autoincrement())
-  user_id Int
-  user    User     @relation(fields: [user_id], references: [id])
-  type    FeeType
-  amount  Float // Positive for charges, Negative for payments (or handle via logic)
-  date    DateTime @default(now())
-  is_paid Boolean  @default(false)
+  id        Int        @id @default(autoincrement())
+  user_id   Int
+  user      User       @relation(fields: [user_id], references: [id])
+  type      LedgerType
+  amount    Float
+  date      DateTime   @default(now())
+  is_paid   Boolean    @default(false)
+  notes     String?
+  createdAt DateTime   @default(now())
+  
+  @@index([user_id])
+  @@index([is_paid])
 }
 
 model FineRule {
   id                    Int        @id @default(autoincrement())
-  name                  String
+  name                  String     @unique
   first_time_fine       Float
-  subsequent_multiplier Float      @default(1.0)
+  subsequent_multiplier Float      @default(1)
   fines                 UserFine[]
+  createdAt             DateTime   @default(now())
 }
 
 model UserFine {
@@ -122,6 +140,10 @@ model UserFine {
   date           DateTime @default(now())
   occurrence     Int      @default(1)
   amount_charged Float
+  createdAt      DateTime @default(now())
+  
+  @@index([user_id])
+  @@index([rule_id])
 }
 
 model Expense {
