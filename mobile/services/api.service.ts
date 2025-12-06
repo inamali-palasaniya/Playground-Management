@@ -184,6 +184,50 @@ class ApiService {
         const query = params.toString() ? `?${params.toString()}` : '';
         return this.request<any>(`/api/attendance/summary/${userId}${query}`);
     }
+
+    // Fine endpoints
+    async getFineRules(): Promise<any[]> {
+        return this.request<any[]>('/api/fines/rules');
+    }
+
+    async getFineRuleById(id: number): Promise<any> {
+        return this.request<any>(`/api/fines/rules/${id}`);
+    }
+
+    async createFineRule(data: any): Promise<any> {
+        return this.request<any>('/api/fines/rules', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async updateFineRule(id: number, data: any): Promise<any> {
+        return this.request<any>(`/api/fines/rules/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async deleteFineRule(id: number): Promise<any> {
+        return this.request<any>(`/api/fines/rules/${id}`, {
+            method: 'DELETE',
+        });
+    }
+
+    async applyFine(user_id: number, rule_id: number): Promise<any> {
+        return this.request<any>('/api/fines/apply', {
+            method: 'POST',
+            body: JSON.stringify({ user_id, rule_id }),
+        });
+    }
+
+    async getUserFines(userId: number): Promise<any[]> {
+        return this.request<any[]>(`/api/fines/user/${userId}`);
+    }
+
+    async getFineSummary(userId: number): Promise<any> {
+        return this.request<any>(`/api/fines/summary/${userId}`);
+    }
 }
 
 export default new ApiService();

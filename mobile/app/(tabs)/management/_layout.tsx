@@ -9,6 +9,9 @@ export default function ManagementLayout() {
             <Stack.Screen name="subscription-plans" options={{ title: 'Subscription Plans' }} />
             <Stack.Screen name="add-plan" options={{ title: 'Add Plan' }} />
             <Stack.Screen name="attendance" options={{ title: 'Attendance' }} />
+            <Stack.Screen name="fine-rules" options={{ title: 'Fine Rules' }} />
+            <Stack.Screen name="add-fine-rule" options={{ title: 'Add Fine Rule' }} />
+            <Stack.Screen name="apply-fine" options={{ title: 'Apply Fine' }} />
         </Stack>
     );
 }

@@ -1,0 +1,179 @@
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { Text, Button, ActivityIndicator, Card, Chip } from 'react-native-paper';
+import { Picker } from '@react-native-picker/picker';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'expo-router';
+import apiService from '../../../services/api.service';
+
+export default function ApplyFineScreen() {
+  const router = useRouter();
+  const [users, setUsers] = useState<any[]>([]);
+  const [rules, setRules] = useState<any[]>([]);
+  const [selectedUser, setSelectedUser] = useState<number | null>(null);
+  const [selectedRule, setSelectedRule] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [applying, setApplying] = useState(false);
+  const [finePreview, setFinePreview] = useState<any>(null);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (selectedUser && selectedRule) {
+      calculateFinePreview();
+    }
+  }, [selectedUser, selectedRule]);
+
+  const fetchData = async () => {
+    try {
+      const [usersData, rulesData] = await Promise.all([
+        apiService.getUsers(),
+        apiService.getFineRules(),
+      ]);
+      setUsers(usersData);
+      setRules(rulesData);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateFinePreview = async () => {
+    if (!selectedUser || !selectedRule) return;
+
+    try {
+      const rule = rules.find(r => r.id === selectedRule);
+      const userFines = await apiService.getUserFines(selectedUser);
+      const previousOccurrences = userFines.filter(f => f.rule_id === selectedRule).length;
+      const occurrence = previousOccurrences + 1;
+
+      let amount: number;
+      if (occurrence === 1) {
+        amount = rule.first_time_fine;
+      } else {
+        amount = rule.first_time_fine * Math.pow(rule.subsequent_multiplier, occurrence - 1);
+      }
+
+      setFinePreview({ occurrence, amount, rule });
+    } catch (error) {
+      console.error('Failed to calculate preview:', error);
+    }
+  };
+
+  const handleApplyFine = async () => {
+    if (!selectedUser || !selectedRule) {
+      Alert.alert('Error', 'Please select both user and fine rule');
+      return;
+    }
+
+    Alert.alert(
+      'Confirm Fine',
+      `Apply fine of ₹${finePreview?.amount} to ${users.find(u => u.id === selectedUser)?.name}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Apply',
+          onPress: async () => {
+            setApplying(true);
+            try {
+              await apiService.applyFine(selectedUser, selectedRule);
+              Alert.alert('Success', 'Fine applied successfully');
+              router.back();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to apply fine');
+            } finally {
+              setApplying(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.form}>
+        <Text variant="headlineSmall" style={styles.title}>Apply Fine</Text>
+
+        <Text variant="titleMedium" style={styles.label}>Select User</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={selectedUser}
+            onValueChange={(value) => setSelectedUser(value)}
+          >
+            <Picker.Item label="Select a user..." value={null} />
+            {users.map(user => (
+              <Picker.Item key={user.id} label={user.name} value={user.id} />
+            ))}
+          </Picker>
+        </View>
+
+        <Text variant="titleMedium" style={styles.label}>Select Fine Rule</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={selectedRule}
+            onValueChange={(value) => setSelectedRule(value)}
+          >
+            <Picker.Item label="Select a rule..." value={null} />
+            {rules.map(rule => (
+              <Picker.Item key={rule.id} label={rule.name} value={rule.id} />
+            ))}
+          </Picker>
+        </View>
+
+        {finePreview && (
+          <Card style={styles.previewCard}>
+            <Card.Content>
+              <Text variant="titleMedium">Fine Details</Text>
+              <View style={styles.detailsRow}>
+                <Chip icon="alert">Occurrence: {finePreview.occurrence}</Chip>
+                <Chip icon="cash">Amount: ₹{finePreview.amount}</Chip>
+              </View>
+              <Text variant="bodySmall" style={styles.ruleInfo}>
+                Rule: {finePreview.rule.name} (₹{finePreview.rule.first_time_fine} × {finePreview.rule.subsequent_multiplier}x)
+              </Text>
+            </Card.Content>
+          </Card>
+        )}
+
+        <Button
+          mode="contained"
+          onPress={handleApplyFine}
+          loading={applying}
+          disabled={!selectedUser || !selectedRule || applying}
+          style={styles.button}
+        >
+          Apply Fine
+        </Button>
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#fff' },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  form: { padding: 20 },
+  title: { marginBottom: 20 },
+  label: { marginTop: 10, marginBottom: 5 },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    marginBottom: 15,
+  },
+  previewCard: { marginVertical: 20, backgroundColor: '#E3F2FD' },
+  detailsRow: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  ruleInfo: { marginTop: 10, color: '#666' },
+  button: { marginTop: 20 },
+});

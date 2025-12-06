@@ -37,6 +37,12 @@ export default function ManagementDashboard() {
                     <Button mode="contained" icon="calendar-check" style={styles.actionButton} onPress={() => router.push('/management/attendance')}>
                         Attendance
                     </Button>
+                    <Button mode="contained" icon="gavel" style={styles.actionButton} onPress={() => router.push('/management/fine-rules')}>
+                        Fine Rules
+                    </Button>
+                    <Button mode="contained" icon="alert-circle" style={styles.actionButton} buttonColor="#FF9800" onPress={() => router.push('/management/apply-fine')}>
+                        Apply Fine
+                    </Button>
                     <Button mode="contained" icon="cash-plus" style={styles.actionButton} onPress={() => { }}>
                         Add Fee
                     </Button>
