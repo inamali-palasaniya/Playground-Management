@@ -1,5 +1,5 @@
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
-import { Text, Card, Avatar, Button, DataTable, ActivityIndicator, Divider } from 'react-native-paper';
+import { Text, Card, Avatar, Button, DataTable, ActivityIndicator, Divider, Chip } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import apiService from '../../../../services/api.service';

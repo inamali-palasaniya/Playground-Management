@@ -22,6 +22,7 @@ import expenseRoutes from './routes/expense.routes';
 import matchRoutes from './routes/match.routes';
 import { WebSocketServer } from 'ws';
 import http from 'http';
+import reportRoutes from './routes/report.routes';
 
 app.use('/api/users', userRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
@@ -33,13 +34,31 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/tournaments', tournamentRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/matches', matchRoutes);
+app.use('/api/reports', reportRoutes);
 
 app.get('/', (req, res) => {
     res.send('Sports Community Hub API');
 });
 
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server });
+export const wss = new WebSocketServer({ server });
+
+// WebSocket Control Endpoints
+app.post('/api/admin/websocket/stop', (req, res) => {
+    wss.close();
+    res.json({ message: 'WebSocket server stopped' });
+});
+
+app.post('/api/admin/websocket/start', (req, res) => {
+    // Note: 'ws' library doesn't support 'start' after 'close' easily on the same instance attached to http server
+    // We would need to re-instantiate or just close clients.
+    // However, if we just want to stop NEW connections:
+    // wss.shouldHandle = () => false; 
+
+    // For simplicity given the library constraints, we'll implement a 'disconnect all' feature
+    wss.clients.forEach(client => client.close());
+    res.json({ message: 'All WebSocket clients disconnected' });
+});
 
 import { processBallEvent } from './services/scoring.service';
 

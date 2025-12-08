@@ -390,6 +390,24 @@ class ApiService {
     async getMatchStats(matchId: number): Promise<any> {
         return this.request<any>(`/api/matches/${matchId}/stats`);
     }
+
+    // Reports
+    async downloadFinancialReport(startDate: string, endDate: string): Promise<string> {
+        return `${API_BASE_URL}/api/reports/financial?startDate=${startDate}&endDate=${endDate}`;
+    }
+
+    async downloadUserReport(): Promise<string> {
+        return `${API_BASE_URL}/api/reports/users`;
+    }
+
+    // Admin Controls
+    async stopWebSocketServer(): Promise<any> {
+        return this.request<any>('/api/admin/websocket/stop', { method: 'POST' });
+    }
+
+    async startWebSocketServer(): Promise<any> {
+        return this.request<any>('/api/admin/websocket/start', { method: 'POST' });
+    }
 }
 
 export default new ApiService();

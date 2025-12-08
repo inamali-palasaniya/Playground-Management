@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { processBallEvent } from '../services/scoring.service';
 
 // Match CRUD
 export const createMatch = async (req: Request, res: Response) => {
@@ -158,23 +159,17 @@ export const recordBallEvent = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Required fields missing' });
         }
 
-        const ballEvent = await prisma.ballEvent.create({
-            data: {
-                match_id: parseInt(match_id),
-                over_number: parseInt(over_number),
-                ball_number: parseInt(ball_number),
-                bowler_id: parseInt(bowler_id),
-                striker_id: parseInt(striker_id),
-                runs_scored: runs_scored ? parseInt(runs_scored) : 0,
-                is_wicket: is_wicket || false,
-                wicket_type: wicket_type || null,
-                extras: extras ? parseInt(extras) : 0,
-                extra_type: extra_type || null,
-            },
-            include: {
-                bowler: { select: { id: true, name: true } },
-                striker: { select: { id: true, name: true } },
-            },
+        const ballEvent = await processBallEvent({
+            matchId: parseInt(match_id),
+            overNumber: parseInt(over_number),
+            ballNumber: parseInt(ball_number),
+            bowlerId: parseInt(bowler_id),
+            strikerId: parseInt(striker_id),
+            runsScored: runs_scored ? parseInt(runs_scored) : 0,
+            isWicket: is_wicket || false,
+            wicketType: wicket_type || undefined,
+            extras: extras ? parseInt(extras) : 0,
+            extraType: extra_type || undefined,
         });
 
         res.status(201).json(ballEvent);

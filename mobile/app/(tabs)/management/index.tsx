@@ -49,7 +49,7 @@ export default function ManagementDashboard() {
                     <Button mode="contained" icon="cash-minus" style={styles.actionButton} buttonColor={theme.colors.error} onPress={() => { }}>
                         Add Expense
                     </Button>
-                    <Button mode="outlined" icon="file-document" style={styles.actionButton} onPress={() => { }}>
+                    <Button mode="outlined" icon="file-document" style={styles.actionButton} onPress={() => router.push('/management/reports')}>
                         Reports
                     </Button>
                 </Card.Content>
