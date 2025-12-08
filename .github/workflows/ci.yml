@@ -17,13 +17,12 @@ jobs:
         DIRECT_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: '20'
-      - run: npm ci
-      - run: npx prisma generate
-      - run: npx tsc --noEmit
+          bun-version: latest
+      - run: bun install
+      - run: bunx prisma generate
+      - run: bun run tsc --noEmit
 
   mobile-check:
     runs-on: ubuntu-latest
@@ -32,12 +31,12 @@ jobs:
         working-directory: ./mobile
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - name: Use Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: '20'
-      - run: npm ci --legacy-peer-deps
-      - run: npx tsc --noEmit
+          bun-version: latest
+      - run: bun install
+      - run: bun run tsc --noEmit
 
   deploy-db:
     needs: [backend-check]
@@ -48,13 +47,13 @@ jobs:
         working-directory: ./backend
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - name: Use Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: '20'
-      - run: npm ci
+          bun-version: latest
+      - run: bun install
       - name: Run Prisma Migrations
-        run: npx prisma migrate deploy
+        run: bunx prisma migrate deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
