@@ -73,21 +73,7 @@ class ApiService {
     }
   }
 
-  // Match endpoints
-  async getMatches(): Promise<Match[]> {
-    return this.request<Match[]>(API_ENDPOINTS.matches);
-  }
 
-  async getMatchById(id: number): Promise<Match> {
-    return this.request<Match>(`${API_ENDPOINTS.matches}/${id}`);
-  }
-
-  async createMatch(data: CreateMatchData): Promise<Match> {
-    return this.request<Match>(API_ENDPOINTS.matches, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
 
   // User endpoints
   async getUsers(): Promise<User[]> {
@@ -384,6 +370,25 @@ class ApiService {
 
     async getLiveScore(matchId: number): Promise<any> {
         return this.request<any>(`/api/matches/${matchId}/live-score`);
+    }
+
+    // Match Analytics endpoints
+    async setManOfTheMatch(matchId: number, userId: number): Promise<any> {
+        return this.request<any>(`/api/matches/${matchId}/awards`, {
+            method: 'PUT',
+            body: JSON.stringify({ user_id: userId }),
+        });
+    }
+
+    async setManOfTheSeries(tournamentId: number, userId: number): Promise<any> {
+        return this.request<any>(`/api/tournaments/${tournamentId}/awards`, {
+            method: 'PUT',
+            body: JSON.stringify({ user_id: userId }),
+        });
+    }
+
+    async getMatchStats(matchId: number): Promise<any> {
+        return this.request<any>(`/api/matches/${matchId}/stats`);
     }
 }
 

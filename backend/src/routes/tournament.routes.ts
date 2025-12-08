@@ -12,6 +12,7 @@ import {
   addPlayerToTeam,
   removePlayerFromTeam,
 } from '../controllers/tournament.controller';
+import { setManOfTheSeries } from '../controllers/match-analytics.controller';
 
 const router = Router();
 
@@ -31,5 +32,8 @@ router.delete('/teams/:teamId', deleteTeam);
 // Player assignment
 router.post('/teams/:teamId/players', addPlayerToTeam);
 router.delete('/teams/:teamId/players/:playerId', removePlayerFromTeam);
+
+// Awards
+router.put('/:id/awards', setManOfTheSeries);
 
 export default router;

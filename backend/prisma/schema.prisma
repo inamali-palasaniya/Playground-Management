@@ -65,6 +65,14 @@ model User {
   
   // Scoring Module Relations
   player_teams   TeamPlayer[]
+  
+  // Ball Event Relations
+  bowled_balls   BallEvent[] @relation("Bowler")
+  faced_balls    BallEvent[] @relation("Striker")
+  
+  // Awards
+  matches_won_motm    Match[]      @relation("ManOfTheMatch")
+  series_won_mots     Tournament[] @relation("ManOfTheSeries")
 }
 
 model SubscriptionPlan {
@@ -166,6 +174,8 @@ model Tournament {
   end_date   DateTime?
   matches    Match[]
   teams      Team[]
+  man_of_the_series_id Int?
+  man_of_the_series    User?    @relation("ManOfTheSeries", fields: [man_of_the_series_id], references: [id])
 }
 
 model Team {
@@ -202,6 +212,8 @@ model Match {
   // For simplicity, we might store current score in Match or separate Score table
   // But for a full system, we need Ball-by-Ball
   ball_events   BallEvent[]
+  man_of_the_match_id Int?
+  man_of_the_match    User?    @relation("ManOfTheMatch", fields: [man_of_the_match_id], references: [id])
 }
 
 model BallEvent {
@@ -210,8 +222,10 @@ model BallEvent {
   match        Match    @relation(fields: [match_id], references: [id])
   over_number  Int
   ball_number  Int
-  bowler_id    Int // References User/Player
-  striker_id   Int // References User/Player
+  bowler_id    Int
+  bowler       User @relation("Bowler", fields: [bowler_id], references: [id])
+  striker_id   Int
+  striker      User @relation("Striker", fields: [striker_id], references: [id])
   runs_scored  Int      @default(0)
   is_wicket    Boolean  @default(false)
   wicket_type  String?
