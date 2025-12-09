@@ -46,15 +46,24 @@ export default function ApplyFineScreen() {
 
     try {
       const rule = rules.find(r => r.id === selectedRule);
+      if (!rule) return;
+
       const userFines = await apiService.getUserFines(selectedUser);
-      const previousOccurrences = userFines.filter(f => f.rule_id === selectedRule).length;
+      // Ensure we count previous occurrences correctly
+      const previousOccurrences = userFines.filter((f: any) => f.rule_id === selectedRule).length;
       const occurrence = previousOccurrences + 1;
 
       let amount: number;
       if (occurrence === 1) {
-        amount = rule.first_time_fine;
+        amount = Number(rule.first_time_fine);
       } else {
-        amount = rule.first_time_fine * Math.pow(rule.subsequent_multiplier, occurrence - 1);
+        const multiplier = Number(rule.subsequent_multiplier) || 1;
+        amount = Number(rule.first_time_fine) * Math.pow(multiplier, occurrence - 1);
+      }
+
+      if (isNaN(amount)) {
+        console.error("Calculated amount is NaN", { rule, occurrence });
+        amount = 0;
       }
 
       setFinePreview({ occurrence, amount, rule });
@@ -189,7 +198,7 @@ export default function ApplyFineScreen() {
           mode="contained"
           onPress={handleApplyFine}
           loading={applying}
-          disabled={!selectedUser || !selectedRule || applying}
+          disabled={!selectedUser || !selectedRule || applying || !finePreview}
           style={styles.button}
         >
           Apply Fine

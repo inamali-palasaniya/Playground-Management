@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/prisma';
+import prisma from '../utils/prisma.js';
 
 // Financial Summary
 export const getFinancialSummary = async (req: Request, res: Response) => {
@@ -149,7 +149,7 @@ export const getIncomeExpenseReport = async (req: Request, res: Response) => {
     });
 
     // Group by category
-    const expensesByCategory = expenses.reduce((acc: any, exp) => {
+    const expensesByCategory = expenses.reduce((acc: any, exp: any) => {
       if (!acc[exp.category]) {
         acc[exp.category] = 0;
       }
@@ -158,8 +158,8 @@ export const getIncomeExpenseReport = async (req: Request, res: Response) => {
     }, {});
 
     res.json({
-      total_income: income.reduce((sum, i) => sum + i.amount, 0),
-      total_expenses: expenses.reduce((sum, e) => sum + e.amount, 0),
+      total_income: income.reduce((sum: number, i: any) => sum + i.amount, 0),
+      total_expenses: expenses.reduce((sum: number, e: any) => sum + e.amount, 0),
       expenses_by_category: expensesByCategory,
       income_data: income,
       expense_data: expenses,

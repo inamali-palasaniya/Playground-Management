@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/prisma';
-import { calculateBattingStats, calculateBowlingStats } from '../services/analytics.service';
+import prisma from '../utils/prisma.js';
+import { calculateBattingStats, calculateBowlingStats } from '../services/analytics.service.js';
 
 // Awards
 export const setManOfTheMatch = async (req: Request, res: Response) => {

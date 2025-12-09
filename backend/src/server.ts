@@ -10,19 +10,19 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-import userRoutes from './routes/user.routes';
-import subscriptionRoutes from './routes/subscription.routes';
-import subscriptionPlanRoutes from './routes/subscription-plan.routes';
-import attendanceRoutes from './routes/attendance.routes';
-import fineRoutes from './routes/fine.routes';
-import paymentRoutes from './routes/payment.routes';
-import analyticsRoutes from './routes/analytics.routes';
-import tournamentRoutes from './routes/tournament.routes';
-import expenseRoutes from './routes/expense.routes';
-import matchRoutes from './routes/match.routes';
+import userRoutes from './routes/user.routes.js';
+import subscriptionRoutes from './routes/subscription.routes.js';
+import subscriptionPlanRoutes from './routes/subscription-plan.routes.js';
+import attendanceRoutes from './routes/attendance.routes.js';
+import fineRoutes from './routes/fine.routes.js';
+import paymentRoutes from './routes/payment.routes.js';
+import analyticsRoutes from './routes/analytics.routes.js';
+import tournamentRoutes from './routes/tournament.routes.js';
+import expenseRoutes from './routes/expense.routes.js';
+import matchRoutes from './routes/match.routes.js';
 import { WebSocketServer } from 'ws';
 import http from 'http';
-import reportRoutes from './routes/report.routes';
+import reportRoutes from './routes/report.routes.js';
 
 app.use('/api/users', userRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
@@ -60,7 +60,7 @@ app.post('/api/admin/websocket/start', (req, res) => {
     res.json({ message: 'All WebSocket clients disconnected' });
 });
 
-import { processBallEvent } from './services/scoring.service';
+import { processBallEvent } from './services/scoring.service.js';
 
 wss.on('connection', (ws) => {
     console.log('New client connected');

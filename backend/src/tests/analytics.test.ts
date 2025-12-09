@@ -1,4 +1,4 @@
-import { calculateBattingStats, calculateBowlingStats } from '../services/analytics.service';
+import { calculateBattingStats, calculateBowlingStats } from '../services/analytics.service.js';
 
 const mockBallEvents = [
     {

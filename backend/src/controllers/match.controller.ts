@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/prisma';
-import { processBallEvent } from '../services/scoring.service';
+import prisma from '../utils/prisma.js';
+import { processBallEvent } from '../services/scoring.service.js';
 
 // Match CRUD
 export const createMatch = async (req: Request, res: Response) => {
@@ -196,8 +196,8 @@ export const getLiveScore = async (req: Request, res: Response) => {
         }
 
         // Calculate score
-        const totalRuns = match.ball_events.reduce((sum, ball) => sum + ball.runs_scored + ball.extras, 0);
-        const totalWickets = match.ball_events.filter(ball => ball.is_wicket).length;
+        const totalRuns = match.ball_events.reduce((sum: number, ball: any) => sum + ball.runs_scored + ball.extras, 0);
+        const totalWickets = match.ball_events.filter((ball: any) => ball.is_wicket).length;
         const totalBalls = match.ball_events.length;
         const overs = Math.floor(totalBalls / 6) + (totalBalls % 6) / 10;
 

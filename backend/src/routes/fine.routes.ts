@@ -8,7 +8,7 @@ import {
   applyFine,
   getUserFines,
   getFineSummary,
-} from '../controllers/fine.controller';
+} from '../controllers/fine.controller.js';
 
 const router = Router();
 

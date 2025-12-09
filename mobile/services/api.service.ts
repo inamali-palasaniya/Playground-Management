@@ -39,6 +39,21 @@ interface CreateUserData {
 }
 
 class ApiService {
+    private currentUser: User | null = null;
+
+    setCurrentUser(user: User | null) {
+        this.currentUser = user;
+        console.log('User logged in:', user?.name);
+    }
+
+    getCurrentUser(): User | null {
+        return this.currentUser;
+    }
+
+    isManagement(): boolean {
+        return this.currentUser?.role === 'MANAGEMENT';
+    }
+
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     try {
         const url = `${API_BASE_URL}${endpoint}`;

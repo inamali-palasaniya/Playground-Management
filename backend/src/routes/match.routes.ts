@@ -6,11 +6,11 @@ import {
     updateMatchStatus,
     recordBallEvent,
     getLiveScore,
-} from '../controllers/match.controller';
+} from '../controllers/match.controller.js';
 import {
     setManOfTheMatch,
     getMatchStats
-} from '../controllers/match-analytics.controller';
+} from '../controllers/match-analytics.controller.js';
 
 const router = Router();
 

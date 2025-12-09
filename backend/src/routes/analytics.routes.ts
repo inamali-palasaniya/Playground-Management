@@ -3,7 +3,7 @@ import {
   getFinancialSummary,
   getAttendanceStats,
   getIncomeExpenseReport,
-} from '../controllers/analytics.controller';
+} from '../controllers/analytics.controller.js';
 
 const router = Router();
 

@@ -4,7 +4,7 @@ import {
   getOutstandingBalance,
   getPaymentHistory,
   getUserLedger,
-} from '../controllers/payment.controller';
+} from '../controllers/payment.controller.js';
 
 const router = Router();
 

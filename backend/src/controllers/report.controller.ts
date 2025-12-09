@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/prisma';
+import prisma from '../utils/prisma.js';
 import ExcelJS from 'exceljs';
 import { format } from 'date-fns';
 
@@ -39,7 +39,7 @@ export const getFinancialReport = async (req: Request, res: Response) => {
       { header: 'Notes', key: 'notes', width: 30 },
     ];
 
-    ledger.forEach((entry) => {
+    ledger.forEach((entry: any) => {
       worksheet.addRow({
         date: format(new Date(entry.date), 'yyyy-MM-dd'),
         user: entry.user.name,
@@ -86,7 +86,7 @@ export const getUserReport = async (req: Request, res: Response) => {
       { header: 'Deposit', key: 'deposit', width: 15 },
     ];
 
-    users.forEach((user) => {
+    users.forEach((user: any) => {
       worksheet.addRow({
         id: user.id,
         name: user.name,

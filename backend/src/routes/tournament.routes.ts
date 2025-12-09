@@ -11,8 +11,8 @@ import {
   deleteTeam,
   addPlayerToTeam,
   removePlayerFromTeam,
-} from '../controllers/tournament.controller';
-import { setManOfTheSeries } from '../controllers/match-analytics.controller';
+} from '../controllers/tournament.controller.js';
+import { setManOfTheSeries } from '../controllers/match-analytics.controller.js';
 
 const router = Router();
 

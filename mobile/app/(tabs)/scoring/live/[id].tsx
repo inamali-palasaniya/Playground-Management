@@ -3,18 +3,39 @@ import { Text, Button, Card, Divider } from 'react-native-paper';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState, useRef } from 'react';
 
+import Constants from 'expo-constants';
+
 export default function LiveScoring() {
     const { id } = useLocalSearchParams();
-    const [score, setScore] = useState({ runs: 0, wickets: 0, overs: 0, balls: 0 });
+    const [score, setScore] = useState({ runs: 0, wickets: 0, overs: 0, balls: 0 }); // Init overs to max? No, current over.
+    const [isConnected, setIsConnected] = useState(false);
     const ws = useRef<WebSocket | null>(null);
 
+    const getWsUrl = () => {
+        // Use the same host as the Expo Go bundler
+        const hostUri = Constants.expoConfig?.hostUri;
+        const ip = hostUri ? hostUri.split(':')[0] : 'localhost';
+        return `ws://${ip}:3000`; // Assuming backend is on port 3000
+    };
+
     useEffect(() => {
-        // Connect to WebSocket
-        // Replace with actual IP if running on device
-        ws.current = new WebSocket('ws://localhost:3000');
+        const wsUrl = getWsUrl();
+        console.log('Connecting to WS:', wsUrl);
+        ws.current = new WebSocket(wsUrl);
 
         ws.current.onopen = () => {
             console.log('Connected to scoring server');
+            setIsConnected(true);
+        };
+
+        ws.current.onclose = () => {
+            console.log('Disconnected from scoring server');
+            setIsConnected(false);
+        };
+
+        ws.current.onerror = (e) => {
+            console.log('WS Error:', e);
+        // setIsConnected(false);
         };
 
         ws.current.onmessage = (e) => {
@@ -65,6 +86,9 @@ export default function LiveScoring() {
                 <Card.Content style={styles.scoreCardContent}>
                     <Text variant="headlineLarge" style={styles.scoreText}>{score.runs}/{score.wickets}</Text>
                     <Text variant="titleMedium" style={styles.oversText}>Overs: {score.overs}.{score.balls}</Text>
+                    <Text variant="bodySmall" style={{ color: isConnected ? 'green' : 'orange' }}>
+                        {isConnected ? '● Live' : '○ Connecting...'}
+                    </Text>
                 </Card.Content>
             </Card>
 

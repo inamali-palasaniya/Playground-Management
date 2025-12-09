@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/prisma';
+import prisma from '../utils/prisma.js';
 
 // Tournament CRUD
 export const getTournaments = async (req: Request, res: Response) => {

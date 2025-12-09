@@ -4,7 +4,7 @@ import {
   getUserAttendance,
   getAttendanceByDate,
   getAttendanceSummary,
-} from '../controllers/attendance.controller';
+} from '../controllers/attendance.controller.js';
 
 const router = Router();
 

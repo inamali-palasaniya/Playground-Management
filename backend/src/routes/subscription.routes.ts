@@ -9,7 +9,7 @@ import {
     getActiveSubscription,
     updateSubscriptionStatus,
     getSubscriptionById,
-} from '../controllers/subscription.controller';
+} from '../controllers/subscription.controller.js';
 
 const router = Router();
 

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/prisma';
+import prisma from '../utils/prisma.js';
 
 // Record Payment
 export const recordPayment = async (req: Request, res: Response) => {
@@ -81,7 +81,7 @@ export const getOutstandingBalance = async (req: Request, res: Response) => {
       outstanding_balance: Math.max(0, outstandingBalance),
       total_charges: totalCharges,
       total_payments: totalPayments,
-      breakdown: breakdown.map(b => ({
+      breakdown: breakdown.map((b: any) => ({
         type: b.type,
         amount: b._sum.amount || 0,
       })),

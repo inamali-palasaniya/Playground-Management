@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createExpense, getExpenses } from '../controllers/expense.controller';
+import { createExpense, getExpenses } from '../controllers/expense.controller.js';
 
 const router = Router();
 

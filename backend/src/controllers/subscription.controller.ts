@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/prisma';
+import prisma from '../utils/prisma.js';
 
 // Subscription Plans
 export const getSubscriptionPlans = async (req: Request, res: Response) => {

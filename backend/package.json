@@ -2,27 +2,30 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "start",
+  "type": "module",
   "scripts": {
-    "dev": "nodemon src/server.ts",
+    "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "migrate": "prisma migrate dev",
+    "generate": "prisma generate",
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "prisma generate && npm run build"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@prisma/adapter-pg": "^7.1.0",
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^7.1.0",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "pg": "^8.16.3",
+    "tsx": "^4.21.0",
     "ws": "^8.18.3"
   },
   "devDependencies": {
@@ -36,12 +39,8 @@
     "jest": "^30.2.0",
     "nodemon": "^3.1.11",
     "npm": "^11.6.4",
-    "prisma": "^5.22.0",
+    "prisma": "^7.1.0",
     "ts-jest": "^29.4.6",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
-  },
-  "prisma": {
-    "seed": "node prisma/seed-direct.js"
+    "ts-node": "^10.9.2"
   }
 }

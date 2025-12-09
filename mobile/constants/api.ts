@@ -1,6 +1,5 @@
-// Using Render deployment (works from anywhere, no network issues)
-// Note: First request after 15min inactivity takes 30-60s (free tier cold start)
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://playground-management-nal2.onrender.com';
+// Using Local backend for debugging (Render deployment seems stale)
+export const API_BASE_URL = 'http://192.168.0.180:3000';
 
 export const API_ENDPOINTS = {
     matches: '/api/matches',
