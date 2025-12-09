@@ -192,7 +192,8 @@ export default function UserDetailScreen() {
                         {...props}
                         indicatorStyle={{ backgroundColor: theme.colors.primary }}
                         style={{ backgroundColor: 'white' }}
-                        labelStyle={{ color: 'black' }}
+                        activeColor="black"
+                        inactiveColor="gray"
                     />
                 )}
             />
