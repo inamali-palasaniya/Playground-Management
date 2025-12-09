@@ -54,8 +54,8 @@ jobs:
         with:
           node-version: '20'
       - run: npm ci
-      - name: Run Prisma Migrations
-        run: npx prisma migrate deploy
+      - name: Push Schema directly
+        run: npx prisma db push
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
