@@ -46,7 +46,7 @@ export const createMatch = async (req: Request, res: Response) => {
       res.status(201).json(match);
   } catch (error) {
       console.error('Error creating match:', error);
-      res.status(500).json({ error: 'Failed to create match' });
+        res.status(500).json({ error: 'Failed to create match', details: error instanceof Error ? error.message : String(error) });
   }
 };
 
@@ -71,7 +71,7 @@ export const getMatches = async (req: Request, res: Response) => {
       res.json(matches);
   } catch (error) {
       console.error('Error fetching matches:', error);
-      res.status(500).json({ error: 'Failed to fetch matches' });
+        res.status(500).json({ error: 'Failed to fetch matches', details: error instanceof Error ? error.message : String(error) });
   }
 };
 

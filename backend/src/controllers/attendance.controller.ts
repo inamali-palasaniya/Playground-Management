@@ -82,7 +82,7 @@ export const checkIn = async (req: Request, res: Response) => {
     res.status(201).json(attendance);
   } catch (error) {
     console.error('Error checking in:', error);
-    res.status(500).json({ error: 'Failed to check in' });
+    res.status(500).json({ error: 'Failed to check in', details: error instanceof Error ? error.message : String(error) });
   }
 };
 
@@ -109,7 +109,7 @@ export const getUserAttendance = async (req: Request, res: Response) => {
     res.json(attendance);
   } catch (error) {
     console.error('Error fetching user attendance:', error);
-    res.status(500).json({ error: 'Failed to fetch attendance' });
+    res.status(500).json({ error: 'Failed to fetch attendance', details: error instanceof Error ? error.message : String(error) });
   }
 };
 
@@ -134,7 +134,7 @@ export const getAttendanceByDate = async (req: Request, res: Response) => {
     res.json(attendance);
   } catch (error) {
     console.error('Error fetching attendance by date:', error);
-    res.status(500).json({ error: 'Failed to fetch attendance' });
+    res.status(500).json({ error: 'Failed to fetch attendance', details: error instanceof Error ? error.message : String(error) });
   }
 };
 

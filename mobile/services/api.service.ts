@@ -408,6 +408,18 @@ class ApiService {
     async startWebSocketServer(): Promise<any> {
         return this.request<any>('/api/admin/websocket/start', { method: 'POST' });
     }
+
+    // Expenses
+    async createExpense(data: any): Promise<any> {
+        return this.request<any>('/api/expenses', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async getExpenses(): Promise<any[]> {
+        return this.request<any[]>('/api/expenses');
+    }
 }
 
 export default new ApiService();

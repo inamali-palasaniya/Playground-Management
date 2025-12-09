@@ -43,10 +43,10 @@ export default function ManagementDashboard() {
                     <Button mode="contained" icon="alert-circle" style={styles.actionButton} buttonColor="#FF9800" onPress={() => router.push('/management/apply-fine')}>
                         Apply Fine
                     </Button>
-                    <Button mode="contained" icon="cash-plus" style={styles.actionButton} onPress={() => { }}>
+                    <Button mode="contained" icon="cash-plus" style={styles.actionButton} onPress={() => router.push('/management/add-fee')}>
                         Add Fee
                     </Button>
-                    <Button mode="contained" icon="cash-minus" style={styles.actionButton} buttonColor={theme.colors.error} onPress={() => { }}>
+                    <Button mode="contained" icon="cash-minus" style={styles.actionButton} buttonColor={theme.colors.error} onPress={() => router.push('/management/add-expense')}>
                         Add Expense
                     </Button>
                     <Button mode="outlined" icon="file-document" style={styles.actionButton} onPress={() => router.push('/management/reports')}>

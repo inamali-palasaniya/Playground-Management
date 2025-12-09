@@ -10,7 +10,7 @@ export const getFineRules = async (req: Request, res: Response) => {
     res.json(rules);
   } catch (error) {
     console.error('Error fetching fine rules:', error);
-    res.status(500).json({ error: 'Failed to fetch fine rules' });
+    res.status(500).json({ error: 'Failed to fetch fine rules', details: error instanceof Error ? error.message : String(error) });
   }
 };
 
@@ -166,7 +166,7 @@ export const applyFine = async (req: Request, res: Response) => {
     res.status(201).json(userFine);
   } catch (error) {
     console.error('Error applying fine:', error);
-    res.status(500).json({ error: 'Failed to apply fine' });
+    res.status(500).json({ error: 'Failed to apply fine', details: error instanceof Error ? error.message : String(error) });
   }
 };
 
@@ -186,7 +186,7 @@ export const getUserFines = async (req: Request, res: Response) => {
     res.json(fines);
   } catch (error) {
     console.error('Error fetching user fines:', error);
-    res.status(500).json({ error: 'Failed to fetch user fines' });
+    res.status(500).json({ error: 'Failed to fetch user fines', details: error instanceof Error ? error.message : String(error) });
   }
 };
 

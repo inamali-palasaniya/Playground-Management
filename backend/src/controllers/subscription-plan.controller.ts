@@ -9,7 +9,7 @@ export const getAllPlans = async (req: Request, res: Response) => {
         res.json(plans);
     } catch (error) {
         console.error('Error fetching subscription plans:', error);
-        res.status(500).json({ error: 'Failed to fetch subscription plans' });
+        res.status(500).json({ error: 'Failed to fetch subscription plans', details: error instanceof Error ? error.message : String(error) });
     }
 };
 
@@ -36,7 +36,7 @@ export const getPlanById = async (req: Request, res: Response) => {
         res.json(plan);
     } catch (error) {
         console.error('Error fetching subscription plan:', error);
-        res.status(500).json({ error: 'Failed to fetch subscription plan' });
+        res.status(500).json({ error: 'Failed to fetch subscription plan', details: error instanceof Error ? error.message : String(error) });
     }
 };
 
