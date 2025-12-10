@@ -16,12 +16,17 @@
         "buildType": "apk"
       },
       "env": {
-        "NPM_INSTALL_ARGS": "--legacy-peer-deps"
+        "NPM_INSTALL_ARGS": "--legacy-peer-deps",
+        "EXPO_PUBLIC_API_URL": "https://playground-management-nal2.onrender.com"
       }
     },
     "production": {
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "NPM_INSTALL_ARGS": "--legacy-peer-deps",
+        "EXPO_PUBLIC_API_URL": "https://playground-management-nal2.onrender.com"
       }
     }
   },
