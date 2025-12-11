@@ -3,14 +3,20 @@ import prisma from '../utils/prisma.js';
 
 export const checkIn = async (req: Request, res: Response) => {
   try {
-    const { user_id, date } = req.body;
+    const { user_id, date, lat, lng } = req.body;
+    // Prefer user_id from auth if available, else from body (admin mode or unprotected)
+    // For now keeping user_id from body for flexibility or matching existing API style
+    const targetUserId = user_id ? parseInt(user_id) : (req as any).user?.userId;
+
+    if (!targetUserId) return res.status(400).json({ error: 'User ID required' });
+
     const checkInDate = date ? new Date(date) : new Date();
     checkInDate.setHours(0, 0, 0, 0); // Normalize to start of day
 
     // Check if already checked in for this date
     const existing = await prisma.attendance.findFirst({
       where: {
-        user_id: parseInt(user_id),
+        user_id: targetUserId,
         date: checkInDate,
       },
     });
@@ -23,7 +29,7 @@ export const checkIn = async (req: Request, res: Response) => {
     const now = new Date();
     const activeSubscription = await prisma.subscription.findFirst({
       where: {
-        user_id: parseInt(user_id),
+        user_id: targetUserId,
         status: 'ACTIVE',
         OR: [
           { end_date: null },
@@ -38,24 +44,37 @@ export const checkIn = async (req: Request, res: Response) => {
     let dailyFee = 0;
 
     // Calculate daily fee based on subscription plan
+    // Logic Refinement:
+    // If Plan is Daily Rate -> Charge
+    // If Plan is Monthly Rate (Prepaid/Postpaid) -> Do NOT charge daily
+
     if (activeSubscription?.plan) {
-      // If plan has daily rate, charge it
-      if (activeSubscription.plan.rate_daily) {
+      // Check plan type or check rates
+      // Assuming if rate_daily > 0, it's a daily plan
+      // If rate_daily is 0 or null, and rate_monthly > 0, it's monthly
+
+      if (activeSubscription.plan.rate_daily && activeSubscription.plan.rate_daily > 0) {
         dailyFee = activeSubscription.plan.rate_daily;
+      } else {
+        // Monthly plan or no rate -> 0
+        dailyFee = 0;
       }
-      // If only monthly rate, no daily fee
     } else {
-      // No active subscription - could set a default fee or block check-in
-      // For now, we'll allow check-in with no fee
+      // No active subscription - Should block or charge default?
+      // For now, allow check-in freely or set default fine?
+      // Requirement says "Daily plan selected only". So default to 0 if no plan.
       dailyFee = 0;
     }
 
     // Create attendance record
     const attendance = await prisma.attendance.create({
       data: {
-        user_id: parseInt(user_id),
+        user_id: targetUserId,
         date: checkInDate,
         is_present: true,
+        in_time: new Date(),
+        location_lat: lat,
+        location_lng: lng,
         daily_fee_charged: dailyFee > 0 ? dailyFee : null,
       },
       include: {
@@ -69,7 +88,7 @@ export const checkIn = async (req: Request, res: Response) => {
     if (dailyFee > 0) {
       await prisma.feeLedger.create({
         data: {
-          user_id: parseInt(user_id),
+          user_id: targetUserId,
           type: 'DAILY_FEE',
           amount: dailyFee,
           date: checkInDate,
@@ -83,6 +102,41 @@ export const checkIn = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error checking in:', error);
     res.status(500).json({ error: 'Failed to check in', details: error instanceof Error ? error.message : String(error) });
+  }
+};
+
+export const checkOut = async (req: Request, res: Response) => {
+  try {
+    const { user_id, date } = req.body;
+    const targetUserId = user_id ? parseInt(user_id) : (req as any).user?.userId;
+
+    if (!targetUserId) return res.status(400).json({ error: 'User ID required' });
+
+    const checkInDate = date ? new Date(date) : new Date();
+    checkInDate.setHours(0, 0, 0, 0);
+
+    const attendance = await prisma.attendance.findFirst({
+      where: {
+        user_id: targetUserId,
+        date: checkInDate
+      }
+    });
+
+    if (!attendance) {
+      return res.status(404).json({ error: 'Attendance record not found for today' });
+    }
+
+    const updated = await prisma.attendance.update({
+      where: { id: attendance.id },
+      data: {
+        out_time: new Date()
+      }
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Error checking out:', error);
+    res.status(500).json({ error: 'Failed to check out' });
   }
 };
 

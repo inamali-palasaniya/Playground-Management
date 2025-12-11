@@ -1,7 +1,9 @@
-import { Slot } from 'expo-router';
-import { PaperProvider, MD3LightTheme } from 'react-native-paper';
+import { Slot, useRouter, useSegments } from 'expo-router';
+import { PaperProvider, MD3LightTheme, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
+import { Component, type ErrorInfo, type ReactNode, useEffect, useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { AuthService } from '../services/auth.service';
 
 const theme = {
     ...MD3LightTheme,
@@ -11,9 +13,6 @@ const theme = {
         secondary: '#03dac6',
     },
 };
-
-import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
     constructor(props: { children: ReactNode }) {
@@ -43,6 +42,45 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
     }
 }
 
+function AuthProtection({ children }: { children: ReactNode }) {
+    const segments = useSegments();
+    const router = useRouter();
+    const [isReady, setIsReady] = useState(false);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const token = await AuthService.getToken();
+                const isLogin = segments[0] === 'login';
+
+                console.log("Auth Check: Token present?", !!token, "Current Segment:", segments[0]);
+
+                if (!token && !isLogin) {
+                    router.replace('/login');
+                } else if (token && isLogin) {
+                    router.replace('/(tabs)/management');
+                }
+            } catch (e) {
+                console.error("Auth check failed", e);
+            } finally {
+                setIsReady(true);
+            }
+        };
+
+        checkAuth();
+    }, [segments]);
+
+    if (!isReady) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" />
+            </View>
+        );
+    }
+
+    return <>{children}</>;
+}
+
 const styles = StyleSheet.create({
     container: { flex: 1, justifyContent: 'center', padding: 20 },
     title: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
@@ -57,9 +95,12 @@ export default function Layout() {
         <ErrorBoundary>
             <SafeAreaProvider>
                 <PaperProvider theme={theme}>
-                    <Slot />
+                    <AuthProtection>
+                        <Slot />
+                    </AuthProtection>
                 </PaperProvider>
             </SafeAreaProvider>
         </ErrorBoundary>
     );
 }
+

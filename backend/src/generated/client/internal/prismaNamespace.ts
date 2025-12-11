@@ -1590,7 +1590,8 @@ export const UserScalarFieldEnum = {
   email: 'email',
   role: 'role',
   deposit_amount: 'deposit_amount',
-  group_id: 'group_id'
+  group_id: 'group_id',
+  password: 'password'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -1628,6 +1629,10 @@ export const AttendanceScalarFieldEnum = {
   date: 'date',
   is_present: 'is_present',
   daily_fee_charged: 'daily_fee_charged',
+  in_time: 'in_time',
+  out_time: 'out_time',
+  location_lat: 'location_lat',
+  location_lng: 'location_lng',
   createdAt: 'createdAt'
 } as const
 

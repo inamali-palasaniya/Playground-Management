@@ -129,12 +129,16 @@ export const applyFine = async (req: Request, res: Response) => {
     const occurrence = previousOccurrences + 1;
 
     // Calculate fine amount with escalation
+    // Requirement Update: 1st time = 100, Beyond = 1000.
+    // We will use the rule's first_time_fine as the '100' source of truth,
+    // but the '1000' is a new fixed penalty for repeat offenders requested by user.
+
     let amount: number;
     if (occurrence === 1) {
-      amount = rule.first_time_fine;
+      amount = rule.first_time_fine; // e.g., 100
     } else {
-      // Exponential escalation: first_time_fine × (multiplier ^ (occurrence - 1))
-      amount = rule.first_time_fine * Math.pow(rule.subsequent_multiplier, occurrence - 1);
+      // Fixed 1000 for any repetition as per new user requirement
+      amount = 1000.0;
     }
 
     // Create UserFine record

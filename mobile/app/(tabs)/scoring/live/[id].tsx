@@ -1,167 +1,263 @@
-import { View, ScrollView, StyleSheet } from 'react-native';
-import { Text, Button, Card, Divider } from 'react-native-paper';
-import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useState, useRef } from 'react';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, StyleSheet, ScrollView, Alert, Dimensions, ImageBackground } from 'react-native';
+import { Text, Button, Card, Divider, ActivityIndicator, IconButton, Surface } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
+import { io, Socket } from 'socket.io-client';
+import apiService from '../../../../services/api.service';
+import { StatusBar } from 'expo-status-bar';
 
-import Constants from 'expo-constants';
+const { width } = Dimensions.get('window');
+const API_URL = process.env.EXPO_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000'; // Socket URL base
 
-export default function LiveScoring() {
+export default function LiveMatchScreen() {
     const { id } = useLocalSearchParams();
-    const [score, setScore] = useState({ runs: 0, wickets: 0, overs: 0, balls: 0 }); // Init overs to max? No, current over.
-    const [isConnected, setIsConnected] = useState(false);
-    const ws = useRef<WebSocket | null>(null);
+    const router = useRouter();
+    const [match, setMatch] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [liveScore, setLiveScore] = useState<any>(null); // To store real-time score
+    const socketRef = useRef<Socket | null>(null);
 
-    const getWsUrl = () => {
-        // Use the same host as the Expo Go bundler
-        const hostUri = Constants.expoConfig?.hostUri;
-        const ip = hostUri ? hostUri.split(':')[0] : 'localhost';
-        return `ws://${ip}:3000`; // Assuming backend is on port 3000
-    };
-
-    useEffect(() => {
-        const wsUrl = getWsUrl();
-        console.log('Connecting to WS:', wsUrl);
-        ws.current = new WebSocket(wsUrl);
-
-        ws.current.onopen = () => {
-            console.log('Connected to scoring server');
-            setIsConnected(true);
-        };
-
-        ws.current.onclose = () => {
-            console.log('Disconnected from scoring server');
-            setIsConnected(false);
-        };
-
-        ws.current.onerror = (e) => {
-            console.log('WS Error:', e);
-        // setIsConnected(false);
-        };
-
-        ws.current.onmessage = (e) => {
-            const message = JSON.parse(e.data);
-            if (message.type === 'SCORE_UPDATE') {
-                // Update state based on payload
-                // Simplified for demo
-                console.log('Score update:', message.payload);
-            }
-        };
-
-        return () => {
-            ws.current?.close();
-        };
-    }, []);
-
-    const sendBallEvent = (runs: number, isWicket: boolean = false) => {
-        if (ws.current?.readyState === WebSocket.OPEN) {
-            const payload = {
-                type: 'BALL_EVENT',
-                payload: {
-                    matchId: Number(id),
-                    bowlerId: 1, // Mock
-                    strikerId: 1, // Mock
-                    runsScored: runs,
-                    isWicket,
-                    extras: 0,
-                    overNumber: score.overs,
-                    ballNumber: score.balls + 1,
-                },
-            };
-            ws.current.send(JSON.stringify(payload));
-
-            // Optimistic update
-            setScore(prev => ({
-                ...prev,
-                runs: prev.runs + runs,
-                wickets: isWicket ? prev.wickets + 1 : prev.wickets,
-                balls: prev.balls + 1 === 6 ? 0 : prev.balls + 1,
-                overs: prev.balls + 1 === 6 ? prev.overs + 1 : prev.overs,
-            }));
+    const fetchMatchDetails = async () => {
+        try {
+            const data = await apiService.getMatchDetails(Number(id));
+            setMatch(data);
+            // Initialize live score from current match state if available
+            // For now, assuming match data has some score info, or we start fresh.
+        } catch (error) {
+            console.error('Error fetching match:', error);
+            Alert.alert('Error', 'Failed to load match details');
+        } finally {
+            setLoading(false);
         }
     };
 
-    return (
-        <ScrollView style={styles.container}>
-            <Card style={styles.scoreCard}>
-                <Card.Content style={styles.scoreCardContent}>
-                    <Text variant="headlineLarge" style={styles.scoreText}>{score.runs}/{score.wickets}</Text>
-                    <Text variant="titleMedium" style={styles.oversText}>Overs: {score.overs}.{score.balls}</Text>
-                    <Text variant="bodySmall" style={{ color: isConnected ? 'green' : 'orange' }}>
-                        {isConnected ? '● Live' : '○ Connecting...'}
-                    </Text>
-                </Card.Content>
-            </Card>
+    useFocusEffect(
+        useCallback(() => {
+            console.log('Focus: Connecting Socket');
+            // Fetch initial data
+            fetchMatchDetails();
 
-            <Text variant="titleMedium" style={styles.controlsHeader}>Scoring Controls</Text>
-            <View style={styles.controlsContainer}>
-                {[0, 1, 2, 3, 4, 6].map((run) => (
-                    <Button
-                        key={run}
-                        mode="contained"
-                        style={styles.controlButton}
-                        onPress={() => sendBallEvent(run)}
-                    >
-                        {run}
-                    </Button>
-                ))}
-                <Button
-                    mode="contained"
-                    buttonColor="red"
-                    style={styles.controlButton}
-                    onPress={() => sendBallEvent(0, true)}
-                >
-                    OUT
-                </Button>
-                <Button
-                    mode="contained"
-                    buttonColor="orange"
-                    style={styles.controlButton}
-                    onPress={() => { }} // Handle extras
-                >
-                    WD
-                </Button>
-                <Button
-                    mode="contained"
-                    buttonColor="orange"
-                    style={styles.controlButton}
-                    onPress={() => { }} // Handle extras
-                >
-                    NB
-                </Button>
+            // Connect Socket
+            const socket = io(API_URL);
+            socketRef.current = socket;
+
+            socket.on('connect', () => {
+                console.log('Socket Connected');
+                socket.emit('join_match', id);
+            });
+
+            socket.on('score_update', (data) => {
+                console.log('Live Score Update:', data);
+                // Update local state with new ball event
+                // In a real app, calculate full score from this delta or fetch fresh summary
+                // For "WOW" effect, we'll flash an update
+                setLiveScore((prev: any) => ({
+                    ...prev,
+                    lastEvent: data,
+                    totalRuns: (prev?.totalRuns || match?.runs || 0) + data.runs_scored + data.extras
+                }));
+                // Also re-fetch full details to be safe for sync
+                fetchMatchDetails();
+            });
+
+            return () => {
+                console.log('Blur: Disconnecting Socket');
+                if (socket) {
+                    socket.emit('leave_match', id);
+                    socket.disconnect();
+                }
+                socketRef.current = null;
+            };
+        }, [id])
+    );
+
+    if (loading) {
+        return (
+            <View style={styles.centerContainer}>
+                <ActivityIndicator size="large" color="#6200ee" />
             </View>
-        </ScrollView>
+        );
+    }
+
+    if (!match) {
+        return (
+            <View style={styles.centerContainer}>
+                <Text>Match not found</Text>
+            </View>
+        );
+    }
+
+    return (
+        <View style={styles.container}>
+            <StatusBar style="light" />
+            <LinearGradient
+                colors={['#141E30', '#243B55']}
+                style={styles.headerGradient}
+            >
+                <View style={styles.headerContent}>
+                    <IconButton icon="arrow-left" iconColor="white" onPress={() => router.back()} />
+                    <Text variant="titleLarge" style={styles.headerTitle}>
+                        {match.tournament?.name || 'Tournament Match'}
+                    </Text>
+                    <View style={{ width: 48 }} />
+                </View>
+
+                {/* Scoreboard Card */}
+                <Surface style={styles.scoreBoard} elevation={4}>
+                    <View style={styles.teamRow}>
+                        <View style={styles.teamInfo}>
+                            <Text variant="headlineSmall" style={styles.teamName}>{match.team_a?.name}</Text>
+                            <Text variant="titleMedium" style={styles.teamScore}>
+                                {match.team_a_score || '0/0'} <Text style={styles.overs}>(0.0)</Text>
+                            </Text>
+                        </View>
+                        <Text style={styles.vs}>VS</Text>
+                        <View style={[styles.teamInfo, { alignItems: 'flex-end' }]}>
+                            <Text variant="headlineSmall" style={styles.teamName}>{match.team_b?.name}</Text>
+                            <Text variant="titleMedium" style={styles.teamScore}>
+                                {match.team_b_score || '0/0'} <Text style={styles.overs}>(0.0)</Text>
+                            </Text>
+                        </View>
+                    </View>
+
+                    <Divider style={styles.divider} />
+
+                    <View style={styles.statusRow}>
+                        <Text style={styles.statusText}>{match.status === 'LIVE' ? '🔴 LIVE' : match.status}</Text>
+                        <Text style={styles.statusText}>{match.toss_result || 'Toss TBD'}</Text>
+                    </View>
+
+                    {liveScore?.lastEvent && (
+                        <LinearGradient colors={['#FFD700', '#FFA500']} style={styles.lastEventPopup}>
+                            <Text style={styles.eventText}>
+                                {liveScore.lastEvent.runs_scored} Runs! {liveScore.lastEvent.is_wicket ? 'WICKET!' : ''}
+                            </Text>
+                        </LinearGradient>
+                    )}
+                </Surface>
+            </LinearGradient>
+
+            <ScrollView style={styles.content}>
+                {/* Batting/Bowling Stats would go here similar to CrickHeroes */}
+                <Card style={styles.card}>
+                    <Card.Title title="Live Commentary" left={(props) => <IconButton {...props} icon="microphone" />} />
+                    <Card.Content>
+                        <Text variant="bodyMedium">Waiting for next ball...</Text>
+                        {/* Map commentary list here */}
+                    </Card.Content>
+                </Card>
+
+                {/* Admin/Scorer Controls (if user is admin, check role) */}
+                <Button mode="contained" onPress={() => Alert.alert('Info', 'Scoring Controls available in Management Tab')} style={styles.scoreButton}>
+                    Go to Management
+                </Button>
+            </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f3f4f6',
-        padding: 16,
+        backgroundColor: '#f0f2f5',
     },
-    scoreCard: {
-        marginBottom: 16,
-        backgroundColor: 'white',
-    },
-    scoreCardContent: {
+    centerContainer: {
+        flex: 1,
+        justifyContent: 'center',
         alignItems: 'center',
     },
-    scoreText: {
+    headerGradient: {
+        paddingTop: 50,
+        paddingBottom: 80, // Space for scoreboard overlap
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
+    },
+    headerContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+    },
+    headerTitle: {
+        color: 'white',
         fontWeight: 'bold',
     },
-    oversText: {
-        color: '#4b5563',
+    scoreBoard: {
+        position: 'absolute',
+        bottom: -60,
+        left: 20,
+        right: 20,
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 20,
+        alignItems: 'center', // Center content if needed
     },
-    controlsHeader: {
-        marginBottom: 8,
-    },
-    controlsContainer: {
+    teamRow: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
         justifyContent: 'space-between',
+        width: '100%',
+        alignItems: 'center',
     },
-    controlButton: {
-        marginBottom: 8,
-        width: '30%',
+    teamInfo: {
+        flex: 1,
     },
+    teamName: {
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+    },
+    teamScore: {
+        color: '#333',
+        fontWeight: 'bold',
+        marginTop: 5,
+    },
+    overs: {
+        fontSize: 14,
+        color: '#666',
+        fontWeight: 'normal',
+    },
+    vs: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#888',
+        marginHorizontal: 10,
+    },
+    divider: {
+        width: '100%',
+        marginVertical: 15,
+        backgroundColor: '#eee',
+    },
+    statusRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    statusText: {
+        fontSize: 12,
+        color: '#666',
+        fontWeight: '600',
+        textTransform: 'uppercase',
+    },
+    content: {
+        marginTop: 70, // Push content down below scoreboard
+        padding: 20,
+    },
+    card: {
+        marginBottom: 20,
+        backgroundColor: 'white',
+    },
+    lastEventPopup: {
+        marginTop: 10,
+        paddingHorizontal: 20,
+        paddingVertical: 5,
+        borderRadius: 15,
+    },
+    eventText: {
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    scoreButton: {
+        marginTop: 10,
+        marginBottom: 30,
+    }
 });

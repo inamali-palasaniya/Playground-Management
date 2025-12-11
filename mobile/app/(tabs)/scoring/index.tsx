@@ -77,8 +77,9 @@ export default function ScoringDashboard() {
                                 <Button onPress={() => router.push(`/scoring/analytics/${item.id}`)}>View Analytics</Button>
                             ) : (
                                 <>
-                                        <Button onPress={() => router.push(`/scoring/live/${item.id}`)}>View</Button>
-                                        {item.status === 'LIVE' && <Button mode="contained-tonal" onPress={() => router.push(`/scoring/live/${item.id}`)}>Score</Button>}
+                                        <Button onPress={() => router.push(`/(tabs)/scoring/live/${item.id}`)}>View</Button>
+                                        {item.status === 'LIVE' && <Button mode="contained-tonal" onPress={() => router.push(`/(tabs)/scoring/live/${item.id}`)}>Score</Button>}
+
                                 </>
                             )}
                         </Card.Actions>

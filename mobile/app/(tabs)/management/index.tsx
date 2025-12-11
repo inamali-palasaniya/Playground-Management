@@ -1,105 +1,133 @@
-import { View, ScrollView, StyleSheet } from 'react-native';
-import { Text, Card, Button, useTheme, ActivityIndicator } from 'react-native-paper';
+import React, { useState, useCallback, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import { Text, Searchbar, Chip, Avatar, Card, FAB, ActivityIndicator, useTheme, Button, Menu } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
 import apiService from '../../../services/api.service';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-export default function ManagementDashboard() {
+interface User {
+    id: number;
+    name: string;
+    phone: string;
+    role: string;
+    group?: { id: number; name: string };
+}
+
+interface Group {
+    id: number;
+    name: string;
+}
+
+export default function ProManagementDashboard() {
     const theme = useTheme();
     const router = useRouter();
-    const [financials, setFinancials] = useState<{ total_income: number; total_expenses: number } | null>(null);
     const [loading, setLoading] = useState(true);
-    const [isManagement, setIsManagement] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [users, setUsers] = useState<User[]>([]);
+    const [groups, setGroups] = useState<Group[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+    const [menuVisible, setMenuVisible] = useState(false);
 
-    useFocusEffect(
-        useCallback(() => {
-            loadDashboardData();
-            setIsManagement(apiService.isManagement());
-        }, [])
-    );
-
-    const loadDashboardData = async () => {
+    const loadData = async () => {
         try {
             setLoading(true);
-            const data = await apiService.getFinancialSummary();
-            setFinancials(data);
-            setIsManagement(apiService.isManagement()); // Re-check role
+            const [usersData, groupsData] = await Promise.all([
+                apiService.request(`/api/users${selectedGroup ? `?group_id=${selectedGroup.id}` : ''}`),
+                apiService.request('/api/groups')
+            ]);
+            setUsers(usersData as User[]);
+            setGroups(groupsData as Group[]);
         } catch (error) {
             console.error('Failed to load dashboard data:', error);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
-    const handleProtectedAction = (route: any) => { // Use 'any' or correct string union type for route
-        if (!isManagement) {
-            alert('Access Denied: Management role required');
-            return;
-        }
-        router.push(route);
+    useFocusEffect(
+        useCallback(() => {
+            loadData();
+        }, [selectedGroup])
+    );
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        loadData();
     };
+
+    const filteredUsers = users.filter(user =>
+        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.phone.includes(searchQuery)
+    );
 
     return (
-        <ScrollView style={styles.container}>
-            <Text variant="headlineMedium" style={styles.header}>Dashboard</Text>
-
-            <View style={styles.statsContainer}>
-                <Card style={[styles.card, styles.cardLeft]}>
-                    <Card.Content>
-                        <Text variant="titleMedium">Income</Text>
-                        {loading ? (
-                            <ActivityIndicator size="small" />
-                        ) : (
-                            <Text variant="headlineSmall" style={styles.incomeText}>
-                                ₹{financials?.total_income || 0}
-                            </Text>
-                        )}
-                    </Card.Content>
-                </Card>
-                <Card style={[styles.card, styles.cardRight]}>
-                    <Card.Content>
-                        <Text variant="titleMedium">Expenses</Text>
-                        {loading ? (
-                            <ActivityIndicator size="small" />
-                        ) : (
-                            <Text variant="headlineSmall" style={styles.expenseText}>
-                                ₹{financials?.total_expenses || 0}
-                            </Text>
-                        )}
-                    </Card.Content>
-                </Card>
+        <View style={styles.container}>
+            {/* Header & Filters */}
+            <View style={styles.headerContainer}>
+                <Searchbar
+                    placeholder="Search Members..."
+                    onChangeText={setSearchQuery}
+                    value={searchQuery}
+                    style={styles.searchBar}
+                />
+                <View style={styles.filterRow}>
+                    <Menu
+                        visible={menuVisible}
+                        onDismiss={() => setMenuVisible(false)}
+                        anchor={
+                            <Chip
+                                icon="filter-variant"
+                                onPress={() => setMenuVisible(true)}
+                                selected={!!selectedGroup}
+                                style={styles.filterChip}
+                            >
+                                {selectedGroup?.name || "All Groups"}
+                            </Chip>
+                        }
+                    >
+                        <Menu.Item onPress={() => { setSelectedGroup(null); setMenuVisible(false); }} title="All Groups" />
+                        {groups.map(g => (
+                            <Menu.Item key={g.id} onPress={() => { setSelectedGroup(g); setMenuVisible(false); }} title={g.name} />
+                        ))}
+                    </Menu>
+                </View>
             </View>
 
-            <Card style={styles.card}>
-                <Card.Title title="Quick Actions" />
-                <Card.Content style={styles.actionsContent}>
-                    <Button mode="contained" icon="account-plus" style={styles.actionButton} onPress={() => handleProtectedAction('/management/add-user')} disabled={!isManagement}>
-                        Add User
-                    </Button>
-                    <Button mode="contained" icon="card-account-details" style={styles.actionButton} onPress={() => handleProtectedAction('/management/subscription-plans')} disabled={!isManagement}>
-                        Subscriptions
-                    </Button>
-                    <Button mode="contained" icon="calendar-check" style={styles.actionButton} onPress={() => router.push('/management/attendance')}>
-                        Attendance
-                    </Button>
-                    <Button mode="contained" icon="gavel" style={styles.actionButton} onPress={() => handleProtectedAction('/management/fine-rules')} disabled={!isManagement}>
-                        Fine Rules
-                    </Button>
-                    <Button mode="contained" icon="alert-circle" style={styles.actionButton} buttonColor="#FF9800" onPress={() => handleProtectedAction('/management/apply-fine')} disabled={!isManagement}>
-                        Apply Fine
-                    </Button>
-                    <Button mode="contained" icon="cash-plus" style={styles.actionButton} onPress={() => handleProtectedAction('/management/add-fee')} disabled={!isManagement}>
-                        Add Fee
-                    </Button>
-                    <Button mode="contained" icon="cash-minus" style={styles.actionButton} buttonColor={theme.colors.error} onPress={() => handleProtectedAction('/management/add-expense')} disabled={!isManagement}>
-                        Add Expense
-                    </Button>
-                    <Button mode="outlined" icon="file-document" style={styles.actionButton} onPress={() => router.push('/management/reports')}>
-                        Reports
-                    </Button>
-                </Card.Content>
-            </Card>
-        </ScrollView>
+            {/* User List */}
+            <ScrollView
+                contentContainerStyle={styles.listContent}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            >
+                {loading && !refreshing ? (
+                    <ActivityIndicator style={{ marginTop: 20 }} />
+                ) : (
+                        filteredUsers.map(user => (
+                            <Card
+                                key={user.id}
+                                style={styles.userCard}
+                                onPress={() => router.push(`/management/user/${user.id}`)}
+                            >
+                                <Card.Title
+                                    title={user.name}
+                                    subtitle={`${user.role} • ${user.group?.name || 'No Group'}`}
+                                    left={(props) => <Avatar.Text {...props} label={user.name.substring(0, 2).toUpperCase()} />}
+                                    right={(props) => <MaterialCommunityIcons {...props} name="chevron-right" size={24} color="#ccc" style={{ marginRight: 16 }} />}
+                                />
+                            </Card>
+                        ))
+                )}
+            </ScrollView>
+
+            {/* Quick Actions FAB */}
+            <FAB
+                icon="plus"
+                style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+                onPress={() => router.push('/management/add-user')}
+                label="Add User"
+            />
+        </View>
     );
 }
 
@@ -107,43 +135,39 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f3f4f6',
+    },
+    headerContainer: {
         padding: 16,
-    },
-    header: {
-        marginBottom: 16,
-        fontWeight: 'bold',
-        color: '#1f2937',
-    },
-    statsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 16,
-    },
-    card: {
         backgroundColor: 'white',
-        marginBottom: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e5e7eb',
     },
-    cardLeft: {
-        flex: 1,
+    searchBar: {
+        elevation: 0,
+        backgroundColor: '#f3f4f6',
+        borderRadius: 8,
+    },
+    filterRow: {
+        flexDirection: 'row',
+        marginTop: 12,
+    },
+    filterChip: {
         marginRight: 8,
     },
-    cardRight: {
-        flex: 1,
-        marginLeft: 8,
+    listContent: {
+        padding: 16,
+        paddingBottom: 80,
     },
-    incomeText: {
-        color: '#16a34a',
+    userCard: {
+        marginBottom: 12,
+        backgroundColor: 'white',
+        borderRadius: 12,
+        elevation: 1,
     },
-    expenseText: {
-        color: '#dc2626',
-    },
-    actionsContent: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-    },
-    actionButton: {
-        marginBottom: 8,
-        width: '48%',
+    fab: {
+        position: 'absolute',
+        margin: 16,
+        right: 0,
+        bottom: 0,
     },
 });

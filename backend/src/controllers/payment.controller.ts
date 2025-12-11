@@ -26,6 +26,40 @@ export const recordPayment = async (req: Request, res: Response) => {
       },
     });
 
+    // Auto-Match Logic: Use this payment to mark oldest unpaid debts as "Paid"
+    // This cleans up the ledger view for the user
+    let remainingAmount = parseFloat(amount);
+
+    // Fetch unpaid debts (FIFO)
+    const unpaidDebts = await prisma.feeLedger.findMany({
+      where: {
+        user_id: parseInt(user_id),
+        is_paid: false,
+        type: { in: ['DAILY_FEE', 'MONTHLY_FEE', 'FINE'] }
+      },
+      orderBy: { date: 'asc' }
+    });
+
+    for (const debt of unpaidDebts) {
+      if (remainingAmount <= 0) break;
+
+      if (remainingAmount >= debt.amount) {
+        // Pay off full debt
+        await prisma.feeLedger.update({
+          where: { id: debt.id },
+          data: { is_paid: true, notes: (debt.notes || '') + ` (Paid via PM-${payment.id})` }
+        });
+        remainingAmount -= debt.amount;
+      } else {
+        // Partial payment? (Optional complexity, for now just skip or maybe split?)
+        // For simplicity, we only mark paid if fully covered. 
+        // Or we could leave it unpaid but balance reduces globally.
+        // Requirement says "marked as paid etc".
+        // Let's stick to simple: Credits offset Debts globally in balance check. 
+        // But explicitly marking `is_paid` helps visual "Open Items" list.
+      }
+    }
+
     res.status(201).json(payment);
   } catch (error) {
     console.error('Error recording payment:', error);

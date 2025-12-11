@@ -1,4 +1,5 @@
 import { API_BASE_URL, API_ENDPOINTS } from '../constants/api';
+import * as SecureStore from 'expo-secure-store';
 
 interface Match {
   id: number;
@@ -54,14 +55,24 @@ class ApiService {
         return this.currentUser?.role === 'MANAGEMENT';
     }
 
-  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+
+
+    // ... (existing imports)
+
+    // public for direct usage if needed
+    public async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     try {
         const url = `${API_BASE_URL}${endpoint}`;
         console.log('API Request:', url);
 
+        // Auto-inject token
+        const token = await SecureStore.getItemAsync('user_token');
+        const scrollAuthHeaders = token ? { 'Authorization': `Bearer ${token}` } : {};
+
         const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
+                ...scrollAuthHeaders,
           ...options?.headers,
         },
         ...options,
@@ -105,6 +116,11 @@ class ApiService {
       body: JSON.stringify(data),
     });
   }
+
+    // Groups
+    async getGroups(): Promise<any[]> {
+        return this.request<any[]>('/api/groups');
+    }
 
     // Subscription Plan endpoints
     async getSubscriptionPlans(): Promise<any[]> {

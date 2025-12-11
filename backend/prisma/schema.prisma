@@ -3,6 +3,9 @@ generator client {
   output   = "../src/generated/client"
 }
 
+
+
+
 datasource db {
   provider  = "postgresql"
 }
@@ -62,6 +65,10 @@ model User {
   attendances    Attendance[]
   fee_ledger     FeeLedger[]
   fines          UserFine[]
+  password       String?  // Made optional initially to avoid migration issues with existing data, but intended to be required.
+                         // In a real scenario with existing users, we'd need a default or a script to backfill.
+                         // For this "joke" to "pro" transition, we assume we can reset or migrate carefully.
+
   
   // Scoring Module Relations
   player_teams   TeamPlayer[]
@@ -108,7 +115,12 @@ model Attendance {
   date              DateTime @db.Date
   is_present        Boolean  @default(true)
   daily_fee_charged Float?
+  in_time           DateTime?
+  out_time          DateTime?
+  location_lat      Float?
+  location_lng      Float?
   createdAt         DateTime @default(now())
+
   
   @@unique([user_id, date])
   @@index([user_id])

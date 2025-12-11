@@ -30,12 +30,16 @@ export type AttendanceAvgAggregateOutputType = {
   id: number | null
   user_id: number | null
   daily_fee_charged: number | null
+  location_lat: number | null
+  location_lng: number | null
 }
 
 export type AttendanceSumAggregateOutputType = {
   id: number | null
   user_id: number | null
   daily_fee_charged: number | null
+  location_lat: number | null
+  location_lng: number | null
 }
 
 export type AttendanceMinAggregateOutputType = {
@@ -44,6 +48,10 @@ export type AttendanceMinAggregateOutputType = {
   date: Date | null
   is_present: boolean | null
   daily_fee_charged: number | null
+  in_time: Date | null
+  out_time: Date | null
+  location_lat: number | null
+  location_lng: number | null
   createdAt: Date | null
 }
 
@@ -53,6 +61,10 @@ export type AttendanceMaxAggregateOutputType = {
   date: Date | null
   is_present: boolean | null
   daily_fee_charged: number | null
+  in_time: Date | null
+  out_time: Date | null
+  location_lat: number | null
+  location_lng: number | null
   createdAt: Date | null
 }
 
@@ -62,6 +74,10 @@ export type AttendanceCountAggregateOutputType = {
   date: number
   is_present: number
   daily_fee_charged: number
+  in_time: number
+  out_time: number
+  location_lat: number
+  location_lng: number
   createdAt: number
   _all: number
 }
@@ -71,12 +87,16 @@ export type AttendanceAvgAggregateInputType = {
   id?: true
   user_id?: true
   daily_fee_charged?: true
+  location_lat?: true
+  location_lng?: true
 }
 
 export type AttendanceSumAggregateInputType = {
   id?: true
   user_id?: true
   daily_fee_charged?: true
+  location_lat?: true
+  location_lng?: true
 }
 
 export type AttendanceMinAggregateInputType = {
@@ -85,6 +105,10 @@ export type AttendanceMinAggregateInputType = {
   date?: true
   is_present?: true
   daily_fee_charged?: true
+  in_time?: true
+  out_time?: true
+  location_lat?: true
+  location_lng?: true
   createdAt?: true
 }
 
@@ -94,6 +118,10 @@ export type AttendanceMaxAggregateInputType = {
   date?: true
   is_present?: true
   daily_fee_charged?: true
+  in_time?: true
+  out_time?: true
+  location_lat?: true
+  location_lng?: true
   createdAt?: true
 }
 
@@ -103,6 +131,10 @@ export type AttendanceCountAggregateInputType = {
   date?: true
   is_present?: true
   daily_fee_charged?: true
+  in_time?: true
+  out_time?: true
+  location_lat?: true
+  location_lng?: true
   createdAt?: true
   _all?: true
 }
@@ -199,6 +231,10 @@ export type AttendanceGroupByOutputType = {
   date: Date
   is_present: boolean
   daily_fee_charged: number | null
+  in_time: Date | null
+  out_time: Date | null
+  location_lat: number | null
+  location_lng: number | null
   createdAt: Date
   _count: AttendanceCountAggregateOutputType | null
   _avg: AttendanceAvgAggregateOutputType | null
@@ -231,6 +267,10 @@ export type AttendanceWhereInput = {
   date?: Prisma.DateTimeFilter<"Attendance"> | Date | string
   is_present?: Prisma.BoolFilter<"Attendance"> | boolean
   daily_fee_charged?: Prisma.FloatNullableFilter<"Attendance"> | number | null
+  in_time?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
+  out_time?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
+  location_lat?: Prisma.FloatNullableFilter<"Attendance"> | number | null
+  location_lng?: Prisma.FloatNullableFilter<"Attendance"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Attendance"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
@@ -241,6 +281,10 @@ export type AttendanceOrderByWithRelationInput = {
   date?: Prisma.SortOrder
   is_present?: Prisma.SortOrder
   daily_fee_charged?: Prisma.SortOrderInput | Prisma.SortOrder
+  in_time?: Prisma.SortOrderInput | Prisma.SortOrder
+  out_time?: Prisma.SortOrderInput | Prisma.SortOrder
+  location_lat?: Prisma.SortOrderInput | Prisma.SortOrder
+  location_lng?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
 }
@@ -255,6 +299,10 @@ export type AttendanceWhereUniqueInput = Prisma.AtLeast<{
   date?: Prisma.DateTimeFilter<"Attendance"> | Date | string
   is_present?: Prisma.BoolFilter<"Attendance"> | boolean
   daily_fee_charged?: Prisma.FloatNullableFilter<"Attendance"> | number | null
+  in_time?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
+  out_time?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
+  location_lat?: Prisma.FloatNullableFilter<"Attendance"> | number | null
+  location_lng?: Prisma.FloatNullableFilter<"Attendance"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Attendance"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id" | "user_id_date">
@@ -265,6 +313,10 @@ export type AttendanceOrderByWithAggregationInput = {
   date?: Prisma.SortOrder
   is_present?: Prisma.SortOrder
   daily_fee_charged?: Prisma.SortOrderInput | Prisma.SortOrder
+  in_time?: Prisma.SortOrderInput | Prisma.SortOrder
+  out_time?: Prisma.SortOrderInput | Prisma.SortOrder
+  location_lat?: Prisma.SortOrderInput | Prisma.SortOrder
+  location_lng?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.AttendanceCountOrderByAggregateInput
   _avg?: Prisma.AttendanceAvgOrderByAggregateInput
@@ -282,6 +334,10 @@ export type AttendanceScalarWhereWithAggregatesInput = {
   date?: Prisma.DateTimeWithAggregatesFilter<"Attendance"> | Date | string
   is_present?: Prisma.BoolWithAggregatesFilter<"Attendance"> | boolean
   daily_fee_charged?: Prisma.FloatNullableWithAggregatesFilter<"Attendance"> | number | null
+  in_time?: Prisma.DateTimeNullableWithAggregatesFilter<"Attendance"> | Date | string | null
+  out_time?: Prisma.DateTimeNullableWithAggregatesFilter<"Attendance"> | Date | string | null
+  location_lat?: Prisma.FloatNullableWithAggregatesFilter<"Attendance"> | number | null
+  location_lng?: Prisma.FloatNullableWithAggregatesFilter<"Attendance"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Attendance"> | Date | string
 }
 
@@ -289,6 +345,10 @@ export type AttendanceCreateInput = {
   date: Date | string
   is_present?: boolean
   daily_fee_charged?: number | null
+  in_time?: Date | string | null
+  out_time?: Date | string | null
+  location_lat?: number | null
+  location_lng?: number | null
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutAttendancesInput
 }
@@ -299,6 +359,10 @@ export type AttendanceUncheckedCreateInput = {
   date: Date | string
   is_present?: boolean
   daily_fee_charged?: number | null
+  in_time?: Date | string | null
+  out_time?: Date | string | null
+  location_lat?: number | null
+  location_lng?: number | null
   createdAt?: Date | string
 }
 
@@ -306,6 +370,10 @@ export type AttendanceUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_present?: Prisma.BoolFieldUpdateOperationsInput | boolean
   daily_fee_charged?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  out_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  location_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutAttendancesNestedInput
 }
@@ -316,6 +384,10 @@ export type AttendanceUncheckedUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_present?: Prisma.BoolFieldUpdateOperationsInput | boolean
   daily_fee_charged?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  out_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  location_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -325,6 +397,10 @@ export type AttendanceCreateManyInput = {
   date: Date | string
   is_present?: boolean
   daily_fee_charged?: number | null
+  in_time?: Date | string | null
+  out_time?: Date | string | null
+  location_lat?: number | null
+  location_lng?: number | null
   createdAt?: Date | string
 }
 
@@ -332,6 +408,10 @@ export type AttendanceUpdateManyMutationInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_present?: Prisma.BoolFieldUpdateOperationsInput | boolean
   daily_fee_charged?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  out_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  location_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -341,6 +421,10 @@ export type AttendanceUncheckedUpdateManyInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_present?: Prisma.BoolFieldUpdateOperationsInput | boolean
   daily_fee_charged?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  out_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  location_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -365,6 +449,10 @@ export type AttendanceCountOrderByAggregateInput = {
   date?: Prisma.SortOrder
   is_present?: Prisma.SortOrder
   daily_fee_charged?: Prisma.SortOrder
+  in_time?: Prisma.SortOrder
+  out_time?: Prisma.SortOrder
+  location_lat?: Prisma.SortOrder
+  location_lng?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -372,6 +460,8 @@ export type AttendanceAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   daily_fee_charged?: Prisma.SortOrder
+  location_lat?: Prisma.SortOrder
+  location_lng?: Prisma.SortOrder
 }
 
 export type AttendanceMaxOrderByAggregateInput = {
@@ -380,6 +470,10 @@ export type AttendanceMaxOrderByAggregateInput = {
   date?: Prisma.SortOrder
   is_present?: Prisma.SortOrder
   daily_fee_charged?: Prisma.SortOrder
+  in_time?: Prisma.SortOrder
+  out_time?: Prisma.SortOrder
+  location_lat?: Prisma.SortOrder
+  location_lng?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -389,6 +483,10 @@ export type AttendanceMinOrderByAggregateInput = {
   date?: Prisma.SortOrder
   is_present?: Prisma.SortOrder
   daily_fee_charged?: Prisma.SortOrder
+  in_time?: Prisma.SortOrder
+  out_time?: Prisma.SortOrder
+  location_lat?: Prisma.SortOrder
+  location_lng?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -396,6 +494,8 @@ export type AttendanceSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   daily_fee_charged?: Prisma.SortOrder
+  location_lat?: Prisma.SortOrder
+  location_lng?: Prisma.SortOrder
 }
 
 export type AttendanceCreateNestedManyWithoutUserInput = {
@@ -444,6 +544,10 @@ export type AttendanceCreateWithoutUserInput = {
   date: Date | string
   is_present?: boolean
   daily_fee_charged?: number | null
+  in_time?: Date | string | null
+  out_time?: Date | string | null
+  location_lat?: number | null
+  location_lng?: number | null
   createdAt?: Date | string
 }
 
@@ -452,6 +556,10 @@ export type AttendanceUncheckedCreateWithoutUserInput = {
   date: Date | string
   is_present?: boolean
   daily_fee_charged?: number | null
+  in_time?: Date | string | null
+  out_time?: Date | string | null
+  location_lat?: number | null
+  location_lng?: number | null
   createdAt?: Date | string
 }
 
@@ -490,6 +598,10 @@ export type AttendanceScalarWhereInput = {
   date?: Prisma.DateTimeFilter<"Attendance"> | Date | string
   is_present?: Prisma.BoolFilter<"Attendance"> | boolean
   daily_fee_charged?: Prisma.FloatNullableFilter<"Attendance"> | number | null
+  in_time?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
+  out_time?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
+  location_lat?: Prisma.FloatNullableFilter<"Attendance"> | number | null
+  location_lng?: Prisma.FloatNullableFilter<"Attendance"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Attendance"> | Date | string
 }
 
@@ -498,6 +610,10 @@ export type AttendanceCreateManyUserInput = {
   date: Date | string
   is_present?: boolean
   daily_fee_charged?: number | null
+  in_time?: Date | string | null
+  out_time?: Date | string | null
+  location_lat?: number | null
+  location_lng?: number | null
   createdAt?: Date | string
 }
 
@@ -505,6 +621,10 @@ export type AttendanceUpdateWithoutUserInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_present?: Prisma.BoolFieldUpdateOperationsInput | boolean
   daily_fee_charged?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  out_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  location_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -513,6 +633,10 @@ export type AttendanceUncheckedUpdateWithoutUserInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_present?: Prisma.BoolFieldUpdateOperationsInput | boolean
   daily_fee_charged?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  out_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  location_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -521,6 +645,10 @@ export type AttendanceUncheckedUpdateManyWithoutUserInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_present?: Prisma.BoolFieldUpdateOperationsInput | boolean
   daily_fee_charged?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  in_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  out_time?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  location_lat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  location_lng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -532,6 +660,10 @@ export type AttendanceSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   date?: boolean
   is_present?: boolean
   daily_fee_charged?: boolean
+  in_time?: boolean
+  out_time?: boolean
+  location_lat?: boolean
+  location_lng?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["attendance"]>
@@ -542,6 +674,10 @@ export type AttendanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   date?: boolean
   is_present?: boolean
   daily_fee_charged?: boolean
+  in_time?: boolean
+  out_time?: boolean
+  location_lat?: boolean
+  location_lng?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["attendance"]>
@@ -552,6 +688,10 @@ export type AttendanceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   date?: boolean
   is_present?: boolean
   daily_fee_charged?: boolean
+  in_time?: boolean
+  out_time?: boolean
+  location_lat?: boolean
+  location_lng?: boolean
   createdAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["attendance"]>
@@ -562,10 +702,14 @@ export type AttendanceSelectScalar = {
   date?: boolean
   is_present?: boolean
   daily_fee_charged?: boolean
+  in_time?: boolean
+  out_time?: boolean
+  location_lat?: boolean
+  location_lng?: boolean
   createdAt?: boolean
 }
 
-export type AttendanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "date" | "is_present" | "daily_fee_charged" | "createdAt", ExtArgs["result"]["attendance"]>
+export type AttendanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "date" | "is_present" | "daily_fee_charged" | "in_time" | "out_time" | "location_lat" | "location_lng" | "createdAt", ExtArgs["result"]["attendance"]>
 export type AttendanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -587,6 +731,10 @@ export type $AttendancePayload<ExtArgs extends runtime.Types.Extensions.Internal
     date: Date
     is_present: boolean
     daily_fee_charged: number | null
+    in_time: Date | null
+    out_time: Date | null
+    location_lat: number | null
+    location_lng: number | null
     createdAt: Date
   }, ExtArgs["result"]["attendance"]>
   composites: {}
@@ -1017,6 +1165,10 @@ export interface AttendanceFieldRefs {
   readonly date: Prisma.FieldRef<"Attendance", 'DateTime'>
   readonly is_present: Prisma.FieldRef<"Attendance", 'Boolean'>
   readonly daily_fee_charged: Prisma.FieldRef<"Attendance", 'Float'>
+  readonly in_time: Prisma.FieldRef<"Attendance", 'DateTime'>
+  readonly out_time: Prisma.FieldRef<"Attendance", 'DateTime'>
+  readonly location_lat: Prisma.FieldRef<"Attendance", 'Float'>
+  readonly location_lng: Prisma.FieldRef<"Attendance", 'Float'>
   readonly createdAt: Prisma.FieldRef<"Attendance", 'DateTime'>
 }
     

@@ -46,6 +46,7 @@ export type UserMinAggregateOutputType = {
   role: $Enums.UserRole | null
   deposit_amount: number | null
   group_id: number | null
+  password: string | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -56,6 +57,7 @@ export type UserMaxAggregateOutputType = {
   role: $Enums.UserRole | null
   deposit_amount: number | null
   group_id: number | null
+  password: string | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -66,6 +68,7 @@ export type UserCountAggregateOutputType = {
   role: number
   deposit_amount: number
   group_id: number
+  password: number
   _all: number
 }
 
@@ -90,6 +93,7 @@ export type UserMinAggregateInputType = {
   role?: true
   deposit_amount?: true
   group_id?: true
+  password?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -100,6 +104,7 @@ export type UserMaxAggregateInputType = {
   role?: true
   deposit_amount?: true
   group_id?: true
+  password?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -110,6 +115,7 @@ export type UserCountAggregateInputType = {
   role?: true
   deposit_amount?: true
   group_id?: true
+  password?: true
   _all?: true
 }
 
@@ -207,6 +213,7 @@ export type UserGroupByOutputType = {
   role: $Enums.UserRole
   deposit_amount: number
   group_id: number | null
+  password: string | null
   _count: UserCountAggregateOutputType | null
   _avg: UserAvgAggregateOutputType | null
   _sum: UserSumAggregateOutputType | null
@@ -240,6 +247,7 @@ export type UserWhereInput = {
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   deposit_amount?: Prisma.FloatFilter<"User"> | number
   group_id?: Prisma.IntNullableFilter<"User"> | number | null
+  password?: Prisma.StringNullableFilter<"User"> | string | null
   group?: Prisma.XOR<Prisma.UserGroupNullableScalarRelationFilter, Prisma.UserGroupWhereInput> | null
   subscriptions?: Prisma.SubscriptionListRelationFilter
   attendances?: Prisma.AttendanceListRelationFilter
@@ -260,6 +268,7 @@ export type UserOrderByWithRelationInput = {
   role?: Prisma.SortOrder
   deposit_amount?: Prisma.SortOrder
   group_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  password?: Prisma.SortOrderInput | Prisma.SortOrder
   group?: Prisma.UserGroupOrderByWithRelationInput
   subscriptions?: Prisma.SubscriptionOrderByRelationAggregateInput
   attendances?: Prisma.AttendanceOrderByRelationAggregateInput
@@ -283,6 +292,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   deposit_amount?: Prisma.FloatFilter<"User"> | number
   group_id?: Prisma.IntNullableFilter<"User"> | number | null
+  password?: Prisma.StringNullableFilter<"User"> | string | null
   group?: Prisma.XOR<Prisma.UserGroupNullableScalarRelationFilter, Prisma.UserGroupWhereInput> | null
   subscriptions?: Prisma.SubscriptionListRelationFilter
   attendances?: Prisma.AttendanceListRelationFilter
@@ -303,6 +313,7 @@ export type UserOrderByWithAggregationInput = {
   role?: Prisma.SortOrder
   deposit_amount?: Prisma.SortOrder
   group_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  password?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
@@ -321,6 +332,7 @@ export type UserScalarWhereWithAggregatesInput = {
   role?: Prisma.EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole
   deposit_amount?: Prisma.FloatWithAggregatesFilter<"User"> | number
   group_id?: Prisma.IntNullableWithAggregatesFilter<"User"> | number | null
+  password?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
 }
 
 export type UserCreateInput = {
@@ -329,6 +341,7 @@ export type UserCreateInput = {
   email?: string | null
   role?: $Enums.UserRole
   deposit_amount?: number
+  password?: string | null
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
@@ -349,6 +362,7 @@ export type UserUncheckedCreateInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   group_id?: number | null
+  password?: string | null
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
@@ -366,6 +380,7 @@ export type UserUpdateInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
@@ -386,6 +401,7 @@ export type UserUncheckedUpdateInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
@@ -405,6 +421,7 @@ export type UserCreateManyInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   group_id?: number | null
+  password?: string | null
 }
 
 export type UserUpdateManyMutationInput = {
@@ -413,6 +430,7 @@ export type UserUpdateManyMutationInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -423,6 +441,7 @@ export type UserUncheckedUpdateManyInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type UserListRelationFilter = {
@@ -443,6 +462,7 @@ export type UserCountOrderByAggregateInput = {
   role?: Prisma.SortOrder
   deposit_amount?: Prisma.SortOrder
   group_id?: Prisma.SortOrder
+  password?: Prisma.SortOrder
 }
 
 export type UserAvgOrderByAggregateInput = {
@@ -459,6 +479,7 @@ export type UserMaxOrderByAggregateInput = {
   role?: Prisma.SortOrder
   deposit_amount?: Prisma.SortOrder
   group_id?: Prisma.SortOrder
+  password?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -469,6 +490,7 @@ export type UserMinOrderByAggregateInput = {
   role?: Prisma.SortOrder
   deposit_amount?: Prisma.SortOrder
   group_id?: Prisma.SortOrder
+  password?: Prisma.SortOrder
 }
 
 export type UserSumOrderByAggregateInput = {
@@ -689,6 +711,7 @@ export type UserCreateWithoutGroupInput = {
   email?: string | null
   role?: $Enums.UserRole
   deposit_amount?: number
+  password?: string | null
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
@@ -707,6 +730,7 @@ export type UserUncheckedCreateWithoutGroupInput = {
   email?: string | null
   role?: $Enums.UserRole
   deposit_amount?: number
+  password?: string | null
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
@@ -755,6 +779,7 @@ export type UserScalarWhereInput = {
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   deposit_amount?: Prisma.FloatFilter<"User"> | number
   group_id?: Prisma.IntNullableFilter<"User"> | number | null
+  password?: Prisma.StringNullableFilter<"User"> | string | null
 }
 
 export type UserCreateWithoutSubscriptionsInput = {
@@ -763,6 +788,7 @@ export type UserCreateWithoutSubscriptionsInput = {
   email?: string | null
   role?: $Enums.UserRole
   deposit_amount?: number
+  password?: string | null
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
@@ -782,6 +808,7 @@ export type UserUncheckedCreateWithoutSubscriptionsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   group_id?: number | null
+  password?: string | null
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
@@ -814,6 +841,7 @@ export type UserUpdateWithoutSubscriptionsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
@@ -833,6 +861,7 @@ export type UserUncheckedUpdateWithoutSubscriptionsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
@@ -849,6 +878,7 @@ export type UserCreateWithoutAttendancesInput = {
   email?: string | null
   role?: $Enums.UserRole
   deposit_amount?: number
+  password?: string | null
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
@@ -868,6 +898,7 @@ export type UserUncheckedCreateWithoutAttendancesInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   group_id?: number | null
+  password?: string | null
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
@@ -900,6 +931,7 @@ export type UserUpdateWithoutAttendancesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
@@ -919,6 +951,7 @@ export type UserUncheckedUpdateWithoutAttendancesInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
@@ -935,6 +968,7 @@ export type UserCreateWithoutFee_ledgerInput = {
   email?: string | null
   role?: $Enums.UserRole
   deposit_amount?: number
+  password?: string | null
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
@@ -954,6 +988,7 @@ export type UserUncheckedCreateWithoutFee_ledgerInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   group_id?: number | null
+  password?: string | null
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
@@ -986,6 +1021,7 @@ export type UserUpdateWithoutFee_ledgerInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
@@ -1005,6 +1041,7 @@ export type UserUncheckedUpdateWithoutFee_ledgerInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
@@ -1021,6 +1058,7 @@ export type UserCreateWithoutFinesInput = {
   email?: string | null
   role?: $Enums.UserRole
   deposit_amount?: number
+  password?: string | null
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
@@ -1040,6 +1078,7 @@ export type UserUncheckedCreateWithoutFinesInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   group_id?: number | null
+  password?: string | null
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
@@ -1072,6 +1111,7 @@ export type UserUpdateWithoutFinesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
@@ -1091,6 +1131,7 @@ export type UserUncheckedUpdateWithoutFinesInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
@@ -1107,6 +1148,7 @@ export type UserCreateWithoutSeries_won_motsInput = {
   email?: string | null
   role?: $Enums.UserRole
   deposit_amount?: number
+  password?: string | null
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
@@ -1126,6 +1168,7 @@ export type UserUncheckedCreateWithoutSeries_won_motsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   group_id?: number | null
+  password?: string | null
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
@@ -1158,6 +1201,7 @@ export type UserUpdateWithoutSeries_won_motsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
@@ -1177,6 +1221,7 @@ export type UserUncheckedUpdateWithoutSeries_won_motsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
@@ -1193,6 +1238,7 @@ export type UserCreateWithoutPlayer_teamsInput = {
   email?: string | null
   role?: $Enums.UserRole
   deposit_amount?: number
+  password?: string | null
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
@@ -1212,6 +1258,7 @@ export type UserUncheckedCreateWithoutPlayer_teamsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   group_id?: number | null
+  password?: string | null
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
@@ -1244,6 +1291,7 @@ export type UserUpdateWithoutPlayer_teamsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
@@ -1263,6 +1311,7 @@ export type UserUncheckedUpdateWithoutPlayer_teamsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
@@ -1279,6 +1328,7 @@ export type UserCreateWithoutMatches_won_motmInput = {
   email?: string | null
   role?: $Enums.UserRole
   deposit_amount?: number
+  password?: string | null
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
@@ -1298,6 +1348,7 @@ export type UserUncheckedCreateWithoutMatches_won_motmInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   group_id?: number | null
+  password?: string | null
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
@@ -1330,6 +1381,7 @@ export type UserUpdateWithoutMatches_won_motmInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
@@ -1349,6 +1401,7 @@ export type UserUncheckedUpdateWithoutMatches_won_motmInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
@@ -1365,6 +1418,7 @@ export type UserCreateWithoutBowled_ballsInput = {
   email?: string | null
   role?: $Enums.UserRole
   deposit_amount?: number
+  password?: string | null
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
@@ -1384,6 +1438,7 @@ export type UserUncheckedCreateWithoutBowled_ballsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   group_id?: number | null
+  password?: string | null
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
@@ -1405,6 +1460,7 @@ export type UserCreateWithoutFaced_ballsInput = {
   email?: string | null
   role?: $Enums.UserRole
   deposit_amount?: number
+  password?: string | null
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
@@ -1424,6 +1480,7 @@ export type UserUncheckedCreateWithoutFaced_ballsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   group_id?: number | null
+  password?: string | null
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
@@ -1456,6 +1513,7 @@ export type UserUpdateWithoutBowled_ballsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
@@ -1475,6 +1533,7 @@ export type UserUncheckedUpdateWithoutBowled_ballsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
@@ -1502,6 +1561,7 @@ export type UserUpdateWithoutFaced_ballsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
@@ -1521,6 +1581,7 @@ export type UserUncheckedUpdateWithoutFaced_ballsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
@@ -1538,6 +1599,7 @@ export type UserCreateManyGroupInput = {
   email?: string | null
   role?: $Enums.UserRole
   deposit_amount?: number
+  password?: string | null
 }
 
 export type UserUpdateWithoutGroupInput = {
@@ -1546,6 +1608,7 @@ export type UserUpdateWithoutGroupInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
@@ -1564,6 +1627,7 @@ export type UserUncheckedUpdateWithoutGroupInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
@@ -1582,6 +1646,7 @@ export type UserUncheckedUpdateManyWithoutGroupInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1695,6 +1760,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   role?: boolean
   deposit_amount?: boolean
   group_id?: boolean
+  password?: boolean
   group?: boolean | Prisma.User$groupArgs<ExtArgs>
   subscriptions?: boolean | Prisma.User$subscriptionsArgs<ExtArgs>
   attendances?: boolean | Prisma.User$attendancesArgs<ExtArgs>
@@ -1716,6 +1782,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   role?: boolean
   deposit_amount?: boolean
   group_id?: boolean
+  password?: boolean
   group?: boolean | Prisma.User$groupArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1727,6 +1794,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   role?: boolean
   deposit_amount?: boolean
   group_id?: boolean
+  password?: boolean
   group?: boolean | Prisma.User$groupArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1738,9 +1806,10 @@ export type UserSelectScalar = {
   role?: boolean
   deposit_amount?: boolean
   group_id?: boolean
+  password?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "phone" | "email" | "role" | "deposit_amount" | "group_id", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "phone" | "email" | "role" | "deposit_amount" | "group_id" | "password", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   group?: boolean | Prisma.User$groupArgs<ExtArgs>
   subscriptions?: boolean | Prisma.User$subscriptionsArgs<ExtArgs>
@@ -1783,6 +1852,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     role: $Enums.UserRole
     deposit_amount: number
     group_id: number | null
+    password: string | null
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -2223,6 +2293,7 @@ export interface UserFieldRefs {
   readonly role: Prisma.FieldRef<"User", 'UserRole'>
   readonly deposit_amount: Prisma.FieldRef<"User", 'Float'>
   readonly group_id: Prisma.FieldRef<"User", 'Int'>
+  readonly password: Prisma.FieldRef<"User", 'String'>
 }
     
 

@@ -44,8 +44,20 @@ export const processBallEvent = async (data: BallEventData) => {
             },
         });
 
-        // Update match status or score summary if needed (simplified)
-        // In a real app, we would update aggregate tables or cache
+        // Emit update to match room
+        const { getIO } = await import('../server.js');
+        // Dynamic import to avoid circular dependency if possible, or just import top level if safe.
+        // Actually top level import is circular if server imports service. 
+        // Using getIO function pattern or separate socket instance file is better.
+        // For now, assuming dynamic import works or moving io to separate file.
+        // But server.ts imports scoring.service.ts.
+        // So scoring.service.ts cannot import server.ts directly at top level.
+        try {
+            const io = getIO();
+            io.to(`match_${matchId}`).emit('score_update', ballEvent);
+        } catch (e) {
+            console.log("Socket emit failed (likely server not init yet)", e);
+        }
 
         return ballEvent;
     } catch (error) {

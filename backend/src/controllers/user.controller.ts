@@ -21,8 +21,17 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const getUsers = async (req: Request, res: Response) => {
     try {
+        const { group_id } = req.query;
+        const where: any = {};
+
+        if (group_id) {
+            where.group_id = parseInt(group_id as string);
+        }
+
         const users = await prisma.user.findMany({
+            where,
             include: { group: true },
+            orderBy: { name: 'asc' }
         });
         res.json(users);
     } catch (error) {
