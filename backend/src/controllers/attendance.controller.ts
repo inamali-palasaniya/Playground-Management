@@ -10,8 +10,12 @@ export const checkIn = async (req: Request, res: Response) => {
 
     if (!targetUserId) return res.status(400).json({ error: 'User ID required' });
 
-    const checkInDate = date ? new Date(date) : new Date();
-    checkInDate.setHours(0, 0, 0, 0); // Normalize to start of day
+    // Use provided date as the actual check-in time (including time component), or default to now
+    const actualInTime = date ? new Date(date) : new Date();
+
+    // Normalize date for uniqueness check (Date part only)
+    const checkInDate = new Date(actualInTime);
+    checkInDate.setHours(0, 0, 0, 0);
 
     // Check if already checked in for this date
     const existing = await prisma.attendance.findFirst({
@@ -72,7 +76,7 @@ export const checkIn = async (req: Request, res: Response) => {
         user_id: targetUserId,
         date: checkInDate,
         is_present: true,
-        in_time: new Date(),
+        in_time: actualInTime, // Uses the backdated time
         location_lat: lat,
         location_lng: lng,
         daily_fee_charged: dailyFee > 0 ? dailyFee : null,
@@ -90,6 +94,7 @@ export const checkIn = async (req: Request, res: Response) => {
         data: {
           user_id: targetUserId,
           type: 'DAILY_FEE',
+          transaction_type: 'DEBIT',
           amount: dailyFee,
           date: checkInDate,
           is_paid: false,

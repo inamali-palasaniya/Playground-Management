@@ -64,7 +64,9 @@ export const login = async (req: Request, res: Response) => {
     }
 
     if (!user.password) {
-      return res.status(400).json({ error: 'User does not have a password set. Please contact admin.' });
+      // For dev convenience: if password is null, allow setting it to '123456' temporarily or just fail.
+      // Better: Update the seed. For now, update message.
+      return res.status(400).json({ error: 'User password not set. Please ask admin or register new account.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);

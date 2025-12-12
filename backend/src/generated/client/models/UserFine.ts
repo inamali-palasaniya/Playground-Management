@@ -248,8 +248,8 @@ export type UserFineWhereInput = {
   occurrence?: Prisma.IntFilter<"UserFine"> | number
   amount_charged?: Prisma.FloatFilter<"UserFine"> | number
   createdAt?: Prisma.DateTimeFilter<"UserFine"> | Date | string
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   rule?: Prisma.XOR<Prisma.FineRuleScalarRelationFilter, Prisma.FineRuleWhereInput>
+  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
 export type UserFineOrderByWithRelationInput = {
@@ -260,8 +260,8 @@ export type UserFineOrderByWithRelationInput = {
   occurrence?: Prisma.SortOrder
   amount_charged?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  user?: Prisma.UserOrderByWithRelationInput
   rule?: Prisma.FineRuleOrderByWithRelationInput
+  user?: Prisma.UserOrderByWithRelationInput
 }
 
 export type UserFineWhereUniqueInput = Prisma.AtLeast<{
@@ -275,8 +275,8 @@ export type UserFineWhereUniqueInput = Prisma.AtLeast<{
   occurrence?: Prisma.IntFilter<"UserFine"> | number
   amount_charged?: Prisma.FloatFilter<"UserFine"> | number
   createdAt?: Prisma.DateTimeFilter<"UserFine"> | Date | string
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   rule?: Prisma.XOR<Prisma.FineRuleScalarRelationFilter, Prisma.FineRuleWhereInput>
+  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id">
 
 export type UserFineOrderByWithAggregationInput = {
@@ -312,8 +312,8 @@ export type UserFineCreateInput = {
   occurrence?: number
   amount_charged: number
   createdAt?: Date | string
-  user: Prisma.UserCreateNestedOneWithoutFinesInput
   rule: Prisma.FineRuleCreateNestedOneWithoutFinesInput
+  user: Prisma.UserCreateNestedOneWithoutFinesInput
 }
 
 export type UserFineUncheckedCreateInput = {
@@ -331,8 +331,8 @@ export type UserFineUpdateInput = {
   occurrence?: Prisma.IntFieldUpdateOperationsInput | number
   amount_charged?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  user?: Prisma.UserUpdateOneRequiredWithoutFinesNestedInput
   rule?: Prisma.FineRuleUpdateOneRequiredWithoutFinesNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutFinesNestedInput
 }
 
 export type UserFineUncheckedUpdateInput = {
@@ -691,8 +691,8 @@ export type UserFineSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   occurrence?: boolean
   amount_charged?: boolean
   createdAt?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   rule?: boolean | Prisma.FineRuleDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userFine"]>
 
 export type UserFineSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -703,8 +703,8 @@ export type UserFineSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   occurrence?: boolean
   amount_charged?: boolean
   createdAt?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   rule?: boolean | Prisma.FineRuleDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userFine"]>
 
 export type UserFineSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -715,8 +715,8 @@ export type UserFineSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   occurrence?: boolean
   amount_charged?: boolean
   createdAt?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   rule?: boolean | Prisma.FineRuleDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userFine"]>
 
 export type UserFineSelectScalar = {
@@ -731,23 +731,23 @@ export type UserFineSelectScalar = {
 
 export type UserFineOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "rule_id" | "date" | "occurrence" | "amount_charged" | "createdAt", ExtArgs["result"]["userFine"]>
 export type UserFineInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   rule?: boolean | Prisma.FineRuleDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type UserFineIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   rule?: boolean | Prisma.FineRuleDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type UserFineIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   rule?: boolean | Prisma.FineRuleDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 
 export type $UserFinePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "UserFine"
   objects: {
-    user: Prisma.$UserPayload<ExtArgs>
     rule: Prisma.$FineRulePayload<ExtArgs>
+    user: Prisma.$UserPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1151,8 +1151,8 @@ readonly fields: UserFineFieldRefs;
  */
 export interface Prisma__UserFineClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   rule<T extends Prisma.FineRuleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FineRuleDefaultArgs<ExtArgs>>): Prisma.Prisma__FineRuleClient<runtime.Types.Result.GetResult<Prisma.$FineRulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

@@ -1,0 +1,242 @@
+import { Request, Response } from 'express';
+import prisma from '../utils/prisma.js';
+
+// Add Payment (Credit) with Auto-Match Logic
+export const addPayment = async (req: Request, res: Response) => {
+    try {
+        const { user_id, amount, payment_method, notes, type } = req.body; // type=SUBSCRIPTION, DONATION etc.
+
+        if (!user_id || !amount) {
+            return res.status(400).json({ error: 'User ID and amount are required' });
+        }
+
+        const numericAmount = parseFloat(amount);
+
+        const payment = await prisma.feeLedger.create({
+            data: {
+                user_id: parseInt(user_id),
+                type: type || 'PAYMENT',
+                transaction_type: 'CREDIT',
+                payment_method: payment_method || 'CASH',
+                amount: numericAmount,
+                is_paid: true,
+                notes: notes
+            }
+        });
+
+        // Auto-Match Logic: Find oldest unpaid DEBITS and mark them as paid
+        let remainingCredit = numericAmount;
+
+        const unpaidDebts = await prisma.feeLedger.findMany({
+            where: {
+                user_id: parseInt(user_id),
+                transaction_type: 'DEBIT',
+                is_paid: false
+            },
+            orderBy: { date: 'asc' }
+        });
+
+        for (const debt of unpaidDebts) {
+            if (remainingCredit <= 0) break;
+
+            if (remainingCredit >= debt.amount) {
+                // Fully pay off this debt
+                await prisma.feeLedger.update({
+                    where: { id: debt.id },
+                    data: { is_paid: true, notes: (debt.notes || '') + ` (Paid via PMT-${payment.id})` }
+                });
+
+                // If this was a DEPOSIT installment, update User's deposit_amount
+                if (debt.type === 'DEPOSIT') {
+                    await prisma.user.update({
+                        where: { id: parseInt(user_id) },
+                        data: { deposit_amount: { increment: debt.amount } }
+                    });
+                }
+
+                remainingCredit -= debt.amount;
+            } else {
+                // Partial payment logic could go here, but for now we only mark FULLY paid.
+                // Keeping remaining credit in specific payment entry? 
+                // Simple MVP: Just deduct from next payment cycle or manual mental math.
+                // Ledger visually shows balance correctly anyway.
+            }
+        }
+
+        res.status(201).json(payment);
+    } catch (error) {
+        console.error('Error adding payment:', error);
+        res.status(500).json({ error: 'Failed to add payment' });
+    }
+};
+
+// Charge Monthly Fee (Manual Trigger for now)
+export const chargeMonthlyFee = async (req: Request, res: Response) => {
+    try {
+        const { user_id } = req.body;
+        const now = new Date();
+
+        // 1. Get Active Subscription
+        const subscription = await prisma.subscription.findFirst({
+            where: {
+                user_id: parseInt(user_id),
+                status: 'ACTIVE',
+                OR: [{ end_date: null }, { end_date: { gte: now } }]
+            },
+            include: { plan: true }
+        });
+
+        if (!subscription || !subscription.plan.rate_monthly || subscription.plan.rate_monthly <= 0) {
+            return res.status(400).json({ error: 'No active monthly subscription found with a valid rate.' });
+        }
+
+        const plan = subscription.plan;
+        const date = new Date(); // Charge date
+
+        // 2. Check for Split Logic
+        // If Plan has monthly_deposit_part > 0 AND User deposit < 2000 (Target)
+        const user = await prisma.user.findUnique({ where: { id: parseInt(user_id) } });
+
+        // Use non-null assertion or fallback because we checked rate_monthly above
+        let feePart = plan.rate_monthly || 0;
+        let depositPart = 0;
+
+        if (plan.monthly_deposit_part && plan.monthly_deposit_part > 0 && user && user.deposit_amount < 2000) {
+            depositPart = plan.monthly_deposit_part;
+            feePart = (plan.rate_monthly || 0) - depositPart;
+        }
+
+        const debits = [];
+
+        // 3. Create Debits
+        if (feePart > 0) {
+            const feeDebit = await prisma.feeLedger.create({
+                data: {
+                    user_id: parseInt(user_id),
+                    type: 'MONTHLY_FEE',
+                    transaction_type: 'DEBIT',
+                    amount: feePart,
+                    is_paid: false,
+                    notes: `Monthly Fee for ${date.toLocaleString('default', { month: 'long', year: 'numeric' })}`
+                }
+            });
+            debits.push(feeDebit);
+        }
+
+        if (depositPart > 0) {
+            const depositDebit = await prisma.feeLedger.create({
+                data: {
+                    user_id: parseInt(user_id),
+                    type: 'DEPOSIT',
+                    transaction_type: 'DEBIT',
+                    amount: depositPart,
+                    is_paid: false,
+                    notes: `Deposit Installment for ${date.toLocaleString('default', { month: 'long', year: 'numeric' })}`
+                }
+            });
+            debits.push(depositDebit);
+        }
+
+        res.status(201).json({ message: 'Monthly charges applied', debits });
+
+    } catch (error) {
+        console.error('Error charging monthly fee:', error);
+        res.status(500).json({ error: 'Failed to charge monthly fee' });
+    }
+};
+
+// Add Fine (Debit)
+export const addFine = async (req: Request, res: Response) => {
+    try {
+        const { user_id, rule_id, manual_amount, notes } = req.body;
+
+        const rule = await prisma.fineRule.findUnique({ where: { id: parseInt(rule_id) } });
+        if (!rule) return res.status(404).json({ error: 'Fine rule not found' });
+
+        // Count previous fines
+        const previousFines = await prisma.userFine.count({
+            where: {
+                user_id: parseInt(user_id),
+                rule_id: parseInt(rule_id)
+            }
+        });
+
+        const amount = manual_amount ? parseFloat(manual_amount) : (previousFines === 0 ? rule.first_time_fine : rule.subsequent_fine);
+
+        // Record UserFine event
+        await prisma.userFine.create({
+            data: {
+                user_id: parseInt(user_id),
+                rule_id: parseInt(rule_id),
+                amount_charged: amount,
+                occurrence: previousFines + 1
+            }
+        });
+
+        // Record Ledger Debit
+        const ledger = await prisma.feeLedger.create({
+            data: {
+                user_id: parseInt(user_id),
+                type: 'FINE',
+                transaction_type: 'DEBIT',
+                amount: amount,
+                is_paid: false,
+                notes: notes || `Fine: ${rule.name} (Occurrence: ${previousFines + 1})`
+            }
+        });
+
+        res.status(201).json(ledger);
+    } catch (error) {
+        console.error('Error adding fine:', error);
+        res.status(500).json({ error: 'Failed to add fine' });
+    }
+};
+
+// Get Ledger
+export const getUserFinancials = async (req: Request, res: Response) => {
+    try {
+        const { userId } = req.params;
+        const ledger = await prisma.feeLedger.findMany({
+            where: { user_id: Number(userId) },
+            orderBy: { date: 'desc' }
+        });
+
+        // Calculate Balance
+        const credits = ledger.filter(l => l.transaction_type === 'CREDIT').reduce((sum, l) => sum + l.amount, 0);
+        const debits = ledger.filter(l => l.transaction_type === 'DEBIT').reduce((sum, l) => sum + l.amount, 0);
+        const balance = debits - credits; // Positive means user owes money
+
+        res.json({ ledger, balance, total_credits: credits, total_debits: debits });
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching financials' });
+    }
+};
+
+export const updateLedgerEntry = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { amount, notes, is_paid } = req.body;
+
+        const updated = await prisma.feeLedger.update({
+            where: { id: parseInt(id) },
+            data: {
+                amount: amount ? parseFloat(amount) : undefined,
+                notes,
+                is_paid: is_paid !== undefined ? is_paid : undefined
+            }
+        });
+        res.json(updated);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update ledger entry' });
+    }
+}
+
+export const deleteLedgerEntry = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        await prisma.feeLedger.delete({ where: { id: parseInt(id) } });
+        res.json({ message: 'Entry deleted' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete ledger entry' });
+    }
+}

@@ -1591,7 +1591,9 @@ export const UserScalarFieldEnum = {
   role: 'role',
   deposit_amount: 'deposit_amount',
   group_id: 'group_id',
-  password: 'password'
+  password: 'password',
+  age: 'age',
+  user_type: 'user_type'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -1602,6 +1604,7 @@ export const SubscriptionPlanScalarFieldEnum = {
   name: 'name',
   rate_daily: 'rate_daily',
   rate_monthly: 'rate_monthly',
+  monthly_deposit_part: 'monthly_deposit_part',
   is_deposit_required: 'is_deposit_required',
   createdAt: 'createdAt'
 } as const
@@ -1629,11 +1632,11 @@ export const AttendanceScalarFieldEnum = {
   date: 'date',
   is_present: 'is_present',
   daily_fee_charged: 'daily_fee_charged',
+  createdAt: 'createdAt',
   in_time: 'in_time',
-  out_time: 'out_time',
   location_lat: 'location_lat',
   location_lng: 'location_lng',
-  createdAt: 'createdAt'
+  out_time: 'out_time'
 } as const
 
 export type AttendanceScalarFieldEnum = (typeof AttendanceScalarFieldEnum)[keyof typeof AttendanceScalarFieldEnum]
@@ -1643,6 +1646,8 @@ export const FeeLedgerScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
   type: 'type',
+  transaction_type: 'transaction_type',
+  payment_method: 'payment_method',
   amount: 'amount',
   date: 'date',
   is_paid: 'is_paid',
@@ -1657,7 +1662,7 @@ export const FineRuleScalarFieldEnum = {
   id: 'id',
   name: 'name',
   first_time_fine: 'first_time_fine',
-  subsequent_multiplier: 'subsequent_multiplier',
+  subsequent_fine: 'subsequent_fine',
   createdAt: 'createdAt'
 } as const
 
@@ -1838,6 +1843,20 @@ export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMode
 
 
 /**
+ * Reference to a field of type 'UserType'
+ */
+export type EnumUserTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserType'>
+    
+
+
+/**
+ * Reference to a field of type 'UserType[]'
+ */
+export type ListEnumUserTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserType[]'>
+    
+
+
+/**
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
@@ -1883,6 +1902,34 @@ export type EnumLedgerTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
  * Reference to a field of type 'LedgerType[]'
  */
 export type ListEnumLedgerTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LedgerType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TransactionType'
+ */
+export type EnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType'>
+    
+
+
+/**
+ * Reference to a field of type 'TransactionType[]'
+ */
+export type ListEnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentMethod'
+ */
+export type EnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethod'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentMethod[]'
+ */
+export type ListEnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethod[]'>
     
 
 

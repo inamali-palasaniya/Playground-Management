@@ -29,20 +29,20 @@ export type AggregateFineRule = {
 export type FineRuleAvgAggregateOutputType = {
   id: number | null
   first_time_fine: number | null
-  subsequent_multiplier: number | null
+  subsequent_fine: number | null
 }
 
 export type FineRuleSumAggregateOutputType = {
   id: number | null
   first_time_fine: number | null
-  subsequent_multiplier: number | null
+  subsequent_fine: number | null
 }
 
 export type FineRuleMinAggregateOutputType = {
   id: number | null
   name: string | null
   first_time_fine: number | null
-  subsequent_multiplier: number | null
+  subsequent_fine: number | null
   createdAt: Date | null
 }
 
@@ -50,7 +50,7 @@ export type FineRuleMaxAggregateOutputType = {
   id: number | null
   name: string | null
   first_time_fine: number | null
-  subsequent_multiplier: number | null
+  subsequent_fine: number | null
   createdAt: Date | null
 }
 
@@ -58,7 +58,7 @@ export type FineRuleCountAggregateOutputType = {
   id: number
   name: number
   first_time_fine: number
-  subsequent_multiplier: number
+  subsequent_fine: number
   createdAt: number
   _all: number
 }
@@ -67,20 +67,20 @@ export type FineRuleCountAggregateOutputType = {
 export type FineRuleAvgAggregateInputType = {
   id?: true
   first_time_fine?: true
-  subsequent_multiplier?: true
+  subsequent_fine?: true
 }
 
 export type FineRuleSumAggregateInputType = {
   id?: true
   first_time_fine?: true
-  subsequent_multiplier?: true
+  subsequent_fine?: true
 }
 
 export type FineRuleMinAggregateInputType = {
   id?: true
   name?: true
   first_time_fine?: true
-  subsequent_multiplier?: true
+  subsequent_fine?: true
   createdAt?: true
 }
 
@@ -88,7 +88,7 @@ export type FineRuleMaxAggregateInputType = {
   id?: true
   name?: true
   first_time_fine?: true
-  subsequent_multiplier?: true
+  subsequent_fine?: true
   createdAt?: true
 }
 
@@ -96,7 +96,7 @@ export type FineRuleCountAggregateInputType = {
   id?: true
   name?: true
   first_time_fine?: true
-  subsequent_multiplier?: true
+  subsequent_fine?: true
   createdAt?: true
   _all?: true
 }
@@ -191,7 +191,7 @@ export type FineRuleGroupByOutputType = {
   id: number
   name: string
   first_time_fine: number
-  subsequent_multiplier: number
+  subsequent_fine: number
   createdAt: Date
   _count: FineRuleCountAggregateOutputType | null
   _avg: FineRuleAvgAggregateOutputType | null
@@ -222,7 +222,7 @@ export type FineRuleWhereInput = {
   id?: Prisma.IntFilter<"FineRule"> | number
   name?: Prisma.StringFilter<"FineRule"> | string
   first_time_fine?: Prisma.FloatFilter<"FineRule"> | number
-  subsequent_multiplier?: Prisma.FloatFilter<"FineRule"> | number
+  subsequent_fine?: Prisma.FloatFilter<"FineRule"> | number
   createdAt?: Prisma.DateTimeFilter<"FineRule"> | Date | string
   fines?: Prisma.UserFineListRelationFilter
 }
@@ -231,7 +231,7 @@ export type FineRuleOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   first_time_fine?: Prisma.SortOrder
-  subsequent_multiplier?: Prisma.SortOrder
+  subsequent_fine?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   fines?: Prisma.UserFineOrderByRelationAggregateInput
 }
@@ -243,7 +243,7 @@ export type FineRuleWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.FineRuleWhereInput[]
   NOT?: Prisma.FineRuleWhereInput | Prisma.FineRuleWhereInput[]
   first_time_fine?: Prisma.FloatFilter<"FineRule"> | number
-  subsequent_multiplier?: Prisma.FloatFilter<"FineRule"> | number
+  subsequent_fine?: Prisma.FloatFilter<"FineRule"> | number
   createdAt?: Prisma.DateTimeFilter<"FineRule"> | Date | string
   fines?: Prisma.UserFineListRelationFilter
 }, "id" | "name">
@@ -252,7 +252,7 @@ export type FineRuleOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   first_time_fine?: Prisma.SortOrder
-  subsequent_multiplier?: Prisma.SortOrder
+  subsequent_fine?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.FineRuleCountOrderByAggregateInput
   _avg?: Prisma.FineRuleAvgOrderByAggregateInput
@@ -268,14 +268,14 @@ export type FineRuleScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"FineRule"> | number
   name?: Prisma.StringWithAggregatesFilter<"FineRule"> | string
   first_time_fine?: Prisma.FloatWithAggregatesFilter<"FineRule"> | number
-  subsequent_multiplier?: Prisma.FloatWithAggregatesFilter<"FineRule"> | number
+  subsequent_fine?: Prisma.FloatWithAggregatesFilter<"FineRule"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"FineRule"> | Date | string
 }
 
 export type FineRuleCreateInput = {
   name: string
   first_time_fine: number
-  subsequent_multiplier?: number
+  subsequent_fine?: number
   createdAt?: Date | string
   fines?: Prisma.UserFineCreateNestedManyWithoutRuleInput
 }
@@ -284,7 +284,7 @@ export type FineRuleUncheckedCreateInput = {
   id?: number
   name: string
   first_time_fine: number
-  subsequent_multiplier?: number
+  subsequent_fine?: number
   createdAt?: Date | string
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutRuleInput
 }
@@ -292,7 +292,7 @@ export type FineRuleUncheckedCreateInput = {
 export type FineRuleUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   first_time_fine?: Prisma.FloatFieldUpdateOperationsInput | number
-  subsequent_multiplier?: Prisma.FloatFieldUpdateOperationsInput | number
+  subsequent_fine?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fines?: Prisma.UserFineUpdateManyWithoutRuleNestedInput
 }
@@ -301,7 +301,7 @@ export type FineRuleUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   first_time_fine?: Prisma.FloatFieldUpdateOperationsInput | number
-  subsequent_multiplier?: Prisma.FloatFieldUpdateOperationsInput | number
+  subsequent_fine?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutRuleNestedInput
 }
@@ -310,14 +310,14 @@ export type FineRuleCreateManyInput = {
   id?: number
   name: string
   first_time_fine: number
-  subsequent_multiplier?: number
+  subsequent_fine?: number
   createdAt?: Date | string
 }
 
 export type FineRuleUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   first_time_fine?: Prisma.FloatFieldUpdateOperationsInput | number
-  subsequent_multiplier?: Prisma.FloatFieldUpdateOperationsInput | number
+  subsequent_fine?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -325,7 +325,7 @@ export type FineRuleUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   first_time_fine?: Prisma.FloatFieldUpdateOperationsInput | number
-  subsequent_multiplier?: Prisma.FloatFieldUpdateOperationsInput | number
+  subsequent_fine?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -333,21 +333,21 @@ export type FineRuleCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   first_time_fine?: Prisma.SortOrder
-  subsequent_multiplier?: Prisma.SortOrder
+  subsequent_fine?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type FineRuleAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   first_time_fine?: Prisma.SortOrder
-  subsequent_multiplier?: Prisma.SortOrder
+  subsequent_fine?: Prisma.SortOrder
 }
 
 export type FineRuleMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   first_time_fine?: Prisma.SortOrder
-  subsequent_multiplier?: Prisma.SortOrder
+  subsequent_fine?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -355,14 +355,14 @@ export type FineRuleMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   first_time_fine?: Prisma.SortOrder
-  subsequent_multiplier?: Prisma.SortOrder
+  subsequent_fine?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type FineRuleSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   first_time_fine?: Prisma.SortOrder
-  subsequent_multiplier?: Prisma.SortOrder
+  subsequent_fine?: Prisma.SortOrder
 }
 
 export type FineRuleScalarRelationFilter = {
@@ -387,7 +387,7 @@ export type FineRuleUpdateOneRequiredWithoutFinesNestedInput = {
 export type FineRuleCreateWithoutFinesInput = {
   name: string
   first_time_fine: number
-  subsequent_multiplier?: number
+  subsequent_fine?: number
   createdAt?: Date | string
 }
 
@@ -395,7 +395,7 @@ export type FineRuleUncheckedCreateWithoutFinesInput = {
   id?: number
   name: string
   first_time_fine: number
-  subsequent_multiplier?: number
+  subsequent_fine?: number
   createdAt?: Date | string
 }
 
@@ -418,7 +418,7 @@ export type FineRuleUpdateToOneWithWhereWithoutFinesInput = {
 export type FineRuleUpdateWithoutFinesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   first_time_fine?: Prisma.FloatFieldUpdateOperationsInput | number
-  subsequent_multiplier?: Prisma.FloatFieldUpdateOperationsInput | number
+  subsequent_fine?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -426,7 +426,7 @@ export type FineRuleUncheckedUpdateWithoutFinesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   first_time_fine?: Prisma.FloatFieldUpdateOperationsInput | number
-  subsequent_multiplier?: Prisma.FloatFieldUpdateOperationsInput | number
+  subsequent_fine?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -465,7 +465,7 @@ export type FineRuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   id?: boolean
   name?: boolean
   first_time_fine?: boolean
-  subsequent_multiplier?: boolean
+  subsequent_fine?: boolean
   createdAt?: boolean
   fines?: boolean | Prisma.FineRule$finesArgs<ExtArgs>
   _count?: boolean | Prisma.FineRuleCountOutputTypeDefaultArgs<ExtArgs>
@@ -475,7 +475,7 @@ export type FineRuleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   id?: boolean
   name?: boolean
   first_time_fine?: boolean
-  subsequent_multiplier?: boolean
+  subsequent_fine?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["fineRule"]>
 
@@ -483,7 +483,7 @@ export type FineRuleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   id?: boolean
   name?: boolean
   first_time_fine?: boolean
-  subsequent_multiplier?: boolean
+  subsequent_fine?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["fineRule"]>
 
@@ -491,11 +491,11 @@ export type FineRuleSelectScalar = {
   id?: boolean
   name?: boolean
   first_time_fine?: boolean
-  subsequent_multiplier?: boolean
+  subsequent_fine?: boolean
   createdAt?: boolean
 }
 
-export type FineRuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "first_time_fine" | "subsequent_multiplier" | "createdAt", ExtArgs["result"]["fineRule"]>
+export type FineRuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "first_time_fine" | "subsequent_fine" | "createdAt", ExtArgs["result"]["fineRule"]>
 export type FineRuleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   fines?: boolean | Prisma.FineRule$finesArgs<ExtArgs>
   _count?: boolean | Prisma.FineRuleCountOutputTypeDefaultArgs<ExtArgs>
@@ -512,7 +512,7 @@ export type $FineRulePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     id: number
     name: string
     first_time_fine: number
-    subsequent_multiplier: number
+    subsequent_fine: number
     createdAt: Date
   }, ExtArgs["result"]["fineRule"]>
   composites: {}
@@ -941,7 +941,7 @@ export interface FineRuleFieldRefs {
   readonly id: Prisma.FieldRef<"FineRule", 'Int'>
   readonly name: Prisma.FieldRef<"FineRule", 'String'>
   readonly first_time_fine: Prisma.FieldRef<"FineRule", 'Float'>
-  readonly subsequent_multiplier: Prisma.FieldRef<"FineRule", 'Float'>
+  readonly subsequent_fine: Prisma.FieldRef<"FineRule", 'Float'>
   readonly createdAt: Prisma.FieldRef<"FineRule", 'DateTime'>
 }
     

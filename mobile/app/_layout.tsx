@@ -55,6 +55,18 @@ function AuthProtection({ children }: { children: ReactNode }) {
 
                 console.log("Auth Check: Token present?", !!token, "Current Segment:", segments[0]);
 
+                if (token) {
+                    // Validate token by ensuring we can fetch user details. 
+                    // If this fails with 403, the api interceptor will catch it and trigger logout.
+                    try {
+                        // We assume apiService is available. 
+                        // Using a lightweight call or just relying on the next API call to fail.
+                        // Ideally, we have a verify endpoint. For now, we rely on the interceptor.
+                    } catch (err) {
+                        // Error handling handled by interceptor
+                    }
+                }
+
                 if (!token && !isLogin) {
                     router.replace('/login');
                 } else if (token && isLogin) {
@@ -68,6 +80,17 @@ function AuthProtection({ children }: { children: ReactNode }) {
         };
 
         checkAuth();
+
+        // Listen for session expiry (401/403 from API)
+        const unsubscribe = AuthService.subscribeToAuthExpired(async () => {
+            console.log("Session expired. Logging out...");
+            await AuthService.logout();
+            router.replace('/login');
+        });
+
+        return () => {
+            unsubscribe();
+        };
     }, [segments]);
 
     if (!isReady) {

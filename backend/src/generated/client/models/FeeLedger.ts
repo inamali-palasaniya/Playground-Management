@@ -42,6 +42,8 @@ export type FeeLedgerMinAggregateOutputType = {
   id: number | null
   user_id: number | null
   type: $Enums.LedgerType | null
+  transaction_type: $Enums.TransactionType | null
+  payment_method: $Enums.PaymentMethod | null
   amount: number | null
   date: Date | null
   is_paid: boolean | null
@@ -53,6 +55,8 @@ export type FeeLedgerMaxAggregateOutputType = {
   id: number | null
   user_id: number | null
   type: $Enums.LedgerType | null
+  transaction_type: $Enums.TransactionType | null
+  payment_method: $Enums.PaymentMethod | null
   amount: number | null
   date: Date | null
   is_paid: boolean | null
@@ -64,6 +68,8 @@ export type FeeLedgerCountAggregateOutputType = {
   id: number
   user_id: number
   type: number
+  transaction_type: number
+  payment_method: number
   amount: number
   date: number
   is_paid: number
@@ -89,6 +95,8 @@ export type FeeLedgerMinAggregateInputType = {
   id?: true
   user_id?: true
   type?: true
+  transaction_type?: true
+  payment_method?: true
   amount?: true
   date?: true
   is_paid?: true
@@ -100,6 +108,8 @@ export type FeeLedgerMaxAggregateInputType = {
   id?: true
   user_id?: true
   type?: true
+  transaction_type?: true
+  payment_method?: true
   amount?: true
   date?: true
   is_paid?: true
@@ -111,6 +121,8 @@ export type FeeLedgerCountAggregateInputType = {
   id?: true
   user_id?: true
   type?: true
+  transaction_type?: true
+  payment_method?: true
   amount?: true
   date?: true
   is_paid?: true
@@ -209,6 +221,8 @@ export type FeeLedgerGroupByOutputType = {
   id: number
   user_id: number
   type: $Enums.LedgerType
+  transaction_type: $Enums.TransactionType
+  payment_method: $Enums.PaymentMethod | null
   amount: number
   date: Date
   is_paid: boolean
@@ -243,6 +257,8 @@ export type FeeLedgerWhereInput = {
   id?: Prisma.IntFilter<"FeeLedger"> | number
   user_id?: Prisma.IntFilter<"FeeLedger"> | number
   type?: Prisma.EnumLedgerTypeFilter<"FeeLedger"> | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFilter<"FeeLedger"> | $Enums.TransactionType
+  payment_method?: Prisma.EnumPaymentMethodNullableFilter<"FeeLedger"> | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFilter<"FeeLedger"> | number
   date?: Prisma.DateTimeFilter<"FeeLedger"> | Date | string
   is_paid?: Prisma.BoolFilter<"FeeLedger"> | boolean
@@ -255,6 +271,8 @@ export type FeeLedgerOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  transaction_type?: Prisma.SortOrder
+  payment_method?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
   date?: Prisma.SortOrder
   is_paid?: Prisma.SortOrder
@@ -270,6 +288,8 @@ export type FeeLedgerWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.FeeLedgerWhereInput | Prisma.FeeLedgerWhereInput[]
   user_id?: Prisma.IntFilter<"FeeLedger"> | number
   type?: Prisma.EnumLedgerTypeFilter<"FeeLedger"> | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFilter<"FeeLedger"> | $Enums.TransactionType
+  payment_method?: Prisma.EnumPaymentMethodNullableFilter<"FeeLedger"> | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFilter<"FeeLedger"> | number
   date?: Prisma.DateTimeFilter<"FeeLedger"> | Date | string
   is_paid?: Prisma.BoolFilter<"FeeLedger"> | boolean
@@ -282,6 +302,8 @@ export type FeeLedgerOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  transaction_type?: Prisma.SortOrder
+  payment_method?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
   date?: Prisma.SortOrder
   is_paid?: Prisma.SortOrder
@@ -301,6 +323,8 @@ export type FeeLedgerScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"FeeLedger"> | number
   user_id?: Prisma.IntWithAggregatesFilter<"FeeLedger"> | number
   type?: Prisma.EnumLedgerTypeWithAggregatesFilter<"FeeLedger"> | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeWithAggregatesFilter<"FeeLedger"> | $Enums.TransactionType
+  payment_method?: Prisma.EnumPaymentMethodNullableWithAggregatesFilter<"FeeLedger"> | $Enums.PaymentMethod | null
   amount?: Prisma.FloatWithAggregatesFilter<"FeeLedger"> | number
   date?: Prisma.DateTimeWithAggregatesFilter<"FeeLedger"> | Date | string
   is_paid?: Prisma.BoolWithAggregatesFilter<"FeeLedger"> | boolean
@@ -310,6 +334,8 @@ export type FeeLedgerScalarWhereWithAggregatesInput = {
 
 export type FeeLedgerCreateInput = {
   type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
   amount: number
   date?: Date | string
   is_paid?: boolean
@@ -322,6 +348,8 @@ export type FeeLedgerUncheckedCreateInput = {
   id?: number
   user_id: number
   type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
   amount: number
   date?: Date | string
   is_paid?: boolean
@@ -331,6 +359,8 @@ export type FeeLedgerUncheckedCreateInput = {
 
 export type FeeLedgerUpdateInput = {
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -343,6 +373,8 @@ export type FeeLedgerUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   user_id?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -354,6 +386,8 @@ export type FeeLedgerCreateManyInput = {
   id?: number
   user_id: number
   type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
   amount: number
   date?: Date | string
   is_paid?: boolean
@@ -363,6 +397,8 @@ export type FeeLedgerCreateManyInput = {
 
 export type FeeLedgerUpdateManyMutationInput = {
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -374,6 +410,8 @@ export type FeeLedgerUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   user_id?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -395,6 +433,8 @@ export type FeeLedgerCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  transaction_type?: Prisma.SortOrder
+  payment_method?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   date?: Prisma.SortOrder
   is_paid?: Prisma.SortOrder
@@ -412,6 +452,8 @@ export type FeeLedgerMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  transaction_type?: Prisma.SortOrder
+  payment_method?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   date?: Prisma.SortOrder
   is_paid?: Prisma.SortOrder
@@ -423,6 +465,8 @@ export type FeeLedgerMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  transaction_type?: Prisma.SortOrder
+  payment_method?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   date?: Prisma.SortOrder
   is_paid?: Prisma.SortOrder
@@ -482,8 +526,18 @@ export type EnumLedgerTypeFieldUpdateOperationsInput = {
   set?: $Enums.LedgerType
 }
 
+export type EnumTransactionTypeFieldUpdateOperationsInput = {
+  set?: $Enums.TransactionType
+}
+
+export type NullableEnumPaymentMethodFieldUpdateOperationsInput = {
+  set?: $Enums.PaymentMethod | null
+}
+
 export type FeeLedgerCreateWithoutUserInput = {
   type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
   amount: number
   date?: Date | string
   is_paid?: boolean
@@ -494,6 +548,8 @@ export type FeeLedgerCreateWithoutUserInput = {
 export type FeeLedgerUncheckedCreateWithoutUserInput = {
   id?: number
   type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
   amount: number
   date?: Date | string
   is_paid?: boolean
@@ -534,6 +590,8 @@ export type FeeLedgerScalarWhereInput = {
   id?: Prisma.IntFilter<"FeeLedger"> | number
   user_id?: Prisma.IntFilter<"FeeLedger"> | number
   type?: Prisma.EnumLedgerTypeFilter<"FeeLedger"> | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFilter<"FeeLedger"> | $Enums.TransactionType
+  payment_method?: Prisma.EnumPaymentMethodNullableFilter<"FeeLedger"> | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFilter<"FeeLedger"> | number
   date?: Prisma.DateTimeFilter<"FeeLedger"> | Date | string
   is_paid?: Prisma.BoolFilter<"FeeLedger"> | boolean
@@ -544,6 +602,8 @@ export type FeeLedgerScalarWhereInput = {
 export type FeeLedgerCreateManyUserInput = {
   id?: number
   type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
   amount: number
   date?: Date | string
   is_paid?: boolean
@@ -553,6 +613,8 @@ export type FeeLedgerCreateManyUserInput = {
 
 export type FeeLedgerUpdateWithoutUserInput = {
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -563,6 +625,8 @@ export type FeeLedgerUpdateWithoutUserInput = {
 export type FeeLedgerUncheckedUpdateWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -573,6 +637,8 @@ export type FeeLedgerUncheckedUpdateWithoutUserInput = {
 export type FeeLedgerUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   amount?: Prisma.FloatFieldUpdateOperationsInput | number
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -586,6 +652,8 @@ export type FeeLedgerSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   id?: boolean
   user_id?: boolean
   type?: boolean
+  transaction_type?: boolean
+  payment_method?: boolean
   amount?: boolean
   date?: boolean
   is_paid?: boolean
@@ -598,6 +666,8 @@ export type FeeLedgerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   id?: boolean
   user_id?: boolean
   type?: boolean
+  transaction_type?: boolean
+  payment_method?: boolean
   amount?: boolean
   date?: boolean
   is_paid?: boolean
@@ -610,6 +680,8 @@ export type FeeLedgerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   id?: boolean
   user_id?: boolean
   type?: boolean
+  transaction_type?: boolean
+  payment_method?: boolean
   amount?: boolean
   date?: boolean
   is_paid?: boolean
@@ -622,6 +694,8 @@ export type FeeLedgerSelectScalar = {
   id?: boolean
   user_id?: boolean
   type?: boolean
+  transaction_type?: boolean
+  payment_method?: boolean
   amount?: boolean
   date?: boolean
   is_paid?: boolean
@@ -629,7 +703,7 @@ export type FeeLedgerSelectScalar = {
   createdAt?: boolean
 }
 
-export type FeeLedgerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "type" | "amount" | "date" | "is_paid" | "notes" | "createdAt", ExtArgs["result"]["feeLedger"]>
+export type FeeLedgerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "type" | "transaction_type" | "payment_method" | "amount" | "date" | "is_paid" | "notes" | "createdAt", ExtArgs["result"]["feeLedger"]>
 export type FeeLedgerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -649,6 +723,8 @@ export type $FeeLedgerPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     id: number
     user_id: number
     type: $Enums.LedgerType
+    transaction_type: $Enums.TransactionType
+    payment_method: $Enums.PaymentMethod | null
     amount: number
     date: Date
     is_paid: boolean
@@ -1081,6 +1157,8 @@ export interface FeeLedgerFieldRefs {
   readonly id: Prisma.FieldRef<"FeeLedger", 'Int'>
   readonly user_id: Prisma.FieldRef<"FeeLedger", 'Int'>
   readonly type: Prisma.FieldRef<"FeeLedger", 'LedgerType'>
+  readonly transaction_type: Prisma.FieldRef<"FeeLedger", 'TransactionType'>
+  readonly payment_method: Prisma.FieldRef<"FeeLedger", 'PaymentMethod'>
   readonly amount: Prisma.FieldRef<"FeeLedger", 'Float'>
   readonly date: Prisma.FieldRef<"FeeLedger", 'DateTime'>
   readonly is_paid: Prisma.FieldRef<"FeeLedger", 'Boolean'>

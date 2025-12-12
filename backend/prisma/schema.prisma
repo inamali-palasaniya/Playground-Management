@@ -3,41 +3,9 @@ generator client {
   output   = "../src/generated/client"
 }
 
-
-
-
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
-
-// Enums
-enum UserRole {
-  MANAGEMENT
-  NORMAL
-}
-
-enum LedgerType {
-  DAILY_FEE
-  MONTHLY_FEE
-  FINE
-  PAYMENT
-  DEPOSIT
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  EXPIRED
-  CANCELLED
-}
-
-enum MatchStatus {
-  SCHEDULED
-  LIVE
-  COMPLETED
-  ABANDONED
-}
-
-// Module 1: Management
 
 model Game {
   id          Int          @id @default(autoincrement())
@@ -52,34 +20,26 @@ model UserGroup {
 }
 
 model User {
-  id             Int      @id @default(autoincrement())
-  name           String
-  phone          String   @unique
-  email          String?  @unique
-  role           UserRole @default(NORMAL)
-  deposit_amount Float    @default(0.0)
-  group_id       Int?
-  group          UserGroup? @relation(fields: [group_id], references: [id])
-  
-  subscriptions  Subscription[]
-  attendances    Attendance[]
-  fee_ledger     FeeLedger[]
-  fines          UserFine[]
-  password       String?  // Made optional initially to avoid migration issues with existing data, but intended to be required.
-                         // In a real scenario with existing users, we'd need a default or a script to backfill.
-                         // For this "joke" to "pro" transition, we assume we can reset or migrate carefully.
-
-  
-  // Scoring Module Relations
-  player_teams   TeamPlayer[]
-  
-  // Ball Event Relations
-  bowled_balls   BallEvent[] @relation("Bowler")
-  faced_balls    BallEvent[] @relation("Striker")
-  
-  // Awards
-  matches_won_motm    Match[]      @relation("ManOfTheMatch")
-  series_won_mots     Tournament[] @relation("ManOfTheSeries")
+  id               Int            @id @default(autoincrement())
+  name             String
+  phone            String         @unique
+  email            String?        @unique
+  role             UserRole       @default(NORMAL)
+  deposit_amount   Float          @default(0.0)
+  group_id         Int?
+  password         String?
+  age              Int?
+  user_type        UserType     @default(NORMAL)
+  attendances      Attendance[]
+  bowled_balls     BallEvent[]    @relation("Bowler")
+  faced_balls      BallEvent[]    @relation("Striker")
+  fee_ledger       FeeLedger[]
+  matches_won_motm Match[]        @relation("ManOfTheMatch")
+  subscriptions    Subscription[]
+  player_teams     TeamPlayer[]
+  series_won_mots  Tournament[]   @relation("ManOfTheSeries")
+  group            UserGroup?     @relation(fields: [group_id], references: [id])
+  fines            UserFine[]
 }
 
 model SubscriptionPlan {
@@ -87,41 +47,41 @@ model SubscriptionPlan {
   name                String         @unique
   rate_daily          Float?
   rate_monthly        Float?
+  monthly_deposit_part Float?         @default(0)
   is_deposit_required Boolean        @default(false)
-  subscriptions       Subscription[]
   createdAt           DateTime       @default(now())
+  subscriptions       Subscription[]
 }
 
 model Subscription {
   id          Int                @id @default(autoincrement())
   user_id     Int
-  user        User               @relation(fields: [user_id], references: [id])
   plan_id     Int
-  plan        SubscriptionPlan   @relation(fields: [plan_id], references: [id])
   start_date  DateTime
   end_date    DateTime?
   amount_paid Float
   status      SubscriptionStatus @default(ACTIVE)
   createdAt   DateTime           @default(now())
-  
+  plan        SubscriptionPlan   @relation(fields: [plan_id], references: [id])
+  user        User               @relation(fields: [user_id], references: [id])
+
   @@index([user_id])
   @@index([plan_id])
 }
 
 model Attendance {
-  id                Int      @id @default(autoincrement())
+  id                Int       @id @default(autoincrement())
   user_id           Int
-  user              User     @relation(fields: [user_id], references: [id])
-  date              DateTime @db.Date
-  is_present        Boolean  @default(true)
+  date              DateTime  @db.Date
+  is_present        Boolean   @default(true)
   daily_fee_charged Float?
+  createdAt         DateTime  @default(now())
   in_time           DateTime?
-  out_time          DateTime?
   location_lat      Float?
   location_lng      Float?
-  createdAt         DateTime @default(now())
+  out_time          DateTime?
+  user              User      @relation(fields: [user_id], references: [id])
 
-  
   @@unique([user_id, date])
   @@index([user_id])
   @@index([date])
@@ -130,14 +90,16 @@ model Attendance {
 model FeeLedger {
   id        Int        @id @default(autoincrement())
   user_id   Int
-  user      User       @relation(fields: [user_id], references: [id])
-  type      LedgerType
-  amount    Float
-  date      DateTime   @default(now())
-  is_paid   Boolean    @default(false)
-  notes     String?
+  type             LedgerType
+  transaction_type TransactionType @default(DEBIT)
+  payment_method   PaymentMethod?
+  amount           Float
+  date             DateTime        @default(now())
+  is_paid          Boolean         @default(false)
+  notes            String?
   createdAt DateTime   @default(now())
-  
+  user      User       @relation(fields: [user_id], references: [id])
+
   @@index([user_id])
   @@index([is_paid])
 }
@@ -146,22 +108,22 @@ model FineRule {
   id                    Int        @id @default(autoincrement())
   name                  String     @unique
   first_time_fine       Float
-  subsequent_multiplier Float      @default(1)
-  fines                 UserFine[]
+  subsequent_fine       Float      @default(0)
   createdAt             DateTime   @default(now())
+  fines                 UserFine[]
 }
 
 model UserFine {
   id             Int      @id @default(autoincrement())
   user_id        Int
-  user           User     @relation(fields: [user_id], references: [id])
   rule_id        Int
-  rule           FineRule @relation(fields: [rule_id], references: [id])
   date           DateTime @default(now())
   occurrence     Int      @default(1)
   amount_charged Float
   createdAt      DateTime @default(now())
-  
+  rule           FineRule @relation(fields: [rule_id], references: [id])
+  user           User     @relation(fields: [user_id], references: [id])
+
   @@index([user_id])
   @@index([rule_id])
 }
@@ -175,73 +137,116 @@ model Expense {
   notes    String?
 }
 
-// Module 2: Scoring
-
 model Tournament {
-  id         Int      @id @default(autoincrement())
-  name       String
-  game_id    Int
-  game       Game     @relation(fields: [game_id], references: [id])
-  start_date DateTime
-  end_date   DateTime?
-  matches    Match[]
-  teams      Team[]
+  id                   Int       @id @default(autoincrement())
+  name                 String
+  game_id              Int
+  start_date           DateTime
+  end_date             DateTime?
   man_of_the_series_id Int?
-  man_of_the_series    User?    @relation("ManOfTheSeries", fields: [man_of_the_series_id], references: [id])
+  matches              Match[]
+  teams                Team[]
+  game                 Game      @relation(fields: [game_id], references: [id])
+  man_of_the_series    User?     @relation("ManOfTheSeries", fields: [man_of_the_series_id], references: [id])
 }
 
 model Team {
   id            Int          @id @default(autoincrement())
   name          String
   tournament_id Int
-  tournament    Tournament   @relation(fields: [tournament_id], references: [id])
-  players       TeamPlayer[]
   matches_as_a  Match[]      @relation("TeamA")
   matches_as_b  Match[]      @relation("TeamB")
+  tournament    Tournament   @relation(fields: [tournament_id], references: [id])
+  players       TeamPlayer[]
 }
 
 model TeamPlayer {
   id      Int  @id @default(autoincrement())
   team_id Int
-  team    Team @relation(fields: [team_id], references: [id])
   user_id Int
+  team    Team @relation(fields: [team_id], references: [id])
   user    User @relation(fields: [user_id], references: [id])
 }
 
 model Match {
-  id            Int         @id @default(autoincrement())
-  tournament_id Int
-  tournament    Tournament  @relation(fields: [tournament_id], references: [id])
-  team_a_id     Int
-  team_a        Team        @relation(fields: [team_a_id], references: [id], name: "TeamA")
-  team_b_id     Int
-  team_b        Team        @relation(fields: [team_b_id], references: [id], name: "TeamB")
-  start_time    DateTime
-  status        MatchStatus @default(SCHEDULED)
-  overs         Int         @default(20)
-  
-  // Scoring details could be expanded here or in separate tables
-  // For simplicity, we might store current score in Match or separate Score table
-  // But for a full system, we need Ball-by-Ball
-  ball_events   BallEvent[]
+  id                  Int         @id @default(autoincrement())
+  tournament_id       Int
+  team_a_id           Int
+  team_b_id           Int
+  start_time          DateTime
+  status              MatchStatus @default(SCHEDULED)
+  overs               Int         @default(20)
   man_of_the_match_id Int?
-  man_of_the_match    User?    @relation("ManOfTheMatch", fields: [man_of_the_match_id], references: [id])
+  ball_events         BallEvent[]
+  man_of_the_match    User?       @relation("ManOfTheMatch", fields: [man_of_the_match_id], references: [id])
+  team_a              Team        @relation("TeamA", fields: [team_a_id], references: [id])
+  team_b              Team        @relation("TeamB", fields: [team_b_id], references: [id])
+  tournament          Tournament  @relation(fields: [tournament_id], references: [id])
 }
 
 model BallEvent {
-  id           Int      @id @default(autoincrement())
-  match_id     Int
-  match        Match    @relation(fields: [match_id], references: [id])
-  over_number  Int
-  ball_number  Int
-  bowler_id    Int
-  bowler       User @relation("Bowler", fields: [bowler_id], references: [id])
-  striker_id   Int
-  striker      User @relation("Striker", fields: [striker_id], references: [id])
-  runs_scored  Int      @default(0)
-  is_wicket    Boolean  @default(false)
-  wicket_type  String?
-  extras       Int      @default(0)
-  extra_type   String?
-  timestamp    DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  match_id    Int
+  over_number Int
+  ball_number Int
+  bowler_id   Int
+  striker_id  Int
+  runs_scored Int      @default(0)
+  is_wicket   Boolean  @default(false)
+  wicket_type String?
+  extras      Int      @default(0)
+  extra_type  String?
+  timestamp   DateTime @default(now())
+  bowler      User     @relation("Bowler", fields: [bowler_id], references: [id])
+  match       Match    @relation(fields: [match_id], references: [id])
+  striker     User     @relation("Striker", fields: [striker_id], references: [id])
+}
+
+enum UserRole {
+  MANAGEMENT
+  NORMAL
+}
+
+enum LedgerType {
+  DAILY_FEE
+  MONTHLY_FEE
+  FINE
+  PAYMENT
+  DEPOSIT
+  SUBSCRIPTION
+  DONATION
+  MAINTENANCE
+  OTHER
+}
+
+enum UserType {
+  STUDENT
+  NON_EARNED
+  SALARIED
+  NORMAL
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum PaymentMethod {
+  CASH
+  ONLINE
+  UPI
+  BANK_TRANSFER
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+  ABANDONED
 }

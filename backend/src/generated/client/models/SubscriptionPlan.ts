@@ -30,12 +30,14 @@ export type SubscriptionPlanAvgAggregateOutputType = {
   id: number | null
   rate_daily: number | null
   rate_monthly: number | null
+  monthly_deposit_part: number | null
 }
 
 export type SubscriptionPlanSumAggregateOutputType = {
   id: number | null
   rate_daily: number | null
   rate_monthly: number | null
+  monthly_deposit_part: number | null
 }
 
 export type SubscriptionPlanMinAggregateOutputType = {
@@ -43,6 +45,7 @@ export type SubscriptionPlanMinAggregateOutputType = {
   name: string | null
   rate_daily: number | null
   rate_monthly: number | null
+  monthly_deposit_part: number | null
   is_deposit_required: boolean | null
   createdAt: Date | null
 }
@@ -52,6 +55,7 @@ export type SubscriptionPlanMaxAggregateOutputType = {
   name: string | null
   rate_daily: number | null
   rate_monthly: number | null
+  monthly_deposit_part: number | null
   is_deposit_required: boolean | null
   createdAt: Date | null
 }
@@ -61,6 +65,7 @@ export type SubscriptionPlanCountAggregateOutputType = {
   name: number
   rate_daily: number
   rate_monthly: number
+  monthly_deposit_part: number
   is_deposit_required: number
   createdAt: number
   _all: number
@@ -71,12 +76,14 @@ export type SubscriptionPlanAvgAggregateInputType = {
   id?: true
   rate_daily?: true
   rate_monthly?: true
+  monthly_deposit_part?: true
 }
 
 export type SubscriptionPlanSumAggregateInputType = {
   id?: true
   rate_daily?: true
   rate_monthly?: true
+  monthly_deposit_part?: true
 }
 
 export type SubscriptionPlanMinAggregateInputType = {
@@ -84,6 +91,7 @@ export type SubscriptionPlanMinAggregateInputType = {
   name?: true
   rate_daily?: true
   rate_monthly?: true
+  monthly_deposit_part?: true
   is_deposit_required?: true
   createdAt?: true
 }
@@ -93,6 +101,7 @@ export type SubscriptionPlanMaxAggregateInputType = {
   name?: true
   rate_daily?: true
   rate_monthly?: true
+  monthly_deposit_part?: true
   is_deposit_required?: true
   createdAt?: true
 }
@@ -102,6 +111,7 @@ export type SubscriptionPlanCountAggregateInputType = {
   name?: true
   rate_daily?: true
   rate_monthly?: true
+  monthly_deposit_part?: true
   is_deposit_required?: true
   createdAt?: true
   _all?: true
@@ -198,6 +208,7 @@ export type SubscriptionPlanGroupByOutputType = {
   name: string
   rate_daily: number | null
   rate_monthly: number | null
+  monthly_deposit_part: number | null
   is_deposit_required: boolean
   createdAt: Date
   _count: SubscriptionPlanCountAggregateOutputType | null
@@ -230,6 +241,7 @@ export type SubscriptionPlanWhereInput = {
   name?: Prisma.StringFilter<"SubscriptionPlan"> | string
   rate_daily?: Prisma.FloatNullableFilter<"SubscriptionPlan"> | number | null
   rate_monthly?: Prisma.FloatNullableFilter<"SubscriptionPlan"> | number | null
+  monthly_deposit_part?: Prisma.FloatNullableFilter<"SubscriptionPlan"> | number | null
   is_deposit_required?: Prisma.BoolFilter<"SubscriptionPlan"> | boolean
   createdAt?: Prisma.DateTimeFilter<"SubscriptionPlan"> | Date | string
   subscriptions?: Prisma.SubscriptionListRelationFilter
@@ -240,6 +252,7 @@ export type SubscriptionPlanOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   rate_daily?: Prisma.SortOrderInput | Prisma.SortOrder
   rate_monthly?: Prisma.SortOrderInput | Prisma.SortOrder
+  monthly_deposit_part?: Prisma.SortOrderInput | Prisma.SortOrder
   is_deposit_required?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   subscriptions?: Prisma.SubscriptionOrderByRelationAggregateInput
@@ -253,6 +266,7 @@ export type SubscriptionPlanWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.SubscriptionPlanWhereInput | Prisma.SubscriptionPlanWhereInput[]
   rate_daily?: Prisma.FloatNullableFilter<"SubscriptionPlan"> | number | null
   rate_monthly?: Prisma.FloatNullableFilter<"SubscriptionPlan"> | number | null
+  monthly_deposit_part?: Prisma.FloatNullableFilter<"SubscriptionPlan"> | number | null
   is_deposit_required?: Prisma.BoolFilter<"SubscriptionPlan"> | boolean
   createdAt?: Prisma.DateTimeFilter<"SubscriptionPlan"> | Date | string
   subscriptions?: Prisma.SubscriptionListRelationFilter
@@ -263,6 +277,7 @@ export type SubscriptionPlanOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   rate_daily?: Prisma.SortOrderInput | Prisma.SortOrder
   rate_monthly?: Prisma.SortOrderInput | Prisma.SortOrder
+  monthly_deposit_part?: Prisma.SortOrderInput | Prisma.SortOrder
   is_deposit_required?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.SubscriptionPlanCountOrderByAggregateInput
@@ -280,6 +295,7 @@ export type SubscriptionPlanScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"SubscriptionPlan"> | string
   rate_daily?: Prisma.FloatNullableWithAggregatesFilter<"SubscriptionPlan"> | number | null
   rate_monthly?: Prisma.FloatNullableWithAggregatesFilter<"SubscriptionPlan"> | number | null
+  monthly_deposit_part?: Prisma.FloatNullableWithAggregatesFilter<"SubscriptionPlan"> | number | null
   is_deposit_required?: Prisma.BoolWithAggregatesFilter<"SubscriptionPlan"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"SubscriptionPlan"> | Date | string
 }
@@ -288,6 +304,7 @@ export type SubscriptionPlanCreateInput = {
   name: string
   rate_daily?: number | null
   rate_monthly?: number | null
+  monthly_deposit_part?: number | null
   is_deposit_required?: boolean
   createdAt?: Date | string
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutPlanInput
@@ -298,6 +315,7 @@ export type SubscriptionPlanUncheckedCreateInput = {
   name: string
   rate_daily?: number | null
   rate_monthly?: number | null
+  monthly_deposit_part?: number | null
   is_deposit_required?: boolean
   createdAt?: Date | string
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutPlanInput
@@ -307,6 +325,7 @@ export type SubscriptionPlanUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   rate_daily?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   rate_monthly?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  monthly_deposit_part?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   is_deposit_required?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutPlanNestedInput
@@ -317,6 +336,7 @@ export type SubscriptionPlanUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   rate_daily?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   rate_monthly?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  monthly_deposit_part?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   is_deposit_required?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutPlanNestedInput
@@ -327,6 +347,7 @@ export type SubscriptionPlanCreateManyInput = {
   name: string
   rate_daily?: number | null
   rate_monthly?: number | null
+  monthly_deposit_part?: number | null
   is_deposit_required?: boolean
   createdAt?: Date | string
 }
@@ -335,6 +356,7 @@ export type SubscriptionPlanUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   rate_daily?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   rate_monthly?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  monthly_deposit_part?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   is_deposit_required?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -344,6 +366,7 @@ export type SubscriptionPlanUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   rate_daily?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   rate_monthly?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  monthly_deposit_part?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   is_deposit_required?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -353,6 +376,7 @@ export type SubscriptionPlanCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   rate_daily?: Prisma.SortOrder
   rate_monthly?: Prisma.SortOrder
+  monthly_deposit_part?: Prisma.SortOrder
   is_deposit_required?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -361,6 +385,7 @@ export type SubscriptionPlanAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   rate_daily?: Prisma.SortOrder
   rate_monthly?: Prisma.SortOrder
+  monthly_deposit_part?: Prisma.SortOrder
 }
 
 export type SubscriptionPlanMaxOrderByAggregateInput = {
@@ -368,6 +393,7 @@ export type SubscriptionPlanMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   rate_daily?: Prisma.SortOrder
   rate_monthly?: Prisma.SortOrder
+  monthly_deposit_part?: Prisma.SortOrder
   is_deposit_required?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -377,6 +403,7 @@ export type SubscriptionPlanMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   rate_daily?: Prisma.SortOrder
   rate_monthly?: Prisma.SortOrder
+  monthly_deposit_part?: Prisma.SortOrder
   is_deposit_required?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -385,6 +412,7 @@ export type SubscriptionPlanSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   rate_daily?: Prisma.SortOrder
   rate_monthly?: Prisma.SortOrder
+  monthly_deposit_part?: Prisma.SortOrder
 }
 
 export type SubscriptionPlanScalarRelationFilter = {
@@ -426,6 +454,7 @@ export type SubscriptionPlanCreateWithoutSubscriptionsInput = {
   name: string
   rate_daily?: number | null
   rate_monthly?: number | null
+  monthly_deposit_part?: number | null
   is_deposit_required?: boolean
   createdAt?: Date | string
 }
@@ -435,6 +464,7 @@ export type SubscriptionPlanUncheckedCreateWithoutSubscriptionsInput = {
   name: string
   rate_daily?: number | null
   rate_monthly?: number | null
+  monthly_deposit_part?: number | null
   is_deposit_required?: boolean
   createdAt?: Date | string
 }
@@ -459,6 +489,7 @@ export type SubscriptionPlanUpdateWithoutSubscriptionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   rate_daily?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   rate_monthly?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  monthly_deposit_part?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   is_deposit_required?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -468,6 +499,7 @@ export type SubscriptionPlanUncheckedUpdateWithoutSubscriptionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   rate_daily?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   rate_monthly?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  monthly_deposit_part?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   is_deposit_required?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -508,6 +540,7 @@ export type SubscriptionPlanSelect<ExtArgs extends runtime.Types.Extensions.Inte
   name?: boolean
   rate_daily?: boolean
   rate_monthly?: boolean
+  monthly_deposit_part?: boolean
   is_deposit_required?: boolean
   createdAt?: boolean
   subscriptions?: boolean | Prisma.SubscriptionPlan$subscriptionsArgs<ExtArgs>
@@ -519,6 +552,7 @@ export type SubscriptionPlanSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   name?: boolean
   rate_daily?: boolean
   rate_monthly?: boolean
+  monthly_deposit_part?: boolean
   is_deposit_required?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["subscriptionPlan"]>
@@ -528,6 +562,7 @@ export type SubscriptionPlanSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   name?: boolean
   rate_daily?: boolean
   rate_monthly?: boolean
+  monthly_deposit_part?: boolean
   is_deposit_required?: boolean
   createdAt?: boolean
 }, ExtArgs["result"]["subscriptionPlan"]>
@@ -537,11 +572,12 @@ export type SubscriptionPlanSelectScalar = {
   name?: boolean
   rate_daily?: boolean
   rate_monthly?: boolean
+  monthly_deposit_part?: boolean
   is_deposit_required?: boolean
   createdAt?: boolean
 }
 
-export type SubscriptionPlanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "rate_daily" | "rate_monthly" | "is_deposit_required" | "createdAt", ExtArgs["result"]["subscriptionPlan"]>
+export type SubscriptionPlanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "rate_daily" | "rate_monthly" | "monthly_deposit_part" | "is_deposit_required" | "createdAt", ExtArgs["result"]["subscriptionPlan"]>
 export type SubscriptionPlanInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   subscriptions?: boolean | Prisma.SubscriptionPlan$subscriptionsArgs<ExtArgs>
   _count?: boolean | Prisma.SubscriptionPlanCountOutputTypeDefaultArgs<ExtArgs>
@@ -559,6 +595,7 @@ export type $SubscriptionPlanPayload<ExtArgs extends runtime.Types.Extensions.In
     name: string
     rate_daily: number | null
     rate_monthly: number | null
+    monthly_deposit_part: number | null
     is_deposit_required: boolean
     createdAt: Date
   }, ExtArgs["result"]["subscriptionPlan"]>
@@ -989,6 +1026,7 @@ export interface SubscriptionPlanFieldRefs {
   readonly name: Prisma.FieldRef<"SubscriptionPlan", 'String'>
   readonly rate_daily: Prisma.FieldRef<"SubscriptionPlan", 'Float'>
   readonly rate_monthly: Prisma.FieldRef<"SubscriptionPlan", 'Float'>
+  readonly monthly_deposit_part: Prisma.FieldRef<"SubscriptionPlan", 'Float'>
   readonly is_deposit_required: Prisma.FieldRef<"SubscriptionPlan", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"SubscriptionPlan", 'DateTime'>
 }

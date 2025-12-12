@@ -300,8 +300,8 @@ export type BallEventWhereInput = {
   extras?: Prisma.IntFilter<"BallEvent"> | number
   extra_type?: Prisma.StringNullableFilter<"BallEvent"> | string | null
   timestamp?: Prisma.DateTimeFilter<"BallEvent"> | Date | string
-  match?: Prisma.XOR<Prisma.MatchScalarRelationFilter, Prisma.MatchWhereInput>
   bowler?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  match?: Prisma.XOR<Prisma.MatchScalarRelationFilter, Prisma.MatchWhereInput>
   striker?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
@@ -318,8 +318,8 @@ export type BallEventOrderByWithRelationInput = {
   extras?: Prisma.SortOrder
   extra_type?: Prisma.SortOrderInput | Prisma.SortOrder
   timestamp?: Prisma.SortOrder
-  match?: Prisma.MatchOrderByWithRelationInput
   bowler?: Prisma.UserOrderByWithRelationInput
+  match?: Prisma.MatchOrderByWithRelationInput
   striker?: Prisma.UserOrderByWithRelationInput
 }
 
@@ -339,8 +339,8 @@ export type BallEventWhereUniqueInput = Prisma.AtLeast<{
   extras?: Prisma.IntFilter<"BallEvent"> | number
   extra_type?: Prisma.StringNullableFilter<"BallEvent"> | string | null
   timestamp?: Prisma.DateTimeFilter<"BallEvent"> | Date | string
-  match?: Prisma.XOR<Prisma.MatchScalarRelationFilter, Prisma.MatchWhereInput>
   bowler?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  match?: Prisma.XOR<Prisma.MatchScalarRelationFilter, Prisma.MatchWhereInput>
   striker?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id">
 
@@ -391,8 +391,8 @@ export type BallEventCreateInput = {
   extras?: number
   extra_type?: string | null
   timestamp?: Date | string
-  match: Prisma.MatchCreateNestedOneWithoutBall_eventsInput
   bowler: Prisma.UserCreateNestedOneWithoutBowled_ballsInput
+  match: Prisma.MatchCreateNestedOneWithoutBall_eventsInput
   striker: Prisma.UserCreateNestedOneWithoutFaced_ballsInput
 }
 
@@ -420,8 +420,8 @@ export type BallEventUpdateInput = {
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  match?: Prisma.MatchUpdateOneRequiredWithoutBall_eventsNestedInput
   bowler?: Prisma.UserUpdateOneRequiredWithoutBowled_ballsNestedInput
+  match?: Prisma.MatchUpdateOneRequiredWithoutBall_eventsNestedInput
   striker?: Prisma.UserUpdateOneRequiredWithoutFaced_ballsNestedInput
 }
 
@@ -730,8 +730,8 @@ export type BallEventCreateWithoutStrikerInput = {
   extras?: number
   extra_type?: string | null
   timestamp?: Date | string
-  match: Prisma.MatchCreateNestedOneWithoutBall_eventsInput
   bowler: Prisma.UserCreateNestedOneWithoutBowled_ballsInput
+  match: Prisma.MatchCreateNestedOneWithoutBall_eventsInput
 }
 
 export type BallEventUncheckedCreateWithoutStrikerInput = {
@@ -939,8 +939,8 @@ export type BallEventUpdateWithoutStrikerInput = {
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  match?: Prisma.MatchUpdateOneRequiredWithoutBall_eventsNestedInput
   bowler?: Prisma.UserUpdateOneRequiredWithoutBowled_ballsNestedInput
+  match?: Prisma.MatchUpdateOneRequiredWithoutBall_eventsNestedInput
 }
 
 export type BallEventUncheckedUpdateWithoutStrikerInput = {
@@ -1041,8 +1041,8 @@ export type BallEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   extras?: boolean
   extra_type?: boolean
   timestamp?: boolean
-  match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   bowler?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   striker?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ballEvent"]>
 
@@ -1059,8 +1059,8 @@ export type BallEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   extras?: boolean
   extra_type?: boolean
   timestamp?: boolean
-  match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   bowler?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   striker?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ballEvent"]>
 
@@ -1077,8 +1077,8 @@ export type BallEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   extras?: boolean
   extra_type?: boolean
   timestamp?: boolean
-  match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   bowler?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   striker?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ballEvent"]>
 
@@ -1099,26 +1099,26 @@ export type BallEventSelectScalar = {
 
 export type BallEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "match_id" | "over_number" | "ball_number" | "bowler_id" | "striker_id" | "runs_scored" | "is_wicket" | "wicket_type" | "extras" | "extra_type" | "timestamp", ExtArgs["result"]["ballEvent"]>
 export type BallEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   bowler?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   striker?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type BallEventIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   bowler?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   striker?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type BallEventIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   bowler?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   striker?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 
 export type $BallEventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "BallEvent"
   objects: {
-    match: Prisma.$MatchPayload<ExtArgs>
     bowler: Prisma.$UserPayload<ExtArgs>
+    match: Prisma.$MatchPayload<ExtArgs>
     striker: Prisma.$UserPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1528,8 +1528,8 @@ readonly fields: BallEventFieldRefs;
  */
 export interface Prisma__BallEventClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  match<T extends Prisma.MatchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MatchDefaultArgs<ExtArgs>>): Prisma.Prisma__MatchClient<runtime.Types.Result.GetResult<Prisma.$MatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   bowler<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  match<T extends Prisma.MatchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MatchDefaultArgs<ExtArgs>>): Prisma.Prisma__MatchClient<runtime.Types.Result.GetResult<Prisma.$MatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   striker<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.

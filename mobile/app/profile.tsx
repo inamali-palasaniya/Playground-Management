@@ -71,8 +71,8 @@ export default function ProfileScreen() {
     return (
         <ScrollView style={styles.container}>
             <View style={styles.header}>
-                <Avatar.Text 
-                    size={80} 
+                <Avatar.Text
+                    size={80}
                     label={currentUser.name.substring(0, 2).toUpperCase()}
                     style={{ backgroundColor: theme.colors.primary }}
                 />
@@ -108,11 +108,11 @@ export default function ProfileScreen() {
                                         Present
                                     </Text>
                                     <Text variant="bodyLarge" style={{ marginTop: 8 }}>
-                                        Check-in: {format(new Date(todayAttendance.check_in_time), 'hh:mm a')}
+                                        Check-in: {format(new Date(todayAttendance.in_time), 'hh:mm a')}
                                     </Text>
-                                    {todayAttendance.check_out_time && (
+                                    {todayAttendance.out_time && (
                                         <Text variant="bodyLarge">
-                                            Check-out: {format(new Date(todayAttendance.check_out_time), 'hh:mm a')}
+                                            Check-out: {format(new Date(todayAttendance.out_time), 'hh:mm a')}
                                         </Text>
                                     )}
                                 </>
@@ -128,7 +128,7 @@ export default function ProfileScreen() {
                     </Card.Content>
                 </Card>
 
-                <Button 
+                <Button
                     mode="contained"
                     onPress={handleLogout}
                     style={styles.logoutButton}

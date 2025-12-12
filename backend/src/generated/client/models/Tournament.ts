@@ -232,9 +232,9 @@ export type TournamentWhereInput = {
   start_date?: Prisma.DateTimeFilter<"Tournament"> | Date | string
   end_date?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
   man_of_the_series_id?: Prisma.IntNullableFilter<"Tournament"> | number | null
-  game?: Prisma.XOR<Prisma.GameScalarRelationFilter, Prisma.GameWhereInput>
   matches?: Prisma.MatchListRelationFilter
   teams?: Prisma.TeamListRelationFilter
+  game?: Prisma.XOR<Prisma.GameScalarRelationFilter, Prisma.GameWhereInput>
   man_of_the_series?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
@@ -245,9 +245,9 @@ export type TournamentOrderByWithRelationInput = {
   start_date?: Prisma.SortOrder
   end_date?: Prisma.SortOrderInput | Prisma.SortOrder
   man_of_the_series_id?: Prisma.SortOrderInput | Prisma.SortOrder
-  game?: Prisma.GameOrderByWithRelationInput
   matches?: Prisma.MatchOrderByRelationAggregateInput
   teams?: Prisma.TeamOrderByRelationAggregateInput
+  game?: Prisma.GameOrderByWithRelationInput
   man_of_the_series?: Prisma.UserOrderByWithRelationInput
 }
 
@@ -261,9 +261,9 @@ export type TournamentWhereUniqueInput = Prisma.AtLeast<{
   start_date?: Prisma.DateTimeFilter<"Tournament"> | Date | string
   end_date?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
   man_of_the_series_id?: Prisma.IntNullableFilter<"Tournament"> | number | null
-  game?: Prisma.XOR<Prisma.GameScalarRelationFilter, Prisma.GameWhereInput>
   matches?: Prisma.MatchListRelationFilter
   teams?: Prisma.TeamListRelationFilter
+  game?: Prisma.XOR<Prisma.GameScalarRelationFilter, Prisma.GameWhereInput>
   man_of_the_series?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
 
@@ -297,9 +297,9 @@ export type TournamentCreateInput = {
   name: string
   start_date: Date | string
   end_date?: Date | string | null
-  game: Prisma.GameCreateNestedOneWithoutTournamentsInput
   matches?: Prisma.MatchCreateNestedManyWithoutTournamentInput
   teams?: Prisma.TeamCreateNestedManyWithoutTournamentInput
+  game: Prisma.GameCreateNestedOneWithoutTournamentsInput
   man_of_the_series?: Prisma.UserCreateNestedOneWithoutSeries_won_motsInput
 }
 
@@ -318,9 +318,9 @@ export type TournamentUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   start_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  game?: Prisma.GameUpdateOneRequiredWithoutTournamentsNestedInput
   matches?: Prisma.MatchUpdateManyWithoutTournamentNestedInput
   teams?: Prisma.TeamUpdateManyWithoutTournamentNestedInput
+  game?: Prisma.GameUpdateOneRequiredWithoutTournamentsNestedInput
   man_of_the_series?: Prisma.UserUpdateOneWithoutSeries_won_motsNestedInput
 }
 
@@ -586,9 +586,9 @@ export type TournamentCreateWithoutMan_of_the_seriesInput = {
   name: string
   start_date: Date | string
   end_date?: Date | string | null
-  game: Prisma.GameCreateNestedOneWithoutTournamentsInput
   matches?: Prisma.MatchCreateNestedManyWithoutTournamentInput
   teams?: Prisma.TeamCreateNestedManyWithoutTournamentInput
+  game: Prisma.GameCreateNestedOneWithoutTournamentsInput
 }
 
 export type TournamentUncheckedCreateWithoutMan_of_the_seriesInput = {
@@ -631,8 +631,8 @@ export type TournamentCreateWithoutTeamsInput = {
   name: string
   start_date: Date | string
   end_date?: Date | string | null
-  game: Prisma.GameCreateNestedOneWithoutTournamentsInput
   matches?: Prisma.MatchCreateNestedManyWithoutTournamentInput
+  game: Prisma.GameCreateNestedOneWithoutTournamentsInput
   man_of_the_series?: Prisma.UserCreateNestedOneWithoutSeries_won_motsInput
 }
 
@@ -666,8 +666,8 @@ export type TournamentUpdateWithoutTeamsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   start_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  game?: Prisma.GameUpdateOneRequiredWithoutTournamentsNestedInput
   matches?: Prisma.MatchUpdateManyWithoutTournamentNestedInput
+  game?: Prisma.GameUpdateOneRequiredWithoutTournamentsNestedInput
   man_of_the_series?: Prisma.UserUpdateOneWithoutSeries_won_motsNestedInput
 }
 
@@ -685,8 +685,8 @@ export type TournamentCreateWithoutMatchesInput = {
   name: string
   start_date: Date | string
   end_date?: Date | string | null
-  game: Prisma.GameCreateNestedOneWithoutTournamentsInput
   teams?: Prisma.TeamCreateNestedManyWithoutTournamentInput
+  game: Prisma.GameCreateNestedOneWithoutTournamentsInput
   man_of_the_series?: Prisma.UserCreateNestedOneWithoutSeries_won_motsInput
 }
 
@@ -720,8 +720,8 @@ export type TournamentUpdateWithoutMatchesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   start_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  game?: Prisma.GameUpdateOneRequiredWithoutTournamentsNestedInput
   teams?: Prisma.TeamUpdateManyWithoutTournamentNestedInput
+  game?: Prisma.GameUpdateOneRequiredWithoutTournamentsNestedInput
   man_of_the_series?: Prisma.UserUpdateOneWithoutSeries_won_motsNestedInput
 }
 
@@ -782,9 +782,9 @@ export type TournamentUpdateWithoutMan_of_the_seriesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   start_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  game?: Prisma.GameUpdateOneRequiredWithoutTournamentsNestedInput
   matches?: Prisma.MatchUpdateManyWithoutTournamentNestedInput
   teams?: Prisma.TeamUpdateManyWithoutTournamentNestedInput
+  game?: Prisma.GameUpdateOneRequiredWithoutTournamentsNestedInput
 }
 
 export type TournamentUncheckedUpdateWithoutMan_of_the_seriesInput = {
@@ -852,9 +852,9 @@ export type TournamentSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   start_date?: boolean
   end_date?: boolean
   man_of_the_series_id?: boolean
-  game?: boolean | Prisma.GameDefaultArgs<ExtArgs>
   matches?: boolean | Prisma.Tournament$matchesArgs<ExtArgs>
   teams?: boolean | Prisma.Tournament$teamsArgs<ExtArgs>
+  game?: boolean | Prisma.GameDefaultArgs<ExtArgs>
   man_of_the_series?: boolean | Prisma.Tournament$man_of_the_seriesArgs<ExtArgs>
   _count?: boolean | Prisma.TournamentCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["tournament"]>
@@ -892,9 +892,9 @@ export type TournamentSelectScalar = {
 
 export type TournamentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "game_id" | "start_date" | "end_date" | "man_of_the_series_id", ExtArgs["result"]["tournament"]>
 export type TournamentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  game?: boolean | Prisma.GameDefaultArgs<ExtArgs>
   matches?: boolean | Prisma.Tournament$matchesArgs<ExtArgs>
   teams?: boolean | Prisma.Tournament$teamsArgs<ExtArgs>
+  game?: boolean | Prisma.GameDefaultArgs<ExtArgs>
   man_of_the_series?: boolean | Prisma.Tournament$man_of_the_seriesArgs<ExtArgs>
   _count?: boolean | Prisma.TournamentCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -910,9 +910,9 @@ export type TournamentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.E
 export type $TournamentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Tournament"
   objects: {
-    game: Prisma.$GamePayload<ExtArgs>
     matches: Prisma.$MatchPayload<ExtArgs>[]
     teams: Prisma.$TeamPayload<ExtArgs>[]
+    game: Prisma.$GamePayload<ExtArgs>
     man_of_the_series: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1316,9 +1316,9 @@ readonly fields: TournamentFieldRefs;
  */
 export interface Prisma__TournamentClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  game<T extends Prisma.GameDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GameDefaultArgs<ExtArgs>>): Prisma.Prisma__GameClient<runtime.Types.Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   matches<T extends Prisma.Tournament$matchesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tournament$matchesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   teams<T extends Prisma.Tournament$teamsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tournament$teamsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  game<T extends Prisma.GameDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GameDefaultArgs<ExtArgs>>): Prisma.Prisma__GameClient<runtime.Types.Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   man_of_the_series<T extends Prisma.Tournament$man_of_the_seriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Tournament$man_of_the_seriesArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.

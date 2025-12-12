@@ -22,10 +22,42 @@ export const LedgerType = {
   MONTHLY_FEE: 'MONTHLY_FEE',
   FINE: 'FINE',
   PAYMENT: 'PAYMENT',
-  DEPOSIT: 'DEPOSIT'
+  DEPOSIT: 'DEPOSIT',
+  SUBSCRIPTION: 'SUBSCRIPTION',
+  DONATION: 'DONATION',
+  MAINTENANCE: 'MAINTENANCE',
+  OTHER: 'OTHER'
 } as const
 
 export type LedgerType = (typeof LedgerType)[keyof typeof LedgerType]
+
+
+export const UserType = {
+  STUDENT: 'STUDENT',
+  NON_EARNED: 'NON_EARNED',
+  SALARIED: 'SALARIED',
+  NORMAL: 'NORMAL'
+} as const
+
+export type UserType = (typeof UserType)[keyof typeof UserType]
+
+
+export const TransactionType = {
+  CREDIT: 'CREDIT',
+  DEBIT: 'DEBIT'
+} as const
+
+export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType]
+
+
+export const PaymentMethod = {
+  CASH: 'CASH',
+  ONLINE: 'ONLINE',
+  UPI: 'UPI',
+  BANK_TRANSFER: 'BANK_TRANSFER'
+} as const
+
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
 
 
 export const SubscriptionStatus = {

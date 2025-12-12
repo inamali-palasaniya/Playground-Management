@@ -89,4 +89,19 @@ export const AuthService = {
   setUser: async (user: User) => {
     await SecureStore.setItemAsync('user_data', JSON.stringify(user));
   },
+
+  // Event System for Session Expiry
+  listeners: [] as (() => void)[],
+
+  subscribeToAuthExpired: (callback: () => void) => {
+    AuthService.listeners.push(callback);
+    return () => {
+      AuthService.listeners = AuthService.listeners.filter(cb => cb !== callback);
+    };
+  },
+
+  emitAuthExpired: () => {
+    AuthService.listeners.forEach(callback => callback());
+  },
 };
+

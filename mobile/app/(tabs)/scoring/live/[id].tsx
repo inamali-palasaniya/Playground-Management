@@ -20,7 +20,7 @@ export default function LiveMatchScreen() {
 
     const fetchMatchDetails = async () => {
         try {
-            const data = await apiService.getMatchDetails(Number(id));
+            const data = await apiService.getMatchById(Number(id));
             setMatch(data);
             // Initialize live score from current match state if available
             // For now, assuming match data has some score info, or we start fresh.
