@@ -43,7 +43,7 @@ export const getFineRuleById = async (req: Request, res: Response) => {
 
 export const createFineRule = async (req: Request, res: Response) => {
   try {
-    const { name, first_time_fine, subsequent_multiplier } = req.body;
+    const { name, first_time_fine, subsequent_fine } = req.body;
 
     if (!name || !first_time_fine) {
       return res.status(400).json({ error: 'Name and first time fine are required' });
@@ -53,7 +53,7 @@ export const createFineRule = async (req: Request, res: Response) => {
       data: {
         name,
         first_time_fine: parseFloat(first_time_fine),
-        subsequent_multiplier: subsequent_multiplier ? parseFloat(subsequent_multiplier) : 1,
+        subsequent_fine: subsequent_fine ? parseFloat(subsequent_fine) : 0,
       },
     });
 
@@ -67,14 +67,14 @@ export const createFineRule = async (req: Request, res: Response) => {
 export const updateFineRule = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, first_time_fine, subsequent_multiplier } = req.body;
+    const { name, first_time_fine, subsequent_fine } = req.body;
 
     const rule = await prisma.fineRule.update({
       where: { id: parseInt(id) },
       data: {
         name,
         first_time_fine: first_time_fine ? parseFloat(first_time_fine) : undefined,
-        subsequent_multiplier: subsequent_multiplier ? parseFloat(subsequent_multiplier) : undefined,
+        subsequent_fine: subsequent_fine ? parseFloat(subsequent_fine) : undefined,
       },
     });
 
