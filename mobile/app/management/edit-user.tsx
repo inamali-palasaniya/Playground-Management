@@ -65,8 +65,8 @@ export default function EditUserScreen() {
                 phone,
                 email,
                 role,
-                group_id: selectedGroup || undefined, // Send undefined if null to skip or handle backend null
-                age: age ? age : undefined, // Check backend handling
+                group_id: selectedGroup || undefined,
+                age: age ? parseInt(age, 10) : undefined,
                 user_type: userType
             });
             Alert.alert('Success', 'User updated successfully');

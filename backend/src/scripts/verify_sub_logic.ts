@@ -8,10 +8,10 @@ import { checkSubscriptionPayment } from '../controllers/finance.controller.js';
 
 dotenv.config();
 
-const connectionString = `${process.env.DATABASE_URL}`;
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+// const connectionString = `${process.env.DATABASE_URL}`;
+// const pool = new Pool({ connectionString });
+// const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient();
 
 async function verify() {
     console.log('--- Verifying Sub Status & Payment Warnings ---');
@@ -37,7 +37,7 @@ async function verify() {
             take: 3
     });
 
-    users.forEach(u => {
+    users.forEach((u: any) => {
         console.log(`User: ${u.name}`);
         const plan = u.subscriptions[0]?.plan;
         if (plan) {
@@ -54,7 +54,7 @@ async function verify() {
     });
 
     console.log('\n2. Verifying Payment Warning Check...');
-    const userWithPay = users.find(u => u.fee_ledger.length > 0);
+    const userWithPay = users.find((u: any) => u.fee_ledger.length > 0);
     if (userWithPay) {
         console.log(`Checking duplicates for user ${userWithPay.name} (ID: ${userWithPay.id})...`);
         const payments = await prisma.feeLedger.findMany({
