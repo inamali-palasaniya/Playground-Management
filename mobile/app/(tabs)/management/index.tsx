@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
-import { Text, Searchbar, Chip, Avatar, Card, FAB, ActivityIndicator, useTheme, Button, Menu } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, RefreshControl, Alert } from 'react-native';
+import { Text, Searchbar, Chip, Avatar, Card, FAB, ActivityIndicator, useTheme, Button, Menu, IconButton } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import apiService from '../../../services/api.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -11,6 +11,9 @@ interface User {
     phone: string;
     role: string;
     group?: { id: number; name: string };
+    plan_name?: string;
+    subscription_status?: string;
+    punch_status?: 'IN' | 'OUT' | 'NONE';
 }
 
 interface Group {
@@ -55,6 +58,44 @@ export default function ProManagementDashboard() {
     const onRefresh = () => {
         setRefreshing(true);
         loadData();
+    };
+
+    const confirmDelete = (id: number, name: string) => {
+        Alert.alert(
+            'Delete User',
+            `Are you sure you want to delete ${name}?`,
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await apiService.deleteUser(id);
+                            loadData(); // Refresh dashboard
+                        } catch (error) {
+                            console.error('Delete error:', error);
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handlePunch = async (user: User) => {
+        try {
+            // Optimistic update could be done here but refresh is safer
+            if (user.punch_status === 'IN') {
+                await apiService.checkOut(user.id);
+            } else {
+                await apiService.checkIn(user.id, new Date().toISOString());
+            }
+            // Small delay to ensure DB update before fetch? specific to some backends.
+            setTimeout(loadData, 200);
+        } catch (error) {
+            console.error('Punch failed', error);
+            Alert.alert('Error', 'Failed to update attendance');
+        }
     };
 
     const filteredUsers = users.filter(user =>
@@ -106,14 +147,52 @@ export default function ProManagementDashboard() {
                         filteredUsers.map(user => (
                             <Card
                                 key={user.id}
-                                style={styles.userCard}
+                                style={[styles.userCard, {
+                                    borderLeftWidth: 5,
+                                    borderLeftColor: user.subscription_status === 'EXPIRED' ? 'red' :
+                                        (user.subscription_status === 'ACTIVE' && user.plan_name?.toLowerCase().includes('monthly')) ? 'green' : 'transparent'
+                                }]}
                                 onPress={() => router.push(`/management/user/${user.id}`)}
                             >
                                 <Card.Title
                                     title={user.name}
-                                    subtitle={`${user.role} • ${user.group?.name || 'No Group'}`}
+                                    subtitle={
+                                        <Text>
+                                            {user.role} • {user.group?.name || 'No Group'}
+                                            {user.plan_name ? `\nPlan: ${user.plan_name}` : ''}
+                                            {user.subscription_status === 'EXPIRED' && <Text style={{ color: 'red', fontWeight: 'bold' }}> (Expired)</Text>}
+                                            {user.subscription_status === 'ACTIVE' && user.plan_name?.toLowerCase().includes('monthly') && <Text style={{ color: 'green', fontWeight: 'bold' }}> (Paid)</Text>}
+                                        </Text>
+                                    }
+                                    subtitleNumberOfLines={3}
                                     left={(props) => <Avatar.Text {...props} label={user.name.substring(0, 2).toUpperCase()} />}
-                                    right={(props) => <MaterialCommunityIcons {...props} name="chevron-right" size={24} color="#ccc" style={{ marginRight: 16 }} />}
+                                    right={(props) => (
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
+                                            <Button
+                                                mode="contained"
+                                                compact
+                                                buttonColor={user.punch_status === 'IN' ? '#FF5252' : '#4CAF50'}
+                                                style={{ marginRight: 8, height: 30, justifyContent: 'center' }}
+                                                labelStyle={{ fontSize: 10, marginHorizontal: 8 }}
+                                                onPress={(e) => {
+                                                    e.stopPropagation(); // Prevent card press
+                                                    handlePunch(user);
+                                                }}
+                                            >
+                                                {user.punch_status === 'IN' ? 'OUT' : 'IN'}
+                                            </Button>
+                                            <IconButton
+                                                icon="pencil"
+                                                size={20}
+                                                onPress={() => router.push({ pathname: '/management/edit-user', params: { id: user.id } })}
+                                            />
+                                            <IconButton
+                                                icon="delete"
+                                                size={20}
+                                                onPress={() => confirmDelete(user.id, user.name)}
+                                            />
+                                        </View>
+                                    )}
                                 />
                             </Card>
                         ))

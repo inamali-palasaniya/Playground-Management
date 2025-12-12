@@ -4,13 +4,19 @@ import prisma from '../utils/prisma.js';
 // Add Payment (Credit) with Auto-Match Logic
 export const addPayment = async (req: Request, res: Response) => {
     try {
-        const { user_id, amount, payment_method, notes, type } = req.body; // type=SUBSCRIPTION, DONATION etc.
+        const { user_id, amount, payment_method, notes, type, transaction_date, billing_period } = req.body; // billing_period for Subscription month
 
         if (!user_id || !amount) {
             return res.status(400).json({ error: 'User ID and amount are required' });
         }
 
         const numericAmount = parseFloat(amount);
+        const paymentDate = transaction_date ? new Date(transaction_date) : new Date();
+
+        let finalNotes = notes || '';
+        if (type === 'SUBSCRIPTION' && billing_period) {
+            finalNotes += ` (For period: ${billing_period})`;
+        }
 
         const payment = await prisma.feeLedger.create({
             data: {
@@ -19,8 +25,9 @@ export const addPayment = async (req: Request, res: Response) => {
                 transaction_type: 'CREDIT',
                 payment_method: payment_method || 'CASH',
                 amount: numericAmount,
+                date: paymentDate,
                 is_paid: true,
-                notes: notes
+                notes: finalNotes ? finalNotes.trim() : undefined
             }
         });
 
@@ -56,10 +63,8 @@ export const addPayment = async (req: Request, res: Response) => {
 
                 remainingCredit -= debt.amount;
             } else {
-                // Partial payment logic could go here, but for now we only mark FULLY paid.
-                // Keeping remaining credit in specific payment entry? 
-                // Simple MVP: Just deduct from next payment cycle or manual mental math.
-                // Ledger visually shows balance correctly anyway.
+                // Partial payment
+                // For MVP, we don't split debts yet.
             }
         }
 
@@ -240,3 +245,44 @@ export const deleteLedgerEntry = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to delete ledger entry' });
     }
 }
+
+export const checkSubscriptionPayment = async (req: Request, res: Response) => {
+    try {
+        const { user_id, month_year } = req.query;
+
+        if (!user_id) return res.status(400).json({ error: 'User ID required' });
+
+        let startDate, endDate;
+        if (month_year) {
+            const date = new Date(Date.parse(`01 ${month_year}`));
+            if (!isNaN(date.getTime())) {
+                startDate = new Date(date.getFullYear(), date.getMonth(), 1);
+                endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            }
+        }
+
+        const where: any = {
+            user_id: parseInt(user_id as string),
+            type: 'SUBSCRIPTION',
+            transaction_type: 'CREDIT'
+        };
+
+        if (startDate && endDate) {
+            where.date = {
+                gte: startDate,
+                lte: endDate
+            };
+        }
+
+        const payments = await prisma.feeLedger.findMany({
+            where,
+            orderBy: { date: 'desc' }
+        });
+
+        res.json(payments);
+
+    } catch (error) {
+        console.error('Error checking payments:', error);
+        res.status(500).json({ error: 'Failed to check payments' });
+    }
+};

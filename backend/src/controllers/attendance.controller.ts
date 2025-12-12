@@ -236,3 +236,36 @@ export const getAttendanceSummary = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch summary' });
   }
 };
+
+export const updateAttendance = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { is_present, in_time, out_time, daily_fee_charged } = req.body;
+
+    const updated = await prisma.attendance.update({
+      where: { id: parseInt(id) },
+      data: {
+        is_present,
+        in_time: in_time ? new Date(in_time) : undefined,
+        out_time: out_time ? new Date(out_time) : undefined,
+        daily_fee_charged: daily_fee_charged !== undefined ? Number(daily_fee_charged) : undefined,
+      },
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Error updating attendance:', error);
+    res.status(500).json({ error: 'Failed to update attendance' });
+  }
+};
+
+export const deleteAttendance = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.attendance.delete({ where: { id: parseInt(id) } });
+    res.json({ message: 'Attendance deleted' });
+  } catch (error) {
+    console.error('Error deleting attendance:', error);
+    res.status(500).json({ error: 'Failed to delete attendance' });
+  }
+};

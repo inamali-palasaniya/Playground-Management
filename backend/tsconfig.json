@@ -12,6 +12,9 @@
   },
   "exclude": [
     "prisma.config.ts",
-    "prisma/seed.ts"
+    "prisma/seed.ts",
+    "scripts",
+    "generate_hash.ts",
+    "update_pass.ts"
   ]
 }

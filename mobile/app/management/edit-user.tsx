@@ -1,91 +1,99 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { TextInput, Button, RadioButton, Text, useTheme, ActivityIndicator } from 'react-native-paper';
-import { useRouter } from 'expo-router';
-import apiService from '../../../services/api.service';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import apiService from '../../services/api.service';
 
-export default function AddUserScreen() {
+export default function EditUserScreen() {
     const router = useRouter();
+    const { id } = useLocalSearchParams();
     const theme = useTheme();
+    
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [age, setAge] = useState('');
     const [userType, setUserType] = useState('NORMAL');
     const [role, setRole] = useState('NORMAL');
-    const [loading, setLoading] = useState(false);
+    
+    const [loading, setLoading] = useState(true);
     const [groups, setGroups] = useState<any[]>([]);
     const [selectedGroup, setSelectedGroup] = useState<number | null>(null);
-    const [plans, setPlans] = useState<any[]>([]);
-    const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 // Fetch Groups
-                try {
-                    const groupsData = await apiService.getGroups();
-                    setGroups(groupsData || []);
-                } catch (e) {
-                    console.error('Failed to fetch groups:', e);
-                }
+                const groupsData = await apiService.getGroups();
+                setGroups(groupsData || []);
 
-                // Fetch Plans
-                try {
-                    const plansData = await apiService.getSubscriptionPlans();
-                    setPlans(plansData || []);
-                } catch (e) {
-                    console.error('Failed to fetch plans:', e);
+                // Fetch User Details
+                if (id) {
+                    const user = await apiService.getUserById(Number(id));
+                    setName(user.name);
+                    setPhone(user.phone);
+                    setEmail(user.email || '');
+                    // setDetail(user.detail || ''); // If detail exists
+                    setRole(user.role);
+                    
+                    // Assuming user object has these fields, need to verify API response structure
+                    // The API returns: { ..., age: number, user_type: string, group_id: number }
+                    if ((user as any).age) setAge((user as any).age.toString());
+                    if ((user as any).user_type) setUserType((user as any).user_type);
+                    if ((user as any).group_id) setSelectedGroup((user as any).group_id);
                 }
-            } catch (err) {
-                console.error('Global fetch error:', err);
+            } catch (error) {
+                console.error('Failed to load data:', error);
+                Alert.alert('Error', 'Failed to load user details.');
+                router.back();
+            } finally {
+                setLoading(false);
             }
         };
         fetchData();
-    }, []);
+    }, [id]);
 
     const handleSubmit = async () => {
-        if (!name.trim() || !phone.trim()) {
+        if (!name || !phone) {
             Alert.alert('Error', 'Name and Phone are required');
             return;
         }
         setLoading(true);
         try {
-            await apiService.createUser({
-                name: name.trim(),
-                phone: phone.trim(),
-                email: email.trim() || undefined,
-                password,
+            await apiService.updateUser(Number(id), {
+                name,
+                phone,
+                email,
                 role,
-                group_id: selectedGroup || undefined,
-                age: age ? parseInt(age) : undefined,
-                user_type: userType,
-                plan_id: selectedPlan || undefined
+                group_id: selectedGroup || undefined, // Send undefined if null to skip or handle backend null
+                age: age ? age : undefined, // Check backend handling
+                user_type: userType
             });
-            Alert.alert('Success', 'User created successfully');
+            Alert.alert('Success', 'User updated successfully');
             router.back();
         } catch (error: any) {
-            // Handle 409 conflict specifically if not handled by service throwing generic error
-            if (error.message && error.message.includes('409')) {
-                Alert.alert('Error', 'User with this phone/email already exists.');
-            } else {
-                Alert.alert('Error', error.message || 'Failed to create user');
-            }
+            Alert.alert('Error', error.message || 'Failed to update user');
         } finally {
             setLoading(false);
         }
     };
 
+    if (loading) {
+        return (
+            <View style={[styles.container, styles.centered]}>
+                <ActivityIndicator size="large" />
+            </View>
+        );
+    }
+
     return (
-        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-            {/* <Text variant="headlineSmall" style={styles.header}>Add New User</Text> */}
+        <ScrollView style={styles.container}>
+            <Text variant="headlineSmall" style={styles.header}>Edit User</Text>
 
             <TextInput label="Name *" value={name} onChangeText={setName} style={styles.input} />
             <TextInput label="Phone *" value={phone} onChangeText={setPhone} keyboardType="phone-pad" style={styles.input} />
             <TextInput label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" style={styles.input} />
-            <TextInput label="Password" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
-
+            
             <TextInput label="Age" value={age} onChangeText={setAge} keyboardType="numeric" style={styles.input} />
 
             <Text variant="titleMedium" style={{ marginTop: 10 }}>User Type</Text>
@@ -105,7 +113,7 @@ export default function AddUserScreen() {
 
             <Text variant="titleMedium" style={{ marginTop: 10 }}>Group</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.groupScroll}>
-                {groups.length > 0 ? groups.map(g => (
+                {groups.map(g => (
                     <Button
                         key={g.id}
                         mode={selectedGroup === g.id ? 'contained' : 'outlined'}
@@ -114,32 +122,19 @@ export default function AddUserScreen() {
                     >
                         {g.name}
                     </Button>
-                )) : <Text style={{ fontStyle: 'italic', margin: 8 }}>No groups available</Text>}
-            </ScrollView>
-
-            <Text variant="titleMedium" style={{ marginTop: 10 }}>Plan Selection</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.groupScroll}>
-                {plans.length > 0 ? plans.map(p => (
-                     <Button
-                         key={p.id}
-                         mode={selectedPlan === p.id ? 'contained' : 'outlined'}
-                         onPress={() => setSelectedPlan(p.id)}
-                         style={{ marginRight: 8 }}
-                     >
-                         {p.name}
-                     </Button>
-                 )) : <Text style={{ fontStyle: 'italic', margin: 8 }}>No plans available</Text>}
+                ))}
             </ScrollView>
 
             <Button mode="contained" onPress={handleSubmit} loading={loading} style={styles.button}>
-                Create User
+                Update User
             </Button>
         </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+    container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+    centered: { justifyContent: 'center', alignItems: 'center' },
     header: { marginBottom: 20, textAlign: 'center' },
     input: { marginBottom: 12, backgroundColor: '#fff' },
     radioRow: { flexDirection: 'row', flexWrap: 'wrap' },

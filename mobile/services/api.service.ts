@@ -37,6 +37,10 @@ interface CreateUserData {
     email?: string;
     role: string;
     group_id?: number;
+    plan_id?: number;
+    age?: number;
+    user_type?: string;
+    password?: string;
 }
 
 class ApiService {
@@ -124,6 +128,19 @@ class ApiService {
         });
     }
 
+    async updateUser(id: number, data: Partial<CreateUserData>): Promise<User> {
+        return this.request<User>(`${API_ENDPOINTS.users}/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async deleteUser(id: number): Promise<any> {
+        return this.request<any>(`${API_ENDPOINTS.users}/${id}`, {
+            method: 'DELETE',
+        });
+    }
+
     // Groups
     async getGroups(): Promise<any[]> {
         return this.request<any[]>('/api/groups');
@@ -201,6 +218,13 @@ class ApiService {
         });
     }
 
+    async checkOut(user_id: number, date?: string): Promise<any> {
+        return this.request<any>('/api/attendance/check-out', {
+            method: 'POST',
+            body: JSON.stringify({ user_id, date }),
+        });
+    }
+
     async getUserAttendance(userId: number, startDate?: string, endDate?: string): Promise<any[]> {
         const params = new URLSearchParams();
         if (startDate) params.append('startDate', startDate);
@@ -219,6 +243,19 @@ class ApiService {
         if (endDate) params.append('endDate', endDate);
         const query = params.toString() ? `?${params.toString()}` : '';
         return this.request<any>(`/api/attendance/summary/${userId}${query}`);
+    }
+
+    async updateAttendance(id: number, data: any): Promise<any> {
+        return this.request<any>(`/api/attendance/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async deleteAttendance(id: number): Promise<any> {
+        return this.request<any>(`/api/attendance/${id}`, {
+            method: 'DELETE',
+        });
     }
 
     // Fine endpoints
@@ -277,11 +314,15 @@ class ApiService {
         return this.request<any>(`/api/fines/summary/${userId}`);
     }
 
+    async checkSubscriptionPayment(userId: number, monthYear: string): Promise<any[]> {
+        return this.request<any[]>(`/api/finance/check-subscription?user_id=${userId}&month_year=${encodeURIComponent(monthYear)}`);
+    }
+
     // Payment endpoints
-    async recordPayment(user_id: number, amount: number, payment_method?: string, notes?: string): Promise<any> {
+    async recordPayment(userId: number, amount: number, paymentMethod: string, notes?: string, type?: string, transactionDate?: string, billingPeriod?: string): Promise<any> {
         return this.request<any>('/api/finance/payment', {
             method: 'POST',
-            body: JSON.stringify({ user_id, amount, payment_method, notes }),
+            body: JSON.stringify({ user_id: userId, amount, payment_method: paymentMethod, notes, type, transaction_date: transactionDate, billing_period: billingPeriod }),
         });
     }
 

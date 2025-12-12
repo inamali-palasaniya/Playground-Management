@@ -184,7 +184,14 @@ const AttendanceRoute = ({ userId }: { userId: number }) => {
             loadAttendance();
             Alert.alert('Success', 'Check-in recorded');
         } catch (e: any) {
-            Alert.alert('Error', e.message || 'Check-in failed');
+            if (e.message && e.message.includes('Already checked in')) {
+                // Determine if we should offer update. For now, simple Alert saying use edit.
+                // Ideally we find the record ID.
+                // Simplest: just warn user.
+                Alert.alert('Notice', 'Already checked in for this date. Please use the Delete icon to remove the mistake, or Edit (coming soon) to change time.');
+            } else {
+                 Alert.alert('Error', e.message || 'Check-in failed');
+             }
         }
     };
 
@@ -217,6 +224,7 @@ const AttendanceRoute = ({ userId }: { userId: number }) => {
                             <DataTable.Title>In</DataTable.Title>
                             <DataTable.Title>Out</DataTable.Title>
                             <DataTable.Title numeric>Fee</DataTable.Title>
+                            <DataTable.Title numeric>Actions</DataTable.Title>
                         </DataTable.Header>
                         {attendance.map((record) => (
                             <DataTable.Row key={record.id}>
@@ -224,6 +232,19 @@ const AttendanceRoute = ({ userId }: { userId: number }) => {
                                 <DataTable.Cell>{record.in_time ? format(new Date(record.in_time), 'HH:mm') : '-'}</DataTable.Cell>
                                 <DataTable.Cell>{record.out_time ? format(new Date(record.out_time), 'HH:mm') : '-'}</DataTable.Cell>
                                 <DataTable.Cell numeric>₹{record.daily_fee_charged || 0}</DataTable.Cell>
+                                <DataTable.Cell numeric>
+                                    <IconButton icon="delete" size={20} iconColor="red" onPress={() => {
+                                        Alert.alert('Delete', 'Delete attendance?', [
+                                            { text: 'Cancel' },
+                                            {
+                                                text: 'Delete', style: 'destructive', onPress: async () => {
+                                                    await apiService.deleteAttendance(record.id);
+                                                    loadAttendance();
+                                                }
+                                            }
+                                        ]);
+                                    }} />
+                                </DataTable.Cell>
                             </DataTable.Row>
                         ))}
                     </DataTable>

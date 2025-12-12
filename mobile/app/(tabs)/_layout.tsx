@@ -1,5 +1,6 @@
 import { Tabs, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import HeaderProfile from '../../components/HeaderProfile';
 
 export default function TabLayout() {
     const router = useRouter();
@@ -9,17 +10,8 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="management"
                 options={{
-                    title: 'Management',
-                    tabBarIcon: ({ color }) => <MaterialCommunityIcons name="office-building" size={24} color={color} />,
-                    headerLeft: () => (
-                        <MaterialCommunityIcons
-                            name="account-circle"
-                            size={28}
-                            color="black"
-                            style={{ marginLeft: 16 }}
-                            onPress={() => router.push('/profile')}
-                        />
-                    ),
+                    headerTitle: () => <HeaderProfile />,
+                    headerLeft: () => null,
                 }}
             />
             <Tabs.Screen

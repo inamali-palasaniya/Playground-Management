@@ -8,7 +8,7 @@ export const createUser = async (req: Request, res: Response) => {
             data: {
                 name,
                 phone,
-                email,
+                email: email && email.trim() !== '' ? email : null,
                 role,
                 group_id: group_id ? parseInt(group_id) : null,
                 age: age ? parseInt(age) : null,
@@ -65,9 +65,21 @@ export const createUser = async (req: Request, res: Response) => {
         }
 
         res.status(201).json(user);
-    } catch (error) {
-        console.error('Error creating user:', error);
-        res.status(500).json({ error: 'Failed to create user' });
+    } catch (error: any) {
+        console.error('Error creating user FULL DETIALS:', JSON.stringify(error, null, 2));
+
+        if (error.code === 'P2002' && error.meta?.target) {
+            const field = Array.isArray(error.meta.target) ? error.meta.target.join(', ') : error.meta.target;
+            return res.status(409).json({ error: `User with this ${field} already exists.` });
+        }
+        // Handle DriverAdapterError nested case
+        if (error.code === 'P2002' && error.meta?.driverAdapterError?.cause?.constraint?.fields) {
+            const field = error.meta.driverAdapterError.cause.constraint.fields.join(', ');
+            return res.status(409).json({ error: `User with this ${field} already exists.` });
+        }
+
+        console.error('Error message:', error.message);
+        res.status(500).json({ error: error.message || 'Failed to create user', details: error });
     }
 };
 
@@ -80,13 +92,83 @@ export const getUsers = async (req: Request, res: Response) => {
             where.group_id = parseInt(group_id as string);
         }
 
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        // Today's range for attendance check
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+
         const users = await prisma.user.findMany({
             where,
-            include: { group: true },
+            include: {
+                group: true,
+                subscriptions: {
+                    where: { status: 'ACTIVE' },
+                    include: { plan: true },
+                    take: 1
+                },
+                fee_ledger: {
+                    where: {
+                        type: 'SUBSCRIPTION',
+                        transaction_type: 'CREDIT',
+                        date: { gte: startOfMonth }
+                    }
+                },
+                attendances: {
+                    where: {
+                        date: {
+                            gte: startOfToday,
+                            lte: endOfToday
+                        }
+                    },
+                    take: 1
+                }
+            },
             orderBy: { name: 'asc' }
         });
-        res.json(users);
+
+        const enhancedUsers = users.map(user => {
+            const sub = user.subscriptions[0];
+            const plan = sub?.plan;
+            let status = 'N/A';
+            let planName = 'No Plan';
+
+            if (plan) {
+                planName = plan.name;
+                if (plan.rate_monthly && plan.rate_monthly > 0) {
+                    const hasPayment = user.fee_ledger.length > 0;
+                    status = hasPayment ? 'ACTIVE' : 'EXPIRED';
+                } else {
+                    status = 'ACTIVE';
+                }
+            }
+
+            // Attendance Status
+            // NONE = Not checked in
+            // IN = Checked In (no out time)
+            // OUT = Checked Out (out time exists)
+            const attendance = user.attendances[0];
+            let punchStatus = 'NONE';
+            if (attendance) {
+                if (attendance.out_time) punchStatus = 'OUT';
+                else punchStatus = 'IN';
+            }
+
+            return {
+                ...user,
+                plan_name: planName,
+                subscription_status: status,
+                punch_status: punchStatus,
+                todays_attendance_id: attendance?.id
+            };
+        });
+
+        res.json(enhancedUsers);
     } catch (error) {
+        console.error('Error fetching users:', error);
         res.status(500).json({ error: 'Failed to fetch users' });
     }
 };
@@ -104,5 +186,45 @@ export const getUserById = async (req: Request, res: Response) => {
         res.json(user);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch user' });
+    }
+};
+
+export const updateUser = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { name, phone, email, role, group_id, age, user_type } = req.body;
+
+        const user = await prisma.user.update({
+            where: { id: parseInt(id) },
+            data: {
+                name,
+                phone,
+                email: email && email.trim() !== '' ? email : null,
+                role,
+                group_id: group_id ? parseInt(group_id) : null,
+                age: age ? parseInt(age) : null,
+                user_type
+            },
+        });
+        res.json(user);
+    } catch (error: any) {
+        console.error('Error updating user:', error);
+        if (error.code === 'P2002') {
+            return res.status(409).json({ error: 'User with this phone/email already exists' });
+        }
+        res.status(500).json({ error: 'Failed to update user' });
+    }
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        await prisma.user.delete({
+            where: { id: parseInt(id) },
+        });
+        res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ error: 'Failed to delete user' });
     }
 };
