@@ -4,7 +4,7 @@ import prisma from '../utils/prisma.js';
 // Add Payment (Credit) with Auto-Match Logic
 export const addPayment = async (req: Request, res: Response) => {
     try {
-        const { user_id, amount, payment_method, notes, type, transaction_date, billing_period } = req.body; // billing_period for Subscription month
+        const { user_id, amount, payment_method, notes, type, transaction_date, billing_period, link_to_id } = req.body; // link_to_id for explicit match
 
         if (!user_id || !amount) {
             return res.status(400).json({ error: 'User ID and amount are required' });
@@ -18,6 +18,7 @@ export const addPayment = async (req: Request, res: Response) => {
             finalNotes += ` (For period: ${billing_period})`;
         }
 
+        // Implicit Logic: Create Payment
         const payment = await prisma.feeLedger.create({
             data: {
                 user_id: parseInt(user_id),
@@ -27,44 +28,84 @@ export const addPayment = async (req: Request, res: Response) => {
                 amount: numericAmount,
                 date: paymentDate,
                 is_paid: true,
-                notes: finalNotes ? finalNotes.trim() : undefined
+                notes: finalNotes ? finalNotes.trim() : undefined,
+                parent_ledger_id: link_to_id ? parseInt(link_to_id) : undefined
             }
         });
 
-        // Auto-Match Logic: Find oldest unpaid DEBITS and mark them as paid
-        let remainingCredit = numericAmount;
-
-        const unpaidDebts = await prisma.feeLedger.findMany({
-            where: {
-                user_id: parseInt(user_id),
-                transaction_type: 'DEBIT',
-                is_paid: false
-            },
-            orderBy: { date: 'asc' }
-        });
-
-        for (const debt of unpaidDebts) {
-            if (remainingCredit <= 0) break;
-
-            if (remainingCredit >= debt.amount) {
-                // Fully pay off this debt
-                await prisma.feeLedger.update({
-                    where: { id: debt.id },
-                    data: { is_paid: true, notes: (debt.notes || '') + ` (Paid via PMT-${payment.id})` }
-                });
-
-                // If this was a DEPOSIT installment, update User's deposit_amount
-                if (debt.type === 'DEPOSIT') {
-                    await prisma.user.update({
-                        where: { id: parseInt(user_id) },
-                        data: { deposit_amount: { increment: debt.amount } }
+        if (link_to_id) {
+            // Explicit Match
+            const parent = await prisma.feeLedger.findUnique({ where: { id: parseInt(link_to_id) } });
+            if (parent) {
+                // Check if Parent is fully paid including this new child
+                const allChildren = await prisma.feeLedger.findMany({ where: { parent_ledger_id: parent.id } });
+                const totalPaid = allChildren.reduce((sum, child) => sum + child.amount, 0);
+                
+                if (totalPaid >= parent.amount) {
+                    await prisma.feeLedger.update({
+                        where: { id: parent.id },
+                        data: { is_paid: true }
                     });
                 }
-
-                remainingCredit -= debt.amount;
-            } else {
-                // Partial payment
-                // For MVP, we don't split debts yet.
+            }
+        } else {
+            // Auto-Match Logic: Find oldest unpaid DEBITS and mark them as paid
+            // Only IF explicitly not linked? Or unrelated?
+            // User requested: "separate" if not linked?
+            // The request says "if its unpaid then within same row button appear for paid".
+            // If I pay it, it shows as hierarchy.
+            // If I just "add payment" without link, it might be general credit.
+            // I'll keep the auto-match logic ONLY if not linked, OR effectively disable it if user wants strict control?
+            // "but its shows both seprate" -> User dislikes auto match if it doesn't visually link them.
+            // If I keep auto-match, I should likely SET the parent_id?
+            // But auto-match usually clears multiple small debts with one big payment. One child -> Multiple parents?
+            // Schema is One Parent -> Many Children (One Debit -> Many Payments).
+            // So One Payment paying multiple Debts is NOT supported by standard parent_child relation unless M-N.
+            // My schema: `parent_ledger_id` on Payment matches to One Debit.
+            // So a single Payment can only belong to one Debit (Parent).
+            // The existing Auto-Match logic splits the credit across multiple debts.
+            // To support hierarchy for "Split" payments, I would need to split the Payment entry itself? Or M-N.
+            // For now, I will DISABLE auto-match if `link_to_id` is NOT provided, OR just leave it as "General Credit" (which decreases balance but doesn't hierarchically nest).
+            // User query: "hierarchy like i add payment 200 ... and there is paid/unpaid type ... if i paid it its shows as heararchy"
+            // So if they click "Pay", it links.
+            // If they just Add Payment, maybe valid to be floating?
+            // I'll KEEP Auto-Match for now to ensure old behavior (clearing oldest debt status) remains, BUT I won't linking ID if it crosses multiple. 
+            // Actually, if it covers one full debt, I could link it?
+            // Complexity risk. Safe bet:
+            // If `link_to_id` provided -> Do strictly that.
+            // If NOT provided -> Run existing Auto-Match (mark `is_paid` but don't set `parent_id` basically).
+            // Wait, if I want hierarchy, I probably WANT to set `parent_id` if auto-match finds a single target.
+            // But let's stick to explicit `link_to_id` for the hierarchy feature as requested.
+            
+            // Existing Auto-Match (only if NO link_to_id)
+            let remainingCredit = numericAmount;
+    
+            const unpaidDebts = await prisma.feeLedger.findMany({
+                where: {
+                    user_id: parseInt(user_id),
+                    transaction_type: 'DEBIT',
+                    is_paid: false
+                },
+                orderBy: { date: 'asc' }
+            });
+    
+            for (const debt of unpaidDebts) {
+                if (remainingCredit <= 0) break;
+    
+                if (remainingCredit >= debt.amount) {
+                    await prisma.feeLedger.update({
+                        where: { id: debt.id },
+                        data: { is_paid: true, notes: (debt.notes || '') + ` (Paid via PMT-${payment.id})` }
+                    });
+                     // If DEPOSIT... (logic kept)
+                     if (debt.type === 'DEPOSIT') {
+                        await prisma.user.update({
+                            where: { id: parseInt(user_id) },
+                            data: { deposit_amount: { increment: debt.amount } }
+                        });
+                    }
+                    remainingCredit -= debt.amount;
+                }
             }
         }
 

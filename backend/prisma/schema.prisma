@@ -99,9 +99,14 @@ model FeeLedger {
   notes            String?
   createdAt DateTime   @default(now())
   user      User       @relation(fields: [user_id], references: [id])
+  
+  parent_ledger_id Int?
+  parent_ledger    FeeLedger?  @relation("LedgerHierarchy", fields: [parent_ledger_id], references: [id])
+  child_ledger     FeeLedger[] @relation("LedgerHierarchy")
 
   @@index([user_id])
   @@index([is_paid])
+  @@index([parent_ledger_id])
 }
 
 model FineRule {

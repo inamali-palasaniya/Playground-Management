@@ -8,10 +8,10 @@ import { format } from 'date-fns';
 
 export default function AddPaymentScreen() {
     const router = useRouter();
-    const { userId, userName } = useLocalSearchParams();
-    const [amount, setAmount] = useState('');
+    const { userId, userName, linkedChargeId, linkedAmount, linkedType } = useLocalSearchParams();
+    const [amount, setAmount] = useState<string>(linkedAmount ? linkedAmount.toString() : '');
     const [paymentMethod, setPaymentMethod] = useState('CASH');
-    const [type, setType] = useState('PAYMENT');
+    const [type, setType] = useState<string>(linkedType ? linkedType.toString() : 'PAYMENT');
     const [notes, setNotes] = useState('');
     const [loading, setLoading] = useState(false);
     const [date, setDate] = useState(new Date());
@@ -47,7 +47,8 @@ export default function AddPaymentScreen() {
                      notes,
                      type,
                      date.toISOString(),
-                     type === 'SUBSCRIPTION' ? format(billingMonth, 'MMMM yyyy') : undefined
+                     type === 'SUBSCRIPTION' ? format(billingMonth, 'MMMM yyyy') : undefined,
+                     linkedChargeId ? parseInt(linkedChargeId as string) : undefined
                  );
                  Alert.alert('Success', 'Payment recorded successfully');
                  router.back();
