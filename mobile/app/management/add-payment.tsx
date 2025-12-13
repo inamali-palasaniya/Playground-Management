@@ -8,14 +8,40 @@ import { format } from 'date-fns';
 
 export default function AddPaymentScreen() {
     const router = useRouter();
-    const { userId, userName, linkedChargeId, linkedAmount, linkedType } = useLocalSearchParams();
-    const [amount, setAmount] = useState<string>(linkedAmount ? linkedAmount.toString() : '');
-    const [transactionType, setTransactionType] = useState<'CREDIT' | 'DEBIT'>('CREDIT');
-    const [paymentMethod, setPaymentMethod] = useState('CASH');
-    const [type, setType] = useState<string>(linkedType ? linkedType.toString() : 'PAYMENT');
-    const [notes, setNotes] = useState('');
+    const params = useLocalSearchParams();
+    const { linkedChargeId, linkedAmount, linkedType, editId, initialAmount, initialNotes, initialDate, initialType, initialMethod, initialTxType } = params;
+
+    // User Management
+    const [users, setUsers] = useState<any[]>([]);
+    const [selectedUserId, setSelectedUserId] = useState<number | null>(params.userId ? Number(params.userId) : null);
+    const [userMenuVisible, setUserMenuVisible] = useState(false);
+
+    // Edit Mode Init
+    const isEditing = !!editId;
+
+    const [amount, setAmount] = useState<string>(
+        isEditing ? (initialAmount ? initialAmount.toString() : '') :
+            (linkedAmount ? linkedAmount.toString() : '')
+    );
+    const [transactionType, setTransactionType] = useState<'CREDIT' | 'DEBIT'>(
+        isEditing ? (initialTxType as 'CREDIT' | 'DEBIT' || 'CREDIT') : 'CREDIT'
+    );
+    const [paymentMethod, setPaymentMethod] = useState(
+        isEditing ? (initialMethod as string || 'CASH') : 'CASH'
+    );
+    const [type, setType] = useState<string>(
+        isEditing ? (initialType as string || 'PAYMENT') :
+            (linkedType ? linkedType.toString() : 'PAYMENT')
+    );
+    const [notes, setNotes] = useState(
+        isEditing ? (initialNotes as string || '') : ''
+    );
     const [loading, setLoading] = useState(false);
-    const [date, setDate] = useState(new Date());
+
+    // Dates
+    const [date, setDate] = useState(
+        isEditing && initialDate ? new Date(initialDate as string) : new Date()
+    );
     const [showDatePicker, setShowDatePicker] = useState(false);
 
     // Subscription Billing Period
@@ -32,8 +58,19 @@ export default function AddPaymentScreen() {
         { label: 'Maintenance', value: 'MAINTENANCE' },
     ];
 
+    React.useEffect(() => {
+        // Fetch users for the dropdown
+        apiService.getUsers().then(setUsers).catch(console.error);
+    }, []);
+
+    React.useEffect(() => {
+        if (params.userId) {
+            setSelectedUserId(Number(params.userId));
+        }
+    }, [params.userId]);
+
     const handleSubmit = async () => {
-        if (!amount || !userId) {
+        if (!amount || !selectedUserId) {
             Alert.alert('Error', 'Amount and User are required');
             return;
         }
@@ -41,36 +78,50 @@ export default function AddPaymentScreen() {
         const proceedWithPayment = async () => {
             setLoading(true);
             try {
-                 await apiService.recordPayment(
-                     Number(userId),
-                     parseFloat(amount),
-                     paymentMethod,
-                     notes,
-                     type,
-                     date.toISOString(),
-                     type === 'SUBSCRIPTION' ? format(billingMonth, 'MMMM yyyy') : undefined,
-                     linkedChargeId ? parseInt(linkedChargeId as string) : undefined,
-                     transactionType
-                 );
-                 Alert.alert('Success', 'Payment recorded successfully');
+                if (isEditing) {
+                    await apiService.updateLedgerEntry(Number(editId), {
+                        amount: parseFloat(amount),
+                        notes: notes,
+                        date: date.toISOString(),
+                        type: type,
+                        payment_method: transactionType === 'CREDIT' ? paymentMethod : undefined,
+                        // transaction_type not updated usually to avoid structural breaks, 
+                        // but logic allows updating fields dependent on it?
+                    });
+                    Alert.alert('Success', 'Transaction updated successfully');
+                } else {
+                    await apiService.recordPayment(
+                         Number(selectedUserId),
+                         parseFloat(amount),
+                         paymentMethod,
+                         notes,
+                         type,
+                         date.toISOString(),
+                         type === 'SUBSCRIPTION' ? format(billingMonth, 'MMMM yyyy') : undefined,
+                         linkedChargeId ? parseInt(linkedChargeId as string) : undefined,
+                         transactionType
+                     );
+                    Alert.alert('Success', 'Payment recorded successfully');
+                }
                  router.back();
              } catch (error) {
                  console.error(error);
-                 Alert.alert('Error', 'Failed to record payment');
+                Alert.alert('Error', isEditing ? 'Failed to update' : 'Failed to record payment');
              } finally {
                  setLoading(false);
             }
         };
 
-        if (type === 'SUBSCRIPTION') {
+        // Duplicate Check only for NEW items
+        if (type === 'SUBSCRIPTION' && !isEditing) {
             try {
                 setLoading(true);
                 const monthYear = format(billingMonth, 'MMMM yyyy');
-                const existing = await apiService.checkSubscriptionPayment(Number(userId), monthYear);
+                const existing = await apiService.checkSubscriptionPayment(Number(selectedUserId), monthYear);
                 setLoading(false);
 
                 if (existing && existing.length > 0) {
-                    const details = existing.map((p, i) => `${i + 1}. ${format(new Date(p.date), 'dd/MM')} - ₹${p.amount}`).join('\n');
+                    const details = existing.map((p: any, i: number) => `${i + 1}. ${format(new Date(p.date), 'dd/MM')} - ₹${p.amount}`).join('\n');
                     Alert.alert(
                         'Duplicate Warning',
                         `Found ${existing.length} existing subscription payment(s) for ${monthYear}:\n\n${details}\n\nDo you still want to add this payment?`,
@@ -83,8 +134,6 @@ export default function AddPaymentScreen() {
                 }
             } catch (e) {
                 console.error('Check failed', e);
-                // Fail safe: assume no duplicates or just warn error?
-                // Better to allow proceed if check fails but log it.
                 setLoading(false);
             }
         }
@@ -102,10 +151,44 @@ export default function AddPaymentScreen() {
         if (selectedDate) setBillingMonth(selectedDate);
     };
 
+    const getSelectedUserName = () => {
+        if (!selectedUserId) return 'Select User';
+        // If passed via params, we might have userName, but best to use list if available
+        if (users.length > 0) {
+            const u = users.find(u => u.id === selectedUserId);
+            return u ? u.name : (params.userName as string || 'Unknown User');
+        }
+        return params.userName as string || 'Loading...';
+    };
+
     return (
         <ScrollView style={styles.container}>
-            <Text variant="headlineSmall" style={styles.header}>Record Payment</Text>
-            {userName && <Text variant="titleMedium" style={{ textAlign: 'center', marginBottom: 20 }}>For: {userName}</Text>}
+            <Text variant="headlineSmall" style={styles.header}>{isEditing ? 'Edit Transaction' : 'Record Payment'}</Text>
+
+            {/* User Selector */}
+            <View style={{ marginBottom: 15 }}>
+                <Text variant="titleMedium" style={styles.label}>User</Text>
+                <Menu
+                    visible={userMenuVisible}
+                    onDismiss={() => setUserMenuVisible(false)}
+                    anchor={
+                        <Button mode="outlined" onPress={() => !isEditing && setUserMenuVisible(true)} disabled={isEditing}>
+                            {getSelectedUserName()}
+                        </Button>
+                    }
+                >
+                    {users.map(user => (
+                        <Menu.Item
+                            key={user.id}
+                            onPress={() => {
+                                setSelectedUserId(user.id);
+                                setUserMenuVisible(false);
+                            }}
+                            title={user.name}
+                        />
+                    ))}
+                </Menu>
+            </View>
 
             <View style={{ flexDirection: 'row', marginBottom: 20 }}>
                 <Button
@@ -200,7 +283,7 @@ export default function AddPaymentScreen() {
             <TextInput label="Notes" value={notes} onChangeText={setNotes} style={styles.input} multiline />
 
             <Button mode="contained" onPress={handleSubmit} loading={loading} style={styles.button}>
-                {transactionType === 'DEBIT' ? 'Record Charge' : 'Record Payment'}
+                {isEditing ? 'Update ' + (transactionType === 'DEBIT' ? 'Charge' : 'Payment') : (transactionType === 'DEBIT' ? 'Record Charge' : 'Record Payment')}
             </Button>
         </ScrollView>
     );

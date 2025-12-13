@@ -2,11 +2,10 @@ import { Request, Response } from 'express';
 import prisma from '../utils/prisma.js';
 
 // Add Payment (Credit) with Auto-Match Logic
+// Add Payment (Credit) with Strict Linking
 export const addPayment = async (req: Request, res: Response) => {
     try {
-
-
-        const { user_id, amount, payment_method, notes, type, transaction_date, billing_period, link_to_id, transaction_type } = req.body; // link_to_id for explicit match
+        const { user_id, amount, payment_method, notes, type, transaction_date, billing_period, link_to_id, transaction_type } = req.body;
 
         if (!user_id || !amount) {
             return res.status(400).json({ error: 'User ID and amount are required' });
@@ -14,7 +13,28 @@ export const addPayment = async (req: Request, res: Response) => {
 
         const numericAmount = parseFloat(amount);
         const paymentDate = transaction_date ? new Date(transaction_date) : new Date();
-        const txType = transaction_type || 'CREDIT'; // Default to CREDIT (Payment) if not specified
+        const txType = transaction_type || 'CREDIT';
+
+        // Validation for Linked Payments (Partial Payment Logic)
+        if (txType === 'CREDIT' && link_to_id) {
+            const parent = await prisma.feeLedger.findUnique({ where: { id: parseInt(link_to_id) } });
+            if (!parent) {
+                return res.status(404).json({ error: 'Linked charge not found' });
+            }
+            if (parent.transaction_type !== 'DEBIT') {
+                return res.status(400).json({ error: 'Cannot link payment to another credit' });
+            }
+
+            const existingPayments = await prisma.feeLedger.findMany({ where: { parent_ledger_id: parent.id } });
+            const alreadyPaid = existingPayments.reduce((sum, p) => sum + p.amount, 0);
+            const remaining = parent.amount - alreadyPaid;
+
+            if (numericAmount > remaining) {
+                return res.status(400).json({
+                    error: `Payment exceeds remaining balance. Remaining: ₹${remaining}, Attempted: ₹${numericAmount}`
+                });
+            }
+        }
 
         let finalNotes = notes || '';
         if (type === 'SUBSCRIPTION' && billing_period) {
@@ -27,103 +47,39 @@ export const addPayment = async (req: Request, res: Response) => {
                 user_id: parseInt(user_id),
                 type: type || (txType === 'DEBIT' ? 'MANUAL_FEE' : 'PAYMENT'),
                 transaction_type: txType,
-                payment_method: txType === 'CREDIT' ? (payment_method || 'CASH') : undefined, // Debits don't usually have a payment method
+                payment_method: txType === 'CREDIT' ? (payment_method || 'CASH') : undefined,
                 amount: numericAmount,
                 date: paymentDate,
-                is_paid: txType === 'CREDIT', // Credits are paid, Debits are unpaid
+                is_paid: txType === 'CREDIT', 
                 notes: finalNotes ? finalNotes.trim() : undefined,
                 parent_ledger_id: (txType === 'CREDIT' && link_to_id) ? parseInt(link_to_id) : undefined
             }
         });
 
-        // If it's a DEBIT, we are done (it's a new charge)
-        if (txType === 'DEBIT') {
-            return res.status(201).json(entry);
-        }
-
-        // If CREDIT, proceed with Linking or Auto-Match
-        const payment = entry;
-
-        if (link_to_id) {
-            // Explicit Match
+        // Post-Creation: Update Parent Status if fully paid
+        if (txType === 'CREDIT' && link_to_id) {
             const parent = await prisma.feeLedger.findUnique({ where: { id: parseInt(link_to_id) } });
             if (parent) {
-                // Check if Parent is fully paid including this new child
                 const allChildren = await prisma.feeLedger.findMany({ where: { parent_ledger_id: parent.id } });
                 const totalPaid = allChildren.reduce((sum, child) => sum + child.amount, 0);
                 
+                // Allow small floating point error epsilon if needed, but strict equality is usually okay for currency if integers/fixed.
+                // Using >= to be safe.
                 if (totalPaid >= parent.amount) {
                     await prisma.feeLedger.update({
                         where: { id: parent.id },
-                        data: { is_paid: true }
+                        data: { is_paid: true } // Mark Parent as Paid
                     });
-                }
-            }
-        } else {
-            // Auto-Match Logic: Find oldest unpaid DEBITS and mark them as paid
-            // Only IF explicitly not linked? Or unrelated?
-            // User requested: "separate" if not linked?
-            // The request says "if its unpaid then within same row button appear for paid".
-            // If I pay it, it shows as hierarchy.
-            // If I just "add payment" without link, it might be general credit.
-            // I'll keep the auto-match logic ONLY if not linked, OR effectively disable it if user wants strict control?
-            // "but its shows both seprate" -> User dislikes auto match if it doesn't visually link them.
-            // If I keep auto-match, I should likely SET the parent_id?
-            // But auto-match usually clears multiple small debts with one big payment. One child -> Multiple parents?
-            // Schema is One Parent -> Many Children (One Debit -> Many Payments).
-            // So One Payment paying multiple Debts is NOT supported by standard parent_child relation unless M-N.
-            // My schema: `parent_ledger_id` on Payment matches to One Debit.
-            // So a single Payment can only belong to one Debit (Parent).
-            // The existing Auto-Match logic splits the credit across multiple debts.
-            // To support hierarchy for "Split" payments, I would need to split the Payment entry itself? Or M-N.
-            // For now, I will DISABLE auto-match if `link_to_id` is NOT provided, OR just leave it as "General Credit" (which decreases balance but doesn't hierarchically nest).
-            // User query: "hierarchy like i add payment 200 ... and there is paid/unpaid type ... if i paid it its shows as heararchy"
-            // So if they click "Pay", it links.
-            // If they just Add Payment, maybe valid to be floating?
-            // I'll KEEP Auto-Match for now to ensure old behavior (clearing oldest debt status) remains, BUT I won't linking ID if it crosses multiple. 
-            // Actually, if it covers one full debt, I could link it?
-            // Complexity risk. Safe bet:
-            // If `link_to_id` provided -> Do strictly that.
-            // If NOT provided -> Run existing Auto-Match (mark `is_paid` but don't set `parent_id` basically).
-            // Wait, if I want hierarchy, I probably WANT to set `parent_id` if auto-match finds a single target.
-            // But let's stick to explicit `link_to_id` for the hierarchy feature as requested.
-            
-            // Existing Auto-Match (only if NO link_to_id)
-            let remainingCredit = numericAmount;
-    
-            const unpaidDebts = await prisma.feeLedger.findMany({
-                where: {
-                    user_id: parseInt(user_id),
-                    transaction_type: 'DEBIT',
-                    is_paid: false
-                },
-                orderBy: { date: 'asc' }
-            });
-    
-            for (const debt of unpaidDebts) {
-                if (remainingCredit <= 0) break;
-    
-                if (remainingCredit >= debt.amount) {
-                    await prisma.feeLedger.update({
-                        where: { id: debt.id },
-                        data: { is_paid: true, notes: (debt.notes || '') + ` (Paid via PMT-${payment.id})` }
-                    });
-                     // If DEPOSIT... (logic kept)
-                     if (debt.type === 'DEPOSIT') {
-                        await prisma.user.update({
-                            where: { id: parseInt(user_id) },
-                            data: { deposit_amount: { increment: debt.amount } }
-                        });
-                    }
-                    remainingCredit -= debt.amount;
                 }
             }
         }
 
-        res.status(201).json(payment);
-    } catch (error) {
+        // Removed Auto-Match Logic as per new requirement
+
+        res.status(201).json(entry);
+    } catch (error: any) {
         console.error('Error adding payment:', error);
-        res.status(500).json({ error: 'Failed to add payment' });
+        res.status(500).json({ error: error.message || 'Failed to add payment' });
     }
 };
 
@@ -272,28 +228,121 @@ export const getUserFinancials = async (req: Request, res: Response) => {
 export const updateLedgerEntry = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { amount, notes, is_paid } = req.body;
+        const { amount, notes, is_paid, date, type, payment_method } = req.body;
+        const entryId = parseInt(id);
+
+        // Get original to check for relations
+        const original = await prisma.feeLedger.findUnique({ where: { id: entryId } });
+        if (!original) return res.status(404).json({ error: 'Entry not found' });
 
         const updated = await prisma.feeLedger.update({
-            where: { id: parseInt(id) },
+            where: { id: entryId },
             data: {
                 amount: amount ? parseFloat(amount) : undefined,
                 notes,
-                is_paid: is_paid !== undefined ? is_paid : undefined
+                is_paid: is_paid !== undefined ? is_paid : undefined,
+                date: date ? new Date(date) : undefined,
+                type: type,
+                payment_method: payment_method
             }
         });
+
+        // 1. If this is a child payment (has parent), recalculate parent status
+        if (original.parent_ledger_id) {
+            const parent = await prisma.feeLedger.findUnique({ where: { id: original.parent_ledger_id } });
+            if (parent) {
+                const siblings = await prisma.feeLedger.findMany({ where: { parent_ledger_id: parent.id } });
+                const totalPaid = siblings.reduce((sum, s) => sum + s.amount, 0);
+                const isNowPaid = totalPaid >= parent.amount;
+                if (parent.is_paid !== isNowPaid) {
+                    await prisma.feeLedger.update({ where: { id: parent.id }, data: { is_paid: isNowPaid } });
+                }
+            }
+        }
+
+        // 2. If this is a parent debit (has children), recalculate own status based on children
+        // (Only if amount changed)
+        if (amount && original.transaction_type === 'DEBIT') {
+            const children = await prisma.feeLedger.findMany({ where: { parent_ledger_id: entryId } });
+            if (children.length > 0) {
+                const totalPaid = children.reduce((sum, c) => sum + c.amount, 0);
+                const isNowPaid = totalPaid >= updated.amount;
+                if (updated.is_paid !== isNowPaid) {
+                    await prisma.feeLedger.update({ where: { id: entryId }, data: { is_paid: isNowPaid } });
+                    updated.is_paid = isNowPaid; // reflect in response
+                }
+            }
+        }
+
         res.json(updated);
     } catch (error) {
+        console.error('Update Ledger Error:', error);
         res.status(500).json({ error: 'Failed to update ledger entry' });
     }
 }
 
+// Delete Ledger Entry (and associated components like UserFine if valid)
+// Delete Ledger Entry (and associated components like UserFine if valid)
 export const deleteLedgerEntry = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        await prisma.feeLedger.delete({ where: { id: parseInt(id) } });
+        const entryId = parseInt(id);
+
+        // 1. Find the entry first
+        const entry = await prisma.feeLedger.findUnique({ where: { id: entryId } });
+        if (!entry) {
+            return res.status(404).json({ error: 'Entry not found' });
+        }
+
+        const parentId = entry.parent_ledger_id;
+
+        // 2. If it is a FINE, try to find and delete the associated UserFine record
+        if (entry.type === 'FINE') {
+            const potentialFines = await prisma.userFine.findMany({
+                where: {
+                    user_id: entry.user_id,
+                    amount_charged: entry.amount
+                },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            // Find one that matches time
+            const ledgerTime = new Date(entry.createdAt).getTime();
+            const matchingFine = potentialFines.find(f => {
+                const fineTime = new Date(f.createdAt).getTime();
+                return Math.abs(fineTime - ledgerTime) < 10000; // 10 seconds diff
+            });
+
+            if (matchingFine) {
+                await prisma.userFine.delete({ where: { id: matchingFine.id } });
+                console.log(`Deleted associated UserFine #${matchingFine.id} for Ledger #${entryId}`);
+            }
+        }
+
+        // 3. Delete the ledger entry
+        await prisma.feeLedger.delete({ where: { id: entryId } });
+
+        // 4. If it was a child payment, recalculate parent status
+        if (parentId) {
+            const parent = await prisma.feeLedger.findUnique({ where: { id: parentId } });
+            if (parent) {
+                const siblings = await prisma.feeLedger.findMany({ where: { parent_ledger_id: parentId } });
+                const totalPaid = siblings.reduce((sum, s) => sum + s.amount, 0);
+
+                const isNowPaid = totalPaid >= parent.amount;
+                // Only update if status changed
+                if (parent.is_paid !== isNowPaid) {
+                    await prisma.feeLedger.update({
+                        where: { id: parentId },
+                        data: { is_paid: isNowPaid }
+                    });
+                }
+            }
+        }
+
         res.json({ message: 'Entry deleted' });
     } catch (error) {
+        console.error('Error deleting ledger entry:', error);
         res.status(500).json({ error: 'Failed to delete ledger entry' });
     }
 }

@@ -28,14 +28,51 @@ export default function UsersScreen() {
     );
 
     const renderItem = ({ item }: { item: any }) => (
-        <Card style={styles.card} onPress={() => router.push({ pathname: '/management/user/[id]', params: { id: item.id } })}>
+        <Card
+            style={[
+                styles.card,
+                {
+                    borderLeftWidth: 5,
+                    borderLeftColor: item.subscription_status === 'EXPIRED' ? 'red' :
+                        (item.subscription_status === 'ACTIVE' && item.plan_name?.toLowerCase().includes('monthly')) ? 'green' : 'transparent'
+                }
+            ]}
+            onPress={() => router.push({ pathname: '/management/user/[id]', params: { id: item.id } })}
+        >
             <Card.Title
                 title={item.name}
-                subtitle={`${item.role} • ${item.phone}`}
+                subtitle={
+                    <Text>
+                        {item.role} • {item.phone}
+                        {item.plan_name ? `\nPlan: ${item.plan_name}` : ''}
+                        {item.balance !== undefined && item.balance > 0 && <Text style={{ color: 'red', fontWeight: 'bold' }}> • Payable: ₹{item.balance}</Text>}
+                        {item.balance !== undefined && item.balance < 0 && <Text style={{ color: 'green', fontWeight: 'bold' }}> • Advance: ₹{Math.abs(item.balance)}</Text>}
+                        {item.balance === 0 && <Text style={{ color: 'gray' }}> • Settled</Text>}
+                    </Text>
+                }
+                subtitleNumberOfLines={4}
                 left={(props) => <Avatar.Text {...props} label={item.name.substring(0, 2).toUpperCase()} />}
                 right={(props) => (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16 }}>
-                        {item.deposit_amount !== undefined && item.deposit_amount < 2000 && <Chip textStyle={{ fontSize: 10 }} style={{ height: 24 }} compact mode="outlined" icon="alert">Dep: {item.deposit_amount}</Chip>}
+                    <View style={{ marginRight: 16, alignItems: 'flex-end', justifyContent: 'center' }}>
+                        {/* Balance Pill for High Visibility */}
+                        {item.balance !== undefined && item.balance !== 0 && (
+                            <View style={{
+                                backgroundColor: item.balance > 0 ? '#ffebee' : '#e8f5e9',
+                                paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12,
+                                borderWidth: 1, borderColor: item.balance > 0 ? '#ef9a9a' : '#a5d6a7',
+                                marginBottom: 4
+                            }}>
+                                <Text style={{ fontSize: 11, color: item.balance > 0 ? '#c62828' : '#2e7d32', fontWeight: 'bold' }}>
+                                    {item.balance > 0 ? `Due: ₹${item.balance}` : `Adv: ₹${Math.abs(item.balance)}`}
+                                </Text>
+                            </View>
+                        )}
+
+                        {item.deposit_amount !== undefined && item.deposit_amount < 2000 && (
+                            <View style={{ backgroundColor: '#f3e5f5', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: '#ce93d8' }}>
+                                <Text style={{ fontSize: 11, color: '#7b1fa2', fontWeight: 'bold' }}>Deposit: ₹{item.deposit_amount}</Text>
+                            </View>
+                        )}
                     </View>
                 )}
             />

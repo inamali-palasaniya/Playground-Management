@@ -1,9 +1,20 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma.js';
+import bcrypt from 'bcrypt';
 
 export const createUser = async (req: Request, res: Response) => {
     try {
-        const { name, phone, email, role, group_id, age, user_type, plan_id } = req.body;
+        const { name, phone, email, role, group_id, age, user_type, plan_id, payment_frequency, password } = req.body;
+
+        if (!phone || !/^\d{10}$/.test(phone)) {
+            return res.status(400).json({ error: 'Phone number must be exactly 10 digits.' });
+        }
+
+        let hashedPassword = null;
+        if (password && password.trim() !== '') {
+            hashedPassword = await bcrypt.hash(password, 10);
+        }
+
         const user = await prisma.user.create({
             data: {
                 name,
@@ -12,7 +23,8 @@ export const createUser = async (req: Request, res: Response) => {
                 role,
                 group_id: group_id ? parseInt(group_id) : null,
                 age: age ? parseInt(age) : null,
-                user_type
+                user_type,
+                password: hashedPassword
             },
         });
 
@@ -26,41 +38,29 @@ export const createUser = async (req: Request, res: Response) => {
                         plan_id: plan.id,
                         start_date: new Date(),
                         status: 'ACTIVE',
-                        amount_paid: 0
+                        amount_paid: 0,
+                        payment_frequency: payment_frequency || 'MONTHLY'
                     }
                 });
 
                 // Financial Logic: Initial Charges
-                const now = new Date();
+                const frequency = payment_frequency || 'MONTHLY';
 
-                // 1. Initial Monthly Fee Debit (if applicable)
-                if (plan.rate_monthly && plan.rate_monthly > 0) {
+                // 1. Initial Monthly Fee Debit (ONLY if Monthly Frequency selected)
+                if (frequency === 'MONTHLY' && plan.rate_monthly && plan.rate_monthly > 0) {
                     await prisma.feeLedger.create({
                         data: {
                             user_id: user.id,
                             type: 'MONTHLY_FEE',
                             transaction_type: 'DEBIT',
                             amount: plan.rate_monthly,
-                            // Could pro-rate here, but for MVP full charge? 
-                            // Let's stick to full charge or maybe the subscription creation implies start of billing cycle.
                             is_paid: false,
                             notes: `Initial Monthly Fee (Plan: ${plan.name})`
                         }
                     });
                 }
 
-                // 2. Initial Deposit Debit (if required)
-                // Logic: If 'is_deposit_required' is true, we should probably charge a deposit? 
-                // But schema doesn't have a specific 'deposit_amount' field on Plan (only monthly_deposit_part).
-                // Assuming 'Earned (Paid Deposit)' implies a large upfront deposit, but without a field, 
-                // we'll rely on 'monthly_deposit_part' logic handled in monthly charges OR 
-                // we can add a robust check later. 
-                // For 'Earned (Deposit Split)', the deposit builds up monthly, so no initial charge needed maybe?
-                // For 'Monthly Plan' (200 Rs) with 'is_deposit_required: true', what is the deposit amount?
-                // It's missing in schema. 
-                // I will add a default deposit charge of 2000 if is_deposit_required is true AND monthly_deposit_part is 0?
-                // Or just leave it for now to avoid wrong charges. 
-                // I'll stick to opening Monthly Fee charge.
+                // If Daily, we charge nothing now. It will be charged on Attendance Punch-In.
             }
         }
 
@@ -72,7 +72,6 @@ export const createUser = async (req: Request, res: Response) => {
             const field = Array.isArray(error.meta.target) ? error.meta.target.join(', ') : error.meta.target;
             return res.status(409).json({ error: `User with this ${field} already exists.` });
         }
-        // Handle DriverAdapterError nested case
         if (error.code === 'P2002' && error.meta?.driverAdapterError?.cause?.constraint?.fields) {
             const field = error.meta.driverAdapterError.cause.constraint.fields.join(', ');
             return res.status(409).json({ error: `User with this ${field} already exists.` });
@@ -111,11 +110,7 @@ export const getUsers = async (req: Request, res: Response) => {
                     take: 1
                 },
                 fee_ledger: {
-                    where: {
-                        type: 'SUBSCRIPTION',
-                        transaction_type: 'CREDIT',
-                        date: { gte: startOfMonth }
-                    }
+                    select: { amount: true, transaction_type: true }
                 },
                 attendances: {
                     where: {
@@ -139,17 +134,27 @@ export const getUsers = async (req: Request, res: Response) => {
             if (plan) {
                 planName = plan.name;
                 if (plan.rate_monthly && plan.rate_monthly > 0) {
-                    const hasPayment = user.fee_ledger.length > 0;
-                    status = hasPayment ? 'ACTIVE' : 'EXPIRED';
+                    // This logic was weak (checking specific recent payment), 
+                    // ideally we rely on subscription status or simply balance.
+                    // Returning existing logic for consistency but can be improved.
+                    status = user.fee_ledger.some(l => l.transaction_type === 'CREDIT') ? 'ACTIVE' : 'EXPIRED';
+                    // Re-evaluate 'EXPIRED' logic if needed, but primarily focusing on Balance now.
+                    status = sub.status; 
                 } else {
                     status = 'ACTIVE';
                 }
             }
 
+            // Financial Balance Calculation
+            let totalDebits = 0;
+            let totalCredits = 0;
+            user.fee_ledger.forEach(t => {
+                if (t.transaction_type === 'DEBIT') totalDebits += t.amount;
+                else if (t.transaction_type === 'CREDIT') totalCredits += t.amount;
+            });
+            const balance = totalDebits - totalCredits;
+
             // Attendance Status
-            // NONE = Not checked in
-            // IN = Checked In (no out time)
-            // OUT = Checked Out (out time exists)
             const attendance = user.attendances[0];
             let punchStatus = 'NONE';
             if (attendance) {
@@ -157,12 +162,18 @@ export const getUsers = async (req: Request, res: Response) => {
                 else punchStatus = 'IN';
             }
 
+            // Remove large ledger array from response to save bandwidth
+            const { fee_ledger, ...userWithoutLedger } = user;
+
             return {
-                ...user,
+                ...userWithoutLedger,
                 plan_name: planName,
                 subscription_status: status,
                 punch_status: punchStatus,
-                todays_attendance_id: attendance?.id
+                todays_attendance_id: attendance?.id,
+                balance,
+                total_debits: totalDebits,
+                total_credits: totalCredits
             };
         });
 
@@ -178,12 +189,25 @@ export const getUserById = async (req: Request, res: Response) => {
         const { id } = req.params;
         const user = await prisma.user.findUnique({
             where: { id: Number(id) },
-            include: { group: true, subscriptions: true, fee_ledger: true },
+            include: {
+                group: true,
+                subscriptions: true,
+                fee_ledger: true // Keep full ledger for details view
+            },
         });
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
-        res.json(user);
+
+        let totalDebits = 0;
+        let totalCredits = 0;
+        user.fee_ledger.forEach(t => {
+            if (t.transaction_type === 'DEBIT') totalDebits += t.amount;
+            else if (t.transaction_type === 'CREDIT') totalCredits += t.amount;
+        });
+        const balance = totalDebits - totalCredits;
+
+        res.json({ ...user, balance, total_debits: totalDebits, total_credits: totalCredits });
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch user' });
     }
@@ -192,7 +216,16 @@ export const getUserById = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { name, phone, email, role, group_id, age, user_type } = req.body;
+        const { name, phone, email, role, group_id, age, user_type, plan_id, payment_frequency, password } = req.body;
+
+        if (phone && !/^\d{10}$/.test(phone)) {
+            return res.status(400).json({ error: 'Phone number must be exactly 10 digits.' });
+        }
+
+        let hashedPassword = undefined; // Use undefined so it's not included in update if not provided
+        if (password && password.trim() !== '') {
+            hashedPassword = await bcrypt.hash(password, 10);
+        }
 
         const user = await prisma.user.update({
             where: { id: parseInt(id) },
@@ -203,9 +236,57 @@ export const updateUser = async (req: Request, res: Response) => {
                 role,
                 group_id: group_id ? parseInt(group_id) : null,
                 age: age ? parseInt(age) : null,
-                user_type
+                user_type,
+                ...(hashedPassword && { password: hashedPassword }) // Conditionally add password to update data
             },
         });
+
+        // Update Plan / Subscription if provided
+        if (plan_id) {
+            // Check active subscription
+            const activeSub = await prisma.subscription.findFirst({
+                where: { user_id: user.id, status: 'ACTIVE' }
+            });
+
+            if (activeSub) {
+                // If plan or frequency changed, update it
+                if (activeSub.plan_id !== parseInt(plan_id) || (payment_frequency && activeSub.payment_frequency !== payment_frequency)) {
+                    // Update existing to EXPIRED (or just update in place? Standard is history, but for simplicity update)
+                    // For audit, let's Deactivate old and Create new.
+                    await prisma.subscription.update({
+                        where: { id: activeSub.id },
+                        data: { status: 'EXPIRED', end_date: new Date() }
+                    });
+
+                    // Create new
+                    await prisma.subscription.create({
+                        data: {
+                            user_id: user.id,
+                            plan_id: parseInt(plan_id),
+                            start_date: new Date(),
+                            status: 'ACTIVE',
+                            amount_paid: 0,
+                            payment_frequency: payment_frequency || 'MONTHLY' // Default to monthly if not sent
+                        }
+                    });
+                    // NOTE: Should we charge pro-rated or new monthly fee? 
+                    // For now, skipping auto-charge on update to avoid accidental double billing.
+                }
+            } else {
+                // No active sub, create new
+                await prisma.subscription.create({
+                    data: {
+                        user_id: user.id,
+                        plan_id: parseInt(plan_id),
+                        start_date: new Date(),
+                        status: 'ACTIVE',
+                        amount_paid: 0,
+                        payment_frequency: payment_frequency || 'MONTHLY'
+                    }
+                });
+            }
+        }
+
         res.json(user);
     } catch (error: any) {
         console.error('Error updating user:', error);
@@ -219,12 +300,46 @@ export const updateUser = async (req: Request, res: Response) => {
 export const deleteUser = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        await prisma.user.delete({
-            where: { id: parseInt(id) },
+        const userId = parseInt(id);
+
+        const targetUser = await prisma.user.findUnique({ where: { id: userId } });
+        if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+        // PROTECT LAST MANAGEMENT USER
+        if (targetUser.role === 'MANAGEMENT') {
+            const adminCount = await prisma.user.count({ where: { role: 'MANAGEMENT' } });
+            if (adminCount <= 1) {
+                return res.status(409).json({ error: 'Cannot delete the last Management user. Please create another Management user first.' });
+            }
+        }
+
+        await prisma.$transaction(async (tx) => {
+            // 1. Delete Financial & Attendance Records
+            await tx.userFine.deleteMany({ where: { user_id: userId } });
+            await tx.attendance.deleteMany({ where: { user_id: userId } });
+
+            // Delete child ledgers
+            await tx.feeLedger.deleteMany({ where: { user_id: userId } });
+
+            await tx.subscription.deleteMany({ where: { user_id: userId } });
+            await tx.teamPlayer.deleteMany({ where: { user_id: userId } });
+
+            // Note: We are NOT deleting BallEvent, Match Awards etc. 
+            // If user has match history, this might still fail, which is good for data integrity.
+
+            // 2. Delete User
+            await tx.user.delete({
+                where: { id: userId },
+            });
         });
-        res.json({ message: 'User deleted successfully' });
-    } catch (error) {
+
+        res.json({ message: 'User and related data deleted successfully' });
+    } catch (error: any) {
         console.error('Error deleting user:', error);
-        res.status(500).json({ error: 'Failed to delete user' });
+        if (error.code === 'P2003') {
+            res.status(409).json({ error: 'Cannot delete user: They have linked match history (Bowling/Batting/Awards) which must be preserved.' });
+        } else {
+            res.status(500).json({ error: 'Failed to delete user', details: error.message });
+        }
     }
 };

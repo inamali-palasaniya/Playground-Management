@@ -137,7 +137,8 @@ export const SubscriptionScalarFieldEnum = {
   end_date: 'end_date',
   amount_paid: 'amount_paid',
   status: 'status',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  payment_frequency: 'payment_frequency'
 } as const
 
 export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
@@ -169,7 +170,8 @@ export const FeeLedgerScalarFieldEnum = {
   date: 'date',
   is_paid: 'is_paid',
   notes: 'notes',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  parent_ledger_id: 'parent_ledger_id'
 } as const
 
 export type FeeLedgerScalarFieldEnum = (typeof FeeLedgerScalarFieldEnum)[keyof typeof FeeLedgerScalarFieldEnum]

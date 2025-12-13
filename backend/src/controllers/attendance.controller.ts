@@ -26,7 +26,14 @@ export const checkIn = async (req: Request, res: Response) => {
     });
 
     if (existing) {
-      return res.status(400).json({ error: 'Already checked in for this date' });
+      return res.status(409).json({
+        error: 'Already checked in for this date',
+        existing: {
+          in_time: existing.in_time,
+          out_time: existing.out_time,
+          date: existing.date
+        }
+      });
     }
 
     // Get user's active subscription
@@ -47,26 +54,20 @@ export const checkIn = async (req: Request, res: Response) => {
 
     let dailyFee = 0;
 
-    // Calculate daily fee based on subscription plan
-    // Logic Refinement:
-    // If Plan is Daily Rate -> Charge
-    // If Plan is Monthly Rate (Prepaid/Postpaid) -> Do NOT charge daily
-
+    // Calculate daily fee based on subscription PAYMENT FREQUENCY
     if (activeSubscription?.plan) {
-      // Check plan type or check rates
-      // Assuming if rate_daily > 0, it's a daily plan
-      // If rate_daily is 0 or null, and rate_monthly > 0, it's monthly
-
-      if (activeSubscription.plan.rate_daily && activeSubscription.plan.rate_daily > 0) {
-        dailyFee = activeSubscription.plan.rate_daily;
+      // Only charge daily fee if the user's frequency is DAILY
+      if (activeSubscription.payment_frequency === 'DAILY') {
+        if (activeSubscription.plan.rate_daily && activeSubscription.plan.rate_daily > 0) {
+          dailyFee = activeSubscription.plan.rate_daily;
+        }
       } else {
-        // Monthly plan or no rate -> 0
+        // MONTHLY means they paid lump sum, no daily charge
         dailyFee = 0;
       }
     } else {
-      // No active subscription - Should block or charge default?
-      // For now, allow check-in freely or set default fine?
-      // Requirement says "Daily plan selected only". So default to 0 if no plan.
+      // No active subscription: Requirement "should not pay anything for this quota users playing in ground is free" applies to <18
+      // But for others... defaults to 0 as fallback or free.
       dailyFee = 0;
     }
 
@@ -117,18 +118,18 @@ export const checkOut = async (req: Request, res: Response) => {
 
     if (!targetUserId) return res.status(400).json({ error: 'User ID required' });
 
-    const checkInDate = date ? new Date(date) : new Date();
-    checkInDate.setHours(0, 0, 0, 0);
-
+    // Find the LATEST active attendance record (where out_time is null)
+    // This is more robust than matching 'today' which suffers timezone issues
     const attendance = await prisma.attendance.findFirst({
       where: {
         user_id: targetUserId,
-        date: checkInDate
-      }
+        out_time: null
+      },
+      orderBy: { date: 'desc' }
     });
 
     if (!attendance) {
-      return res.status(404).json({ error: 'Attendance record not found for today' });
+      return res.status(404).json({ error: 'No active check-in found to check out.' });
     }
 
     const updated = await prisma.attendance.update({

@@ -92,9 +92,37 @@ export default function ProManagementDashboard() {
             }
             // Small delay to ensure DB update before fetch? specific to some backends.
             setTimeout(loadData, 200);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Punch failed', error);
-            Alert.alert('Error', 'Failed to update attendance');
+
+            let message = 'Failed to update attendance';
+            let title = 'Error';
+
+            // Check for 409 Conflict with details
+            if (error.status === 409 || error.body) {
+                if (error.body) {
+                    try {
+                        const parsed = JSON.parse(error.body);
+                        if (parsed.error) message = parsed.error;
+                        if (parsed.existing) {
+                            const inT = parsed.existing.in_time ? new Date(parsed.existing.in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
+                            const outT = parsed.existing.out_time ? new Date(parsed.existing.out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
+                            const dateStr = new Date(parsed.existing.date).toLocaleDateString();
+
+                            message += `\n\nDate: ${dateStr}\nIn: ${inT}\nOut: ${outT}`;
+                            title = 'Attendance Limit';
+                        }
+                    } catch (e) {
+                        message = String(error.body);
+                    }
+                }
+            } else if (error.status === 404) {
+                // 404 logic from before
+                message = 'State mismatch or record not found. Refreshing...';
+                setTimeout(loadData, 200);
+            }
+
+            Alert.alert(title, message);
         }
     };
 
@@ -167,20 +195,21 @@ export default function ProManagementDashboard() {
                                     subtitleNumberOfLines={3}
                                     left={(props) => <Avatar.Text {...props} label={user.name.substring(0, 2).toUpperCase()} />}
                                     right={(props) => (
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
-                                            <Button
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 0 }}>
+                                            {/* Punch Button: Circular Icon */}
+                                            <IconButton
+                                                icon={user.punch_status === 'IN' ? 'logout' : 'login'}
                                                 mode="contained"
-                                                compact
-                                                buttonColor={user.punch_status === 'IN' ? '#FF5252' : '#4CAF50'}
-                                                style={{ marginRight: 8, height: 30, justifyContent: 'center' }}
-                                                labelStyle={{ fontSize: 10, marginHorizontal: 8 }}
+                                                containerColor={user.punch_status === 'IN' ? '#FF5252' : '#4CAF50'}
+                                                iconColor="white"
+                                                size={20}
+                                                style={{ margin: 0, marginRight: 4 }}
                                                 onPress={(e) => {
-                                                    e.stopPropagation(); // Prevent card press
+                                                    e.stopPropagation();
                                                     handlePunch(user);
                                                 }}
-                                            >
-                                                {user.punch_status === 'IN' ? 'OUT' : 'IN'}
-                                            </Button>
+                                            />
+
                                             <IconButton
                                                 icon="pencil"
                                                 size={20}

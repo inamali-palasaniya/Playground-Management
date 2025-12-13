@@ -10,6 +10,8 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="management"
                 options={{
+                    title: 'Home',
+                    tabBarIcon: ({ color }) => <MaterialCommunityIcons name="home-variant" size={24} color={color} />,
                     headerTitle: () => <HeaderProfile />,
                     headerLeft: () => null,
                 }}

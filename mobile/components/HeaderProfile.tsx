@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Text, Avatar, Button, ActivityIndicator } from 'react-native-paper';
 import { AuthService } from '../services/auth.service';
 import apiService from '../services/api.service';
@@ -35,9 +35,12 @@ export default function HeaderProfile() {
             // Re-use the data logic from user list if possible? 
             // For now, let's just use getUserById which typically has includes if we modify it, 
             // OR use /api/attendance/user/:id and find today.
+            // Use local date string comparison to avoid UTC mismatch
+            const todayDateString = new Date().toDateString(); // e.g. "Fri Dec 13 2024"
+
             const atts = await apiService.getUserAttendance(id);
             const todayRecord = atts.find((a: any) => 
-                new Date(a.date).toISOString().split('T')[0] === today
+                new Date(a.date).toDateString() === todayDateString
             );
             
             if (todayRecord) {
@@ -62,8 +65,32 @@ export default function HeaderProfile() {
                 await apiService.checkIn(user.id, new Date().toISOString());
                 setStatus('IN');
             }
-        } catch (e) {
-            console.error(e);
+        } catch (e: any) {
+            console.log(e);
+            let message = 'Failed to update status';
+            let title = 'Error';
+
+            if (e.body) {
+                try {
+                    const parsed = JSON.parse(e.body);
+                    if (parsed.error) message = parsed.error;
+                    if (parsed.existing) {
+                        // Import format from date-fns or use simple JS
+                        const inT = parsed.existing.in_time ? new Date(parsed.existing.in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
+                        const outT = parsed.existing.out_time ? new Date(parsed.existing.out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
+                        const dateStr = new Date(parsed.existing.date).toLocaleDateString();
+
+                        message += `\n\nDate: ${dateStr}\nIn: ${inT}\nOut: ${outT}`;
+                        title = 'Attendance Limit';
+                    }
+                } catch (err) {
+                    message = String(e.body);
+                }
+            } else if (e.message) {
+                message = e.message;
+            }
+
+            Alert.alert(title, message);
         } finally {
             setLoading(false);
         }

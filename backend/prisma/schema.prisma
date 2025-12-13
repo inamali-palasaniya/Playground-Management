@@ -64,9 +64,15 @@ model Subscription {
   createdAt   DateTime           @default(now())
   plan        SubscriptionPlan   @relation(fields: [plan_id], references: [id])
   user        User               @relation(fields: [user_id], references: [id])
+  payment_frequency PaymentFrequency @default(MONTHLY)
 
   @@index([user_id])
   @@index([plan_id])
+}
+
+enum PaymentFrequency {
+  DAILY
+  MONTHLY
 }
 
 model Attendance {
@@ -221,6 +227,7 @@ enum LedgerType {
   SUBSCRIPTION
   DONATION
   MAINTENANCE
+  MANUAL_FEE
   OTHER
 }
 

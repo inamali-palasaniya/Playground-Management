@@ -64,8 +64,7 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
     const [ledger, setLedger] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
-    const [editingItem, setEditingItem] = useState<any>(null);
-    const [editNote, setEditNote] = useState('');
+
 
     const loadLedger = () => {
         apiService.getUserLedger(userId)
@@ -91,19 +90,19 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
     };
 
     const handleEditStart = (item: any) => {
-        setEditingItem(item);
-        setEditNote(item.notes || '');
-    };
-
-    const handleSaveEdit = async () => {
-        if (!editingItem) return;
-        try {
-            await apiService.updateLedgerEntry(editingItem.id, { notes: editNote });
-            setEditingItem(null);
-            loadLedger();
-        } catch (e) {
-            Alert.alert('Error', 'Failed to update note');
-        }
+        router.push({
+            pathname: '/management/add-payment',
+            params: {
+                editId: item.id,
+                userId: userId,
+                initialAmount: item.amount,
+                initialNotes: item.notes,
+                initialDate: item.date,
+                initialType: item.type,
+                initialMethod: item.payment_method,
+                initialTxType: item.transaction_type
+            }
+        });
     };
 
     // Process Hierarchy
@@ -131,11 +130,15 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
     });
 
     return (
-        <>
+        <View style={{ flex: 1 }}>
             <ScrollView style={styles.tabContent}>
                 {ledger.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No ledger records.</Text> : (
                     rootItems.map((item) => (
-                        <Card key={item.id} style={[styles.ledgerCard, { borderLeftColor: item.is_paid ? 'green' : 'red', borderLeftWidth: 4 }]}>
+                        <Card
+                            key={item.id}
+                            style={[styles.ledgerCard, { borderLeftColor: item.is_paid ? 'green' : 'red', borderLeftWidth: 4 }]}
+                            onPress={() => router.push({ pathname: '/management/ledger/[id]', params: { id: item.id, userId } })}
+                        >
                             <Card.Content>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                     <View style={{ flex: 1 }}>
@@ -197,35 +200,30 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
                     ))
                 )}
             </ScrollView>
-
-            <Portal>
-                <Dialog visible={!!editingItem} onDismiss={() => setEditingItem(null)}>
-                    <Dialog.Title>Update Note</Dialog.Title>
-                    <Dialog.Content>
-                        <TextInput
-                            label="Note"
-                            value={editNote}
-                            onChangeText={setEditNote}
-                            mode="outlined"
-                        />
-                    </Dialog.Content>
-                    <Dialog.Actions>
-                        <Button onPress={() => setEditingItem(null)}>Cancel</Button>
-                        <Button onPress={handleSaveEdit}>Save</Button>
-                    </Dialog.Actions>
-                </Dialog>
-            </Portal>
-        </>
+        </View>
     );
 };
+
 
 const AttendanceRoute = ({ userId }: { userId: number }) => {
     const [attendance, setAttendance] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Check-In State
     const [showCheckInDialog, setShowCheckInDialog] = useState(false);
     const [checkInDate, setCheckInDate] = useState(new Date());
+
+    // Edit State
+    const [editingRecord, setEditingRecord] = useState<any>(null);
+    const [editInTime, setEditInTime] = useState(new Date());
+    const [editOutTime, setEditOutTime] = useState<Date | null>(null);
+    const [editFee, setEditFee] = useState('');
+
+    // Pickers
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
+    const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
+    const [pickerTarget, setPickerTarget] = useState<'checkin' | 'edit_in' | 'edit_out'>('checkin');
 
     const loadAttendance = () => {
         apiService.getUserAttendance(userId)
@@ -245,33 +243,100 @@ const AttendanceRoute = ({ userId }: { userId: number }) => {
             loadAttendance();
             Alert.alert('Success', 'Check-in recorded');
         } catch (e: any) {
-            if (e.message && e.message.includes('Already checked in')) {
-                // Determine if we should offer update. For now, simple Alert saying use edit.
-                // Ideally we find the record ID.
-                // Simplest: just warn user.
-                Alert.alert('Notice', 'Already checked in for this date. Please use the Delete icon to remove the mistake, or Edit (coming soon) to change time.');
+            let errorMessage = 'Check-in failed';
+            let existingDetails = '';
+
+            // Parse error body if available
+            if (e.body) {
+                try {
+                    const parsed = JSON.parse(e.body);
+                    if (parsed.error) errorMessage = parsed.error;
+                    if (parsed.existing) {
+                        const inT = parsed.existing.in_time ? format(new Date(parsed.existing.in_time), 'HH:mm') : '-';
+                        const outT = parsed.existing.out_time ? format(new Date(parsed.existing.out_time), 'HH:mm') : '-';
+                        existingDetails = `\nExisting: In: ${inT}, Out: ${outT}`;
+                    }
+                } catch (jsonErr) {
+                    errorMessage = e.body;
+                }
+            }
+
+            if (errorMessage.includes('Already checked in')) {
+                Alert.alert('Duplicate Attendance', `${errorMessage}${existingDetails}\n\nYou can edit the existing record instead.`);
             } else {
-                 Alert.alert('Error', e.message || 'Check-in failed');
+                Alert.alert('Error', errorMessage);
              }
         }
     };
 
-    const handleDateChange = (event: any, selectedDate?: Date) => {
-        setShowDatePicker(false);
-        if (selectedDate) {
-            const newDate = new Date(selectedDate);
-            // Preserve time
-            newDate.setHours(checkInDate.getHours(), checkInDate.getMinutes());
-            setCheckInDate(newDate);
+    const handleEditStart = (record: any) => {
+        setEditingRecord(record);
+        setEditInTime(record.in_time ? new Date(record.in_time) : new Date());
+        setEditOutTime(record.out_time ? new Date(record.out_time) : null);
+        setEditFee(record.daily_fee_charged ? record.daily_fee_charged.toString() : '');
+    };
+
+    const handleUpdateAttendance = async () => {
+        if (!editingRecord) return;
+
+        // Validation: In < Out
+        if (editOutTime) {
+            if (editOutTime.getTime() <= editInTime.getTime()) {
+                Alert.alert('Invalid Time', 'Out time must be after In time.');
+                return;
+            }
+        }
+
+        try {
+            await apiService.updateAttendance(editingRecord.id, {
+                in_time: editInTime.toISOString(),
+                out_time: editOutTime ? editOutTime.toISOString() : null,
+                daily_fee_charged: editFee ? parseFloat(editFee) : 0,
+                is_present: true // assume present if editing times
+            });
+            setEditingRecord(null);
+            loadAttendance();
+            Alert.alert('Success', 'Attendance updated');
+        } catch (e: any) {
+            Alert.alert('Error', 'Failed to update attendance');
         }
     };
 
-    const handleTimeChange = (event: any, selectedDate?: Date) => {
-        setShowTimePicker(false);
-        if (selectedDate) {
+    const showPicker = (mode: 'date' | 'time', target: 'checkin' | 'edit_in' | 'edit_out') => {
+        setPickerMode(mode);
+        setPickerTarget(target);
+        setShowDatePicker(true); // Using single state for visibility, though name is showDatePicker
+    };
+
+    const handlePickerChange = (event: any, selectedDate?: Date) => {
+        setShowDatePicker(false);
+        if (!selectedDate) return;
+
+        if (pickerTarget === 'checkin') {
             const newDate = new Date(checkInDate);
-            newDate.setHours(selectedDate.getHours(), selectedDate.getMinutes());
+            if (pickerMode === 'date') {
+                newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+            } else {
+                newDate.setHours(selectedDate.getHours(), selectedDate.getMinutes());
+            }
             setCheckInDate(newDate);
+        } else if (pickerTarget === 'edit_in') {
+            const newDate = new Date(editInTime);
+            if (pickerMode === 'date') {
+                newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+            } else {
+                newDate.setHours(selectedDate.getHours(), selectedDate.getMinutes());
+            }
+            setEditInTime(newDate);
+        } else if (pickerTarget === 'edit_out') {
+            const base = editOutTime || new Date();
+            const newDate = new Date(base);
+            if (pickerMode === 'date') {
+                newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+            } else {
+                newDate.setHours(selectedDate.getHours(), selectedDate.getMinutes());
+            }
+            setEditOutTime(newDate);
         }
     };
 
@@ -294,17 +359,20 @@ const AttendanceRoute = ({ userId }: { userId: number }) => {
                                 <DataTable.Cell>{record.out_time ? format(new Date(record.out_time), 'HH:mm') : '-'}</DataTable.Cell>
                                 <DataTable.Cell numeric>₹{record.daily_fee_charged || 0}</DataTable.Cell>
                                 <DataTable.Cell numeric>
-                                    <IconButton icon="delete" size={20} iconColor="red" onPress={() => {
-                                        Alert.alert('Delete', 'Delete attendance?', [
-                                            { text: 'Cancel' },
-                                            {
-                                                text: 'Delete', style: 'destructive', onPress: async () => {
-                                                    await apiService.deleteAttendance(record.id);
-                                                    loadAttendance();
+                                    <View style={{ flexDirection: 'row' }}>
+                                        <IconButton icon="pencil" size={18} onPress={() => handleEditStart(record)} />
+                                        <IconButton icon="delete" size={18} iconColor="red" onPress={() => {
+                                            Alert.alert('Delete', 'Delete attendance?', [
+                                                { text: 'Cancel' },
+                                                {
+                                                    text: 'Delete', style: 'destructive', onPress: async () => {
+                                                        await apiService.deleteAttendance(record.id);
+                                                        loadAttendance();
+                                                    }
                                                 }
-                                            }
-                                        ]);
-                                    }} />
+                                            ]);
+                                        }} />
+                                    </View>
                                 </DataTable.Cell>
                             </DataTable.Row>
                         ))}
@@ -322,37 +390,20 @@ const AttendanceRoute = ({ userId }: { userId: number }) => {
                 }}
             />
 
+            {/* Check In Dialog */}
             <Portal>
                 <Dialog visible={showCheckInDialog} onDismiss={() => setShowCheckInDialog(false)}>
                     <Dialog.Title>Manual Check-In</Dialog.Title>
                     <Dialog.Content>
                         <Text variant="bodyMedium" style={{ marginBottom: 10 }}>Select Date & Time:</Text>
-
                         <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
-                            <Button mode="outlined" onPress={() => setShowDatePicker(true)}>
+                            <Button mode="outlined" onPress={() => showPicker('date', 'checkin')}>
                                 {format(checkInDate, 'dd MMM yyyy')}
                             </Button>
-                            <Button mode="outlined" onPress={() => setShowTimePicker(true)}>
+                            <Button mode="outlined" onPress={() => showPicker('time', 'checkin')}>
                                 {format(checkInDate, 'HH:mm')}
                             </Button>
                         </View>
-
-                        {showDatePicker && (
-                            <DateTimePicker
-                                value={checkInDate}
-                                mode="date"
-                                display="default"
-                                onChange={handleDateChange}
-                            />
-                        )}
-                        {showTimePicker && (
-                            <DateTimePicker
-                                value={checkInDate}
-                                mode="time"
-                                display="default"
-                                onChange={handleTimeChange}
-                            />
-                        )}
                         <Text variant="bodySmall">Note: This will spark a daily fee charge if applicable.</Text>
                     </Dialog.Content>
                     <Dialog.Actions>
@@ -361,6 +412,68 @@ const AttendanceRoute = ({ userId }: { userId: number }) => {
                     </Dialog.Actions>
                 </Dialog>
             </Portal>
+
+            {/* Edit Dialog */}
+            <Portal>
+                <Dialog visible={!!editingRecord} onDismiss={() => setEditingRecord(null)}>
+                    <Dialog.Title>Edit Attendance</Dialog.Title>
+                    <Dialog.Content>
+                        <Text variant="labelLarge" style={{ marginTop: 10 }}>In Time</Text>
+                        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+                            <Button mode="outlined" onPress={() => showPicker('date', 'edit_in')}>
+                                {format(editInTime, 'dd MMM')}
+                            </Button>
+                            <Button mode="outlined" onPress={() => showPicker('time', 'edit_in')}>
+                                {format(editInTime, 'HH:mm')}
+                            </Button>
+                        </View>
+
+                        <Text variant="labelLarge" style={{ marginTop: 10 }}>Out Time</Text>
+                        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10, alignItems: 'center' }}>
+                            {editOutTime ? (
+                                <>
+                                    <Button mode="outlined" onPress={() => showPicker('date', 'edit_out')}>
+                                        {format(editOutTime, 'dd MMM')}
+                                    </Button>
+                                    <Button mode="outlined" onPress={() => showPicker('time', 'edit_out')}>
+                                        {format(editOutTime, 'HH:mm')}
+                                    </Button>
+                                    <IconButton icon="close-circle" onPress={() => setEditOutTime(null)} />
+                                </>
+                            ) : (
+                                <Button mode="outlined" onPress={() => setEditOutTime(new Date())}>Set Out Time</Button>
+                            )}
+                        </View>
+
+                        <TextInput
+                            label="Daily Fee Charged (₹)"
+                            value={editFee}
+                            onChangeText={setEditFee}
+                            keyboardType="numeric"
+                            mode="outlined"
+                            style={{ marginTop: 10 }}
+                        />
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button onPress={() => setEditingRecord(null)}>Cancel</Button>
+                        <Button onPress={handleUpdateAttendance}>Save Changes</Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
+
+            {/* Shared DatePicker */}
+            {showDatePicker && (
+                <DateTimePicker
+                    value={
+                        pickerTarget === 'checkin' ? checkInDate :
+                            pickerTarget === 'edit_in' ? editInTime :
+                                (editOutTime || new Date())
+                    }
+                    mode={pickerMode}
+                    display="default"
+                    onChange={handlePickerChange}
+                />
+            )}
         </View>
     );
 };
@@ -401,6 +514,17 @@ export default function UserDetailScreen() {
                 <Avatar.Text size={80} label={user.name.substring(0, 2).toUpperCase()} style={{ backgroundColor: 'white' }} color={theme.colors.primary} />
                 <Text variant="headlineMedium" style={{ color: 'white', marginTop: 10 }}>{user.name}</Text>
                 <Text variant="bodyMedium" style={{ color: 'rgba(255,255,255,0.8)' }}>{user.email || user.phone}</Text>
+
+                {/* Financial Summary */}
+                {user.balance !== undefined && (
+                    <View style={{ marginTop: 8, backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 15, paddingVertical: 6, borderRadius: 20 }}>
+                        <Text variant="titleMedium" style={{ color: 'white', fontWeight: 'bold' }}>
+                            {user.balance > 0 ? `Total Payable: ₹${user.balance}` :
+                                user.balance < 0 ? `Advance Credit: ₹${Math.abs(user.balance)}` :
+                                    'Account Settled'}
+                        </Text>
+                    </View>
+                )}
 
                 {/* Actions Row */}
                 <View style={{ flexDirection: 'row', marginTop: 10 }}>

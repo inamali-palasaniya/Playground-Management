@@ -21,6 +21,7 @@ interface User {
     email?: string;
     role: string;
     group?: any;
+    subscriptions?: any[];
 }
 
 interface CreateMatchData {
@@ -41,6 +42,7 @@ interface CreateUserData {
     age?: number;
     user_type?: string;
     password?: string;
+    payment_frequency?: string;
 }
 
 class ApiService {
@@ -93,19 +95,21 @@ class ApiService {
                 }
 
                 const errorText = await response.text();
-                console.error('API Error Response:', errorText);
-                throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+                // Suppress 404 "not found" alerts by throwing a structured object the caller can inspect
+                console.warn(`API Error Response (${response.status}):`, errorText);
+
+                const customError: any = new Error(`HTTP error! status: ${response.status}`);
+                customError.status = response.status;
+                customError.body = errorText;
+                throw customError;
             }
 
             const data = await response.json();
             console.log('API Response Data:', data);
             return data;
-        } catch (error) {
+        } catch (error: any) {
             console.error('API request failed:', error);
-            if (error instanceof Error) {
-                console.error('Error message:', error.message);
-                console.error('Error stack:', error.stack);
-            }
+            // Re-throw so caller handles it, but now with .status property if it was HTTP error
             throw error;
         }
     }

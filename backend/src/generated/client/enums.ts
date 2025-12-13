@@ -9,6 +9,14 @@
 * 🟢 You can import this file directly.
 */
 
+export const PaymentFrequency = {
+  DAILY: 'DAILY',
+  MONTHLY: 'MONTHLY'
+} as const
+
+export type PaymentFrequency = (typeof PaymentFrequency)[keyof typeof PaymentFrequency]
+
+
 export const UserRole = {
   MANAGEMENT: 'MANAGEMENT',
   NORMAL: 'NORMAL'
@@ -26,6 +34,7 @@ export const LedgerType = {
   SUBSCRIPTION: 'SUBSCRIPTION',
   DONATION: 'DONATION',
   MAINTENANCE: 'MAINTENANCE',
+  MANUAL_FEE: 'MANUAL_FEE',
   OTHER: 'OTHER'
 } as const
 

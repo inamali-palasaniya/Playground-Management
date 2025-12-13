@@ -19,6 +19,7 @@ export default function AddUserScreen() {
     const [selectedGroup, setSelectedGroup] = useState<number | null>(null);
     const [plans, setPlans] = useState<any[]>([]);
     const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
+    const [paymentFrequency, setPaymentFrequency] = useState('MONTHLY');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -26,7 +27,6 @@ export default function AddUserScreen() {
                 // Fetch Groups
                 try {
                     const groupsData = await apiService.getGroups();
-                    console.log('Fetched Groups:', groupsData);
                     setGroups(groupsData || []);
                 } catch (e) {
                     console.error('Failed to fetch groups:', e);
@@ -35,11 +35,6 @@ export default function AddUserScreen() {
                 // Fetch Plans
                 try {
                     const plansData = await apiService.getSubscriptionPlans();
-                    console.log('Fetched Plans:', plansData);
-                    if (Array.isArray(plansData) && plansData.length === 0) {
-                        console.warn('Plans array is empty!');
-                        // Optional: Alert user or show UI hint
-                    }
                     setPlans(plansData || []);
                 } catch (e) {
                     console.error('Failed to fetch plans:', e);
@@ -59,7 +54,7 @@ export default function AddUserScreen() {
         }
         setLoading(true);
         try {
-            await apiService.request('/api/users', { // Changed from /auth/register to /api/users
+            await apiService.request('/api/users', { 
                 method: 'POST',
                 body: JSON.stringify({
                     name,
@@ -70,7 +65,8 @@ export default function AddUserScreen() {
                     group_id: selectedGroup,
                     age,
                     user_type: userType,
-                    plan_id: selectedPlan
+                    plan_id: selectedPlan,
+                    payment_frequency: selectedPlan ? paymentFrequency : undefined
                 }),
             });
             Alert.alert('Success', 'User created successfully');
@@ -135,6 +131,21 @@ export default function AddUserScreen() {
                     </Button>
                 ))}
             </ScrollView>
+
+            {selectedPlan && (
+                <View style={{ marginTop: 10, backgroundColor: '#f5f5f5', padding: 10, borderRadius: 8 }}>
+                    <Text variant="titleMedium">Payment Frequency</Text>
+                    <RadioButton.Group onValueChange={value => setPaymentFrequency(value)} value={paymentFrequency}>
+                        <View style={styles.radioRow}>
+                            <RadioButton.Item label="Monthly" value="MONTHLY" />
+                            <RadioButton.Item label="Daily" value="DAILY" />
+                        </View>
+                    </RadioButton.Group>
+                    <Text variant="bodySmall" style={{ color: 'gray' }}>
+                        {paymentFrequency === 'MONTHLY' ? 'User pays monthly fixed fee.' : 'User pays per attendance (Punch In).'}
+                    </Text>
+                </View>
+            )}
 
             <Button mode="contained" onPress={handleSubmit} loading={loading} style={styles.button}>
                 Create User

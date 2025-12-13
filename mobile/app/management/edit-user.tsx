@@ -19,6 +19,9 @@ export default function EditUserScreen() {
     const [loading, setLoading] = useState(true);
     const [groups, setGroups] = useState<any[]>([]);
     const [selectedGroup, setSelectedGroup] = useState<number | null>(null);
+    const [plans, setPlans] = useState<any[]>([]);
+    const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
+    const [paymentFrequency, setPaymentFrequency] = useState('MONTHLY');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -27,20 +30,32 @@ export default function EditUserScreen() {
                 const groupsData = await apiService.getGroups();
                 setGroups(groupsData || []);
 
+                // Fetch Plans
+                const plansData = await apiService.getSubscriptionPlans();
+                setPlans(plansData || []);
+
                 // Fetch User Details
                 if (id) {
                     const user = await apiService.getUserById(Number(id));
                     setName(user.name);
                     setPhone(user.phone);
                     setEmail(user.email || '');
-                    // setDetail(user.detail || ''); // If detail exists
                     setRole(user.role);
-                    
-                    // Assuming user object has these fields, need to verify API response structure
-                    // The API returns: { ..., age: number, user_type: string, group_id: number }
+
                     if ((user as any).age) setAge((user as any).age.toString());
                     if ((user as any).user_type) setUserType((user as any).user_type);
                     if ((user as any).group_id) setSelectedGroup((user as any).group_id);
+
+                    // Check active subscription for Plan and Frequency
+                    if (user.subscriptions && user.subscriptions.length > 0) {
+                        const activeSub = user.subscriptions.find((s: any) => s.status === 'ACTIVE');
+                        if (activeSub) {
+                            setSelectedPlan(activeSub.plan_id);
+                            if (activeSub.payment_frequency) {
+                                setPaymentFrequency(activeSub.payment_frequency);
+                            }
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Failed to load data:', error);
@@ -67,7 +82,9 @@ export default function EditUserScreen() {
                 role,
                 group_id: selectedGroup || undefined,
                 age: age ? parseInt(age, 10) : undefined,
-                user_type: userType
+                user_type: userType,
+                plan_id: selectedPlan || undefined,
+                payment_frequency: selectedPlan ? paymentFrequency : undefined
             });
             Alert.alert('Success', 'User updated successfully');
             router.back();
@@ -124,6 +141,35 @@ export default function EditUserScreen() {
                     </Button>
                 ))}
             </ScrollView>
+
+            <Text variant="titleMedium" style={{ marginTop: 10 }}>Plan Selection (Update)</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.groupScroll}>
+                {plans.map(p => (
+                    <Button
+                        key={p.id}
+                        mode={selectedPlan === p.id ? 'contained' : 'outlined'}
+                        onPress={() => setSelectedPlan(p.id)}
+                        style={{ marginRight: 8 }}
+                    >
+                        {p.name}
+                    </Button>
+                ))}
+            </ScrollView>
+
+            {selectedPlan && (
+                <View style={{ marginTop: 10, backgroundColor: '#f5f5f5', padding: 10, borderRadius: 8 }}>
+                    <Text variant="titleMedium">Payment Frequency</Text>
+                    <RadioButton.Group onValueChange={value => setPaymentFrequency(value)} value={paymentFrequency}>
+                        <View style={styles.radioRow}>
+                            <RadioButton.Item label="Monthly" value="MONTHLY" />
+                            <RadioButton.Item label="Daily" value="DAILY" />
+                        </View>
+                    </RadioButton.Group>
+                    <Text variant="bodySmall" style={{ color: 'gray' }}>
+                        {paymentFrequency === 'MONTHLY' ? 'User pays monthly fixed fee.' : 'User pays per attendance (Punch In).'}
+                    </Text>
+                </View>
+            )}
 
             <Button mode="contained" onPress={handleSubmit} loading={loading} style={styles.button}>
                 Update User

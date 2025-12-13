@@ -24,6 +24,12 @@ export default function ApplyFineScreen() {
   }, []);
 
   useEffect(() => {
+    if (userId) {
+      setSelectedUser(Number(userId));
+    }
+  }, [userId]);
+
+  useEffect(() => {
     if (selectedUser && selectedRule) {
       calculateFinePreview();
     }
