@@ -106,56 +106,55 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
         }
     };
 
+    // Process Hierarchy
+    const ledgerMap = new Map();
+    const rootItems: any[] = [];
+
+    // First pass: Index all
+    ledger.forEach(item => ledgerMap.set(item.id, { ...item, children: [] }));
+
+    // Second pass: Associate
+    ledger.forEach(item => {
+        if (item.parent_ledger_id && ledgerMap.has(item.parent_ledger_id)) {
+            ledgerMap.get(item.parent_ledger_id).children.push(ledgerMap.get(item.id));
+        } else if (!item.parent_ledger_id) {
+            // Potentially a root item (Debit or Unlinked Credit)
+            // But wait, if an item IS a child, we shouldn't add it to rootItems yet?
+        }
+    });
+
+    // We need to iterate the original list (sorted by time) to maintain order, ignoring those that are children
+    ledger.forEach(item => {
+        if (!item.parent_ledger_id) {
+            rootItems.push(ledgerMap.get(item.id));
+        }
+    });
+
     return (
         <>
             <ScrollView style={styles.tabContent}>
                 {ledger.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No ledger records.</Text> : (
-                    (() => {
-                        // 1. Process Hierarchy
-                        const ledgerMap = new Map();
-                        const rootItems: any[] = [];
-
-                        // First pass: Index all
-                        ledger.forEach(item => ledgerMap.set(item.id, { ...item, children: [] }));
-
-                        // Second pass: Associate
-                        ledger.forEach(item => {
-                            if (item.parent_ledger_id && ledgerMap.has(item.parent_ledger_id)) {
-                                ledgerMap.get(item.parent_ledger_id).children.push(ledgerMap.get(item.id));
-                            } else if (!item.parent_ledger_id) {
-                                // Potentially a root item (Debit or Unlinked Credit)
-                                // But wait, if an item IS a child, we shouldn't add it to rootItems yet?
-                            }
-                        });
-
-                        // We need to iterate the original list (sorted by time) to maintain order, ignoring those that are children
-                        ledger.forEach(item => {
-                            if (!item.parent_ledger_id) {
-                                rootItems.push(ledgerMap.get(item.id));
-                            }
-                        });
-
-                        return rootItems.map((item) => (
+                    rootItems.map((item) => (
                         <Card key={item.id} style={[styles.ledgerCard, { borderLeftColor: item.is_paid ? 'green' : 'red', borderLeftWidth: 4 }]}>
                             <Card.Content>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                     <View style={{ flex: 1 }}>
-                                            <Text variant="titleMedium">{item.type.replace('_', ' ')} <Text style={{ fontSize: 12, color: 'gray' }}>#{item.id}</Text></Text>
+                                        <Text variant="titleMedium">{item.type.replace('_', ' ')} <Text style={{ fontSize: 12, color: 'gray' }}>#{item.id}</Text></Text>
                                         <Text variant="bodySmall">{format(new Date(item.date), 'dd MMM yyyy')}</Text>
                                         {item.notes && <Text variant="bodySmall" style={{ color: 'gray' }}>{item.notes}</Text>}
 
-                                            {/* Children (Payments) */}
-                                            {item.children && item.children.length > 0 && (
-                                                <View style={{ marginTop: 8, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#eee' }}>
-                                                    {item.children.map((child: any) => (
-                                                        <View key={child.id} style={{ marginBottom: 4 }}>
-                                                            <Text variant="bodySmall" style={{ color: 'green' }}>
-                                                                Paid ₹{child.amount} on {format(new Date(child.date), 'dd MMM')} <Text style={{ fontSize: 10, color: '#ccc' }}>PMT-{child.id}</Text>
-                                                            </Text>
-                                                        </View>
-                                                    ))}
-                                                </View>
-                                            )}
+                                        {/* Children (Payments) */}
+                                        {item.children && item.children.length > 0 && (
+                                            <View style={{ marginTop: 8, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#eee' }}>
+                                                {item.children.map((child: any) => (
+                                                    <View key={child.id} style={{ marginBottom: 4 }}>
+                                                        <Text variant="bodySmall" style={{ color: 'green' }}>
+                                                            Paid ₹{child.amount} on {format(new Date(child.date), 'dd MMM')} <Text style={{ fontSize: 10, color: '#ccc' }}>PMT-{child.id}</Text>
+                                                        </Text>
+                                                    </View>
+                                                ))}
+                                            </View>
+                                        )}
                                     </View>
                                     <View style={{ alignItems: 'flex-end' }}>
                                         <Text variant="titleMedium" style={{ color: item.type === 'PAYMENT' || item.transaction_type === 'CREDIT' ? 'green' : 'black' }}>
@@ -165,38 +164,37 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
                                             {item.is_paid ? 'PAID' : 'UNPAID'}
                                         </Text>
 
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                                                {/* Pay Button for Unpaid Debits */}
-                                                {!item.is_paid && item.transaction_type === 'DEBIT' && (
-                                                    <Button
-                                                        mode="contained"
-                                                        compact
-                                                        labelStyle={{ fontSize: 10, marginVertical: 2 }}
-                                                        style={{ marginRight: 8, height: 24 }}
-                                                        onPress={() => router.push({
-                                                            pathname: '/management/add-payment',
-                                                            params: {
-                                                                userId,
-                                                                userName: 'User', // Would be better to pass real name, but constrained by props here. Can fetch or ignore title.
-                                                                linkedChargeId: item.id,
-                                                                linkedAmount: item.amount, // Suggest full amount
-                                                                linkedType: item.type === 'SUBSCRIPTION' ? 'SUBSCRIPTION' : 'PAYMENT'
-                                                            }
-                                                        })}
-                                                    >
-                                                        Pay
-                                                    </Button>
-                                                )}
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                                            {/* Pay Button for Unpaid Debits */}
+                                            {!item.is_paid && item.transaction_type === 'DEBIT' && (
+                                                <Button
+                                                    mode="contained"
+                                                    compact
+                                                    labelStyle={{ fontSize: 10, marginVertical: 2 }}
+                                                    style={{ marginRight: 8, height: 24 }}
+                                                    onPress={() => router.push({
+                                                        pathname: '/management/add-payment',
+                                                        params: {
+                                                            userId,
+                                                            userName: 'User',
+                                                            linkedChargeId: item.id,
+                                                            linkedAmount: item.amount,
+                                                            linkedType: item.type === 'SUBSCRIPTION' ? 'SUBSCRIPTION' : 'PAYMENT'
+                                                        }
+                                                    })}
+                                                >
+                                                    Pay
+                                                </Button>
+                                            )}
 
-                                                <IconButton icon="pencil" size={18} onPress={() => handleEditStart(item)} />
-                                                <IconButton icon="delete" size={18} iconColor="red" onPress={() => handleDelete(item.id)} />
+                                            <IconButton icon="pencil" size={18} onPress={() => handleEditStart(item)} />
+                                            <IconButton icon="delete" size={18} iconColor="red" onPress={() => handleDelete(item.id)} />
                                         </View>
                                     </View>
                                 </View>
                             </Card.Content>
                         </Card>
                     ))
-                    })()
                 )}
             </ScrollView>
 
