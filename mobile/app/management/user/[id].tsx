@@ -63,6 +63,7 @@ const FineRoute = ({ userId }: { userId: number }) => {
 const LedgerRoute = ({ userId }: { userId: number }) => {
     const [ledger, setLedger] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
     const [editingItem, setEditingItem] = useState<any>(null);
     const [editNote, setEditNote] = useState('');
 
