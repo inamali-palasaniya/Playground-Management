@@ -319,10 +319,10 @@ class ApiService {
     }
 
     // Payment endpoints
-    async recordPayment(userId: number, amount: number, paymentMethod: string, notes?: string, type?: string, transactionDate?: string, billingPeriod?: string, linkToId?: number): Promise<any> {
+    async recordPayment(userId: number, amount: number, paymentMethod: string, notes?: string, type?: string, transactionDate?: string, billingPeriod?: string, linkToId?: number, transactionType?: string): Promise<any> {
         return this.request<any>('/api/finance/payment', {
             method: 'POST',
-            body: JSON.stringify({ user_id: userId, amount, payment_method: paymentMethod, notes, type, transaction_date: transactionDate, billing_period: billingPeriod, link_to_id: linkToId }),
+            body: JSON.stringify({ user_id: userId, amount, payment_method: paymentMethod, notes, type, transaction_date: transactionDate, billing_period: billingPeriod, link_to_id: linkToId, transaction_type: transactionType }),
         });
     }
 

@@ -4,7 +4,9 @@ import prisma from '../utils/prisma.js';
 // Add Payment (Credit) with Auto-Match Logic
 export const addPayment = async (req: Request, res: Response) => {
     try {
-        const { user_id, amount, payment_method, notes, type, transaction_date, billing_period, link_to_id } = req.body; // link_to_id for explicit match
+
+
+        const { user_id, amount, payment_method, notes, type, transaction_date, billing_period, link_to_id, transaction_type } = req.body; // link_to_id for explicit match
 
         if (!user_id || !amount) {
             return res.status(400).json({ error: 'User ID and amount are required' });
@@ -12,26 +14,35 @@ export const addPayment = async (req: Request, res: Response) => {
 
         const numericAmount = parseFloat(amount);
         const paymentDate = transaction_date ? new Date(transaction_date) : new Date();
+        const txType = transaction_type || 'CREDIT'; // Default to CREDIT (Payment) if not specified
 
         let finalNotes = notes || '';
         if (type === 'SUBSCRIPTION' && billing_period) {
             finalNotes += ` (For period: ${billing_period})`;
         }
 
-        // Implicit Logic: Create Payment
-        const payment = await prisma.feeLedger.create({
+        // Create Ledger Entry
+        const entry = await prisma.feeLedger.create({
             data: {
                 user_id: parseInt(user_id),
-                type: type || 'PAYMENT',
-                transaction_type: 'CREDIT',
-                payment_method: payment_method || 'CASH',
+                type: type || (txType === 'DEBIT' ? 'MANUAL_FEE' : 'PAYMENT'),
+                transaction_type: txType,
+                payment_method: txType === 'CREDIT' ? (payment_method || 'CASH') : undefined, // Debits don't usually have a payment method
                 amount: numericAmount,
                 date: paymentDate,
-                is_paid: true,
+                is_paid: txType === 'CREDIT', // Credits are paid, Debits are unpaid
                 notes: finalNotes ? finalNotes.trim() : undefined,
-                parent_ledger_id: link_to_id ? parseInt(link_to_id) : undefined
+                parent_ledger_id: (txType === 'CREDIT' && link_to_id) ? parseInt(link_to_id) : undefined
             }
         });
+
+        // If it's a DEBIT, we are done (it's a new charge)
+        if (txType === 'DEBIT') {
+            return res.status(201).json(entry);
+        }
+
+        // If CREDIT, proceed with Linking or Auto-Match
+        const payment = entry;
 
         if (link_to_id) {
             // Explicit Match

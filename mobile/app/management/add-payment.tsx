@@ -10,6 +10,7 @@ export default function AddPaymentScreen() {
     const router = useRouter();
     const { userId, userName, linkedChargeId, linkedAmount, linkedType } = useLocalSearchParams();
     const [amount, setAmount] = useState<string>(linkedAmount ? linkedAmount.toString() : '');
+    const [transactionType, setTransactionType] = useState<'CREDIT' | 'DEBIT'>('CREDIT');
     const [paymentMethod, setPaymentMethod] = useState('CASH');
     const [type, setType] = useState<string>(linkedType ? linkedType.toString() : 'PAYMENT');
     const [notes, setNotes] = useState('');
@@ -48,7 +49,8 @@ export default function AddPaymentScreen() {
                      type,
                      date.toISOString(),
                      type === 'SUBSCRIPTION' ? format(billingMonth, 'MMMM yyyy') : undefined,
-                     linkedChargeId ? parseInt(linkedChargeId as string) : undefined
+                     linkedChargeId ? parseInt(linkedChargeId as string) : undefined,
+                     transactionType
                  );
                  Alert.alert('Success', 'Payment recorded successfully');
                  router.back();
@@ -105,6 +107,23 @@ export default function AddPaymentScreen() {
             <Text variant="headlineSmall" style={styles.header}>Record Payment</Text>
             {userName && <Text variant="titleMedium" style={{ textAlign: 'center', marginBottom: 20 }}>For: {userName}</Text>}
 
+            <View style={{ flexDirection: 'row', marginBottom: 20 }}>
+                <Button
+                    mode={transactionType === 'CREDIT' ? 'contained' : 'outlined'}
+                    onPress={() => setTransactionType('CREDIT')}
+                    style={{ flex: 1, marginRight: 5, backgroundColor: transactionType === 'CREDIT' ? '#4caf50' : undefined }}
+                >
+                    Receive Payment
+                </Button>
+                <Button
+                    mode={transactionType === 'DEBIT' ? 'contained' : 'outlined'}
+                    onPress={() => setTransactionType('DEBIT')}
+                    style={{ flex: 1, marginLeft: 5, backgroundColor: transactionType === 'DEBIT' ? '#f44336' : undefined }}
+                >
+                    Add Charge (Unpaid)
+                </Button>
+            </View>
+
             <TextInput
                 label="Amount *"
                 value={amount}
@@ -116,7 +135,7 @@ export default function AddPaymentScreen() {
 
             {/* Payment Type Dropdown */}
             <View style={{ marginBottom: 15 }}>
-                <Text variant="titleMedium" style={styles.label}>Payment Type</Text>
+                <Text variant="titleMedium" style={styles.label}>{transactionType === 'DEBIT' ? 'Charge Type' : 'Payment Type'}</Text>
                 <Menu
                     visible={typeMenuVisible}
                     onDismiss={() => setTypeMenuVisible(false)}
@@ -165,18 +184,23 @@ export default function AddPaymentScreen() {
                 )}
             </View>
 
-            <Text variant="titleMedium" style={styles.label}>Payment Method</Text>
-            <RadioButton.Group onValueChange={setPaymentMethod} value={paymentMethod}>
-                <View style={styles.radioRow}>
-                    <RadioButton.Item label="Cash" value="CASH" />
-                    <RadioButton.Item label="Online / UPI" value="ONLINE" />
-                </View>
-            </RadioButton.Group>
+            {/* Payment Method - Only for Credits */}
+            {transactionType === 'CREDIT' && (
+                <>
+                    <Text variant="titleMedium" style={styles.label}>Payment Method</Text>
+                    <RadioButton.Group onValueChange={setPaymentMethod} value={paymentMethod}>
+                        <View style={styles.radioRow}>
+                            <RadioButton.Item label="Cash" value="CASH" />
+                            <RadioButton.Item label="Online / UPI" value="ONLINE" />
+                        </View>
+                    </RadioButton.Group>
+                </>
+            )}
 
             <TextInput label="Notes" value={notes} onChangeText={setNotes} style={styles.input} multiline />
 
             <Button mode="contained" onPress={handleSubmit} loading={loading} style={styles.button}>
-                Record Payment
+                {transactionType === 'DEBIT' ? 'Record Charge' : 'Record Payment'}
             </Button>
         </ScrollView>
     );
