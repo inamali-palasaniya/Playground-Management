@@ -26,6 +26,7 @@ interface User {
     total_debits?: number;
     total_credits?: number;
     balance?: number;
+    subscriptions?: any[];
 }
 
 interface CreateMatchData {

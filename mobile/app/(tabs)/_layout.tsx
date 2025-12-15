@@ -15,7 +15,7 @@ export default function TabLayout() {
             tabBarStyle: {
                 position: 'absolute',
                 borderTopWidth: 0,
-                elevation: 10, // Increased elevation for shadow
+                // elevation: 10, // Removed to avoid duplicate with styles.shadow
                 backgroundColor: 'white',
                 height: 70,
                 ...styles.shadow
