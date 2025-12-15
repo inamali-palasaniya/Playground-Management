@@ -7,15 +7,60 @@ export const createMatch = async (req: Request, res: Response) => {
     try {
         const { tournament_id, team_a_id, team_b_id, start_time, overs } = req.body;
 
-      if (!tournament_id || !team_a_id || !team_b_id || !start_time) {
-          return res.status(400).json({ error: 'Tournament, teams, and start time are required' });
+        if (!team_a_id || !team_b_id || !start_time) {
+            return res.status(400).json({ error: 'Teams and start time are required' });
+        }
+
+        const teamAId = parseInt(team_a_id);
+        const teamBId = parseInt(team_b_id);
+
+        // Verify Teams Exist
+        const teamA = await prisma.team.findUnique({ where: { id: teamAId } });
+        const teamB = await prisma.team.findUnique({ where: { id: teamBId } });
+
+        if (!teamA || !teamB) {
+            return res.status(404).json({ error: 'One or both teams not found' });
+        }
+
+        let finalTournamentId = tournament_id ? parseInt(tournament_id) : null;
+
+        // FK Validation / Auto-Correction
+        if (finalTournamentId) {
+            const tournamentExists = await prisma.tournament.findUnique({ where: { id: finalTournamentId } });
+            if (!tournamentExists) {
+                finalTournamentId = null; // Invalid ID, fallback to default
+            }
+        }
+
+        if (!finalTournamentId) {
+            // Find or Create Default Tournament
+            let defaultTournament = await prisma.tournament.findFirst({
+                where: { name: 'General Tournament' }
+            });
+
+            if (!defaultTournament) {
+                // Ensure a Game exists first. Robust check.
+                let defaultGame = await prisma.game.findFirst();
+                if (!defaultGame) {
+                    defaultGame = await prisma.game.create({ data: { name: 'Cricket' } });
+                }
+
+                defaultTournament = await prisma.tournament.create({
+                    data: {
+                        name: 'General Tournament',
+                        game_id: defaultGame.id,
+                        start_date: new Date(),
+                    }
+                });
+            }
+            finalTournamentId = defaultTournament.id;
       }
 
       const match = await prisma.match.create({
           data: {
-            tournament_id: parseInt(tournament_id),
-            team_a_id: parseInt(team_a_id),
-            team_b_id: parseInt(team_b_id),
+              tournament_id: finalTournamentId,
+              team_a_id: teamAId,
+              team_b_id: teamBId,
             start_time: new Date(start_time),
             overs: overs ? parseInt(overs) : 20,
             status: 'SCHEDULED',

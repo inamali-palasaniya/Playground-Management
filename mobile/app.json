@@ -31,9 +31,11 @@
       "expo-secure-store"
     ],
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "d67980d8-292a-43fd-af9e-71411ded8fdc"
+        "projectId": "e5e85584-29de-45fb-bf8c-4383144f0691"
       }
-    }
+    },
+    "owner": "inamali809"
   }
 }

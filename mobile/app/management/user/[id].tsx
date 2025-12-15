@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, useWindowDimensions, Alert, Platform } from 'react-native';
-import { Text, Avatar, Button, Card, useTheme, DataTable, FAB, ActivityIndicator, IconButton, Portal, Dialog, TextInput } from 'react-native-paper';
+import { Text, Avatar, Button, Card, useTheme, DataTable, FAB, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Menu } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import apiService from '../../../services/api.service';
 import { format } from 'date-fns';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 // --- Sub-Components for Tabs ---
 
@@ -55,7 +56,7 @@ const FineRoute = ({ userId }: { userId: number }) => {
                     ))
                 )}
             </ScrollView>
-            <FAB icon="plus" style={styles.fab} onPress={() => router.push({ pathname: '/management/apply-fine', params: { userId } })} label="Apply Fine" />
+            <FAB icon="plus" color="white" style={styles.fab} onPress={() => router.push({ pathname: '/management/apply-fine', params: { userId } })} label="Apply Fine" />
         </View>
     );
 };
@@ -173,7 +174,7 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
                                                 <Button
                                                     mode="contained"
                                                     compact
-                                                    labelStyle={{ fontSize: 10, marginVertical: 2 }}
+                                                    labelStyle={{ fontSize: 10, marginVertical: 2, color: 'white' }}
                                                     style={{ marginRight: 8, height: 24 }}
                                                     onPress={() => router.push({
                                                         pathname: '/management/add-payment',
@@ -205,7 +206,7 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
 };
 
 
-const AttendanceRoute = ({ userId }: { userId: number }) => {
+const AttendanceRoute = ({ userId, onUpdate }: { userId: number, onUpdate?: () => void }) => {
     const [attendance, setAttendance] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -241,6 +242,7 @@ const AttendanceRoute = ({ userId }: { userId: number }) => {
             await apiService.checkIn(userId, checkInDate.toISOString());
             setShowCheckInDialog(false);
             loadAttendance();
+            if (onUpdate) onUpdate();
             Alert.alert('Success', 'Check-in recorded');
         } catch (e: any) {
             let errorMessage = 'Check-in failed';
@@ -296,6 +298,7 @@ const AttendanceRoute = ({ userId }: { userId: number }) => {
             });
             setEditingRecord(null);
             loadAttendance();
+            if (onUpdate) onUpdate();
             Alert.alert('Success', 'Attendance updated');
         } catch (e: any) {
             Alert.alert('Error', 'Failed to update attendance');
@@ -366,8 +369,19 @@ const AttendanceRoute = ({ userId }: { userId: number }) => {
                                                 { text: 'Cancel' },
                                                 {
                                                     text: 'Delete', style: 'destructive', onPress: async () => {
-                                                        await apiService.deleteAttendance(record.id);
-                                                        loadAttendance();
+                                                        try {
+                                                            await apiService.deleteAttendance(record.id);
+                                                            loadAttendance();
+                                                            if (onUpdate) onUpdate();
+                                                            Alert.alert('Success', 'Attendance deleted');
+                                                        } catch (e: any) {
+                                                            console.error(e);
+                                                            if (e.status === 403 || (e.body && e.body.includes('Forbidden'))) { // Check for RBAC error
+                                                                Alert.alert('Permission Denied', 'Only Management can delete attendance.');
+                                                            } else {
+                                                                Alert.alert('Error', 'Failed to delete attendance');
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             ]);
@@ -381,6 +395,7 @@ const AttendanceRoute = ({ userId }: { userId: number }) => {
             </ScrollView>
 
             <FAB
+                color="white"
                 icon="account-clock"
                 label="Manual Check-In"
                 style={styles.fab}
@@ -492,90 +507,347 @@ export default function UserDetailScreen() {
         { key: 'attendance', title: 'Attendance' },
     ]);
 
+    // Calculate duration
+    const [todaysAttendance, setTodaysAttendance] = useState<any>(null);
+    const [loggedTime, setLoggedTime] = useState("0h 00m");
+
     useEffect(() => {
         if (id) {
             apiService.getUserById(Number(id)).then((data: any) => setUser(data));
         }
     }, [id]);
 
-    const renderScene = SceneMap({
-        ledger: () => <LedgerRoute userId={Number(id)} />,
-        fine: () => <FineRoute userId={Number(id)} />,
-        attendance: () => <AttendanceRoute userId={Number(id)} />,
-    });
+    useEffect(() => {
+        if (user?.todays_attendance_id) {
+            apiService.getUserAttendance(user.id).then((list: any[]) => {
+                const today = list.find(a => a.id === user.todays_attendance_id);
+                setTodaysAttendance(today);
+            });
+        }
+    }, [user]);
+
+    const calculateDuration = useCallback(() => {
+        if (!todaysAttendance || !todaysAttendance.in_time) return "0h 00m";
+        const start = new Date(todaysAttendance.in_time).getTime();
+        const end = todaysAttendance.out_time ? new Date(todaysAttendance.out_time).getTime() : new Date().getTime();
+
+        let diff = end - start;
+        if (diff < 0) diff = 0; // Prevent negative if system time skew
+
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        return `${hours}h ${minutes}m`;
+    }, [todaysAttendance]);
+
+    const isPunchIn = user?.punch_status === 'IN';
+
+    useEffect(() => {
+        setLoggedTime(calculateDuration()); // Initial update
+
+        let interval: NodeJS.Timeout;
+        if (isPunchIn) {
+            interval = setInterval(() => {
+                setLoggedTime(calculateDuration());
+            }, 60000); // Update every minute
+        }
+        return () => clearInterval(interval);
+    }, [isPunchIn, todaysAttendance, calculateDuration]);
+
+    const refreshUser = useCallback(() => {
+        if (id) {
+            apiService.getUserById(Number(id)).then((data: any) => setUser(data));
+        }
+    }, [id]);
+
+    const renderScene = ({ route }: any) => {
+        switch (route.key) {
+            case 'ledger':
+                return <LedgerRoute userId={Number(id)} />;
+            case 'fine':
+                return <FineRoute userId={Number(id)} />;
+            case 'attendance':
+                return <AttendanceRoute userId={Number(id)} onUpdate={refreshUser} />;
+            default:
+                return null;
+        }
+    };
+
+    // Header Menu State
+    const [menuVisible, setMenuVisible] = useState(false);
+    const openMenu = () => setMenuVisible(true);
+    const closeMenu = () => setMenuVisible(false);
 
     if (!user) return <View style={styles.loadingContainer}><ActivityIndicator /></View>;
 
     return (
         <View style={styles.container}>
-            {/* Header Profile */}
-            <View style={styles.profileHeader}>
-                <IconButton icon="arrow-left" iconColor="white" onPress={() => router.back()} style={{ position: 'absolute', top: 40, left: 10, zIndex: 10 }} />
-                <Avatar.Text size={80} label={user.name.substring(0, 2).toUpperCase()} style={{ backgroundColor: 'white' }} color={theme.colors.primary} />
-                <Text variant="headlineMedium" style={{ color: 'white', marginTop: 10 }}>{user.name}</Text>
-                <Text variant="bodyMedium" style={{ color: 'rgba(255,255,255,0.8)' }}>{user.email || user.phone}</Text>
+            {/* Header / Profile Card */}
+            <View style={styles.headerContainer}>
+                <View style={styles.topNav}>
+                    <IconButton icon="arrow-left" size={24} onPress={() => router.back()} />
+                    <Text variant="titleLarge" style={{ fontWeight: 'bold', flex: 1, textAlign: 'center' }}>
+                        {user.name}
+                    </Text>
 
-                {/* Financial Summary */}
-                {user.balance !== undefined && (
-                    <View style={{ marginTop: 8, backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 15, paddingVertical: 6, borderRadius: 20 }}>
-                        <Text variant="titleMedium" style={{ color: 'white', fontWeight: 'bold' }}>
-                            {user.balance > 0 ? `Total Payable: ₹${user.balance}` :
-                                user.balance < 0 ? `Advance Credit: ₹${Math.abs(user.balance)}` :
-                                    'Account Settled'}
-                        </Text>
+                    {/* Professional Menu Action */}
+                    <View style={{ flexDirection: 'row' }}>
+                        <Menu
+                            visible={menuVisible}
+                            onDismiss={closeMenu}
+                            anchor={<IconButton icon="dots-vertical" onPress={openMenu} />}
+                        >
+                            <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Payment" leadingIcon="cash-plus" />
+                            <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Charge" leadingIcon="cash-minus" />
+                        </Menu>
                     </View>
-                )}
+                </View>
 
-                {/* Actions Row */}
-                <View style={{ flexDirection: 'row', marginTop: 10 }}>
-                    <Button mode="contained" buttonColor="#4caf50" textColor="white" style={{ marginRight: 10 }} onPress={() => router.push({ pathname: '/management/add-payment', params: { userId: user.id, userName: user.name } })}>
-                        Add Payment
-                    </Button>
-                    <Button mode="outlined" textColor="white" style={{ borderColor: 'white' }} onPress={async () => {
-                        try {
-                            await apiService.chargeMonthlyFee(user.id);
-                            Alert.alert('Success', 'Monthly fee charged successfully!');
-                        } catch (e: any) { Alert.alert('Error', e.message || 'Error charging fee'); }
-                    }}>
-                        Charge Monthly
-                    </Button>
+                {/* Avatar & Role */}
+                <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                    <Avatar.Text
+                        size={80}
+                        label={user.name.substring(0, 2).toUpperCase()}
+                        style={{ backgroundColor: theme.colors.primary }}
+                        color="white"
+                    />
+                    <View style={styles.roleBadge}>
+                        <Text style={styles.roleText}>{user.role || 'User'}</Text>
+                    </View>
                 </View>
             </View>
 
-            {/* Tabs */}
-            <TabView
-                navigationState={{ index, routes }}
-                renderScene={renderScene}
-                onIndexChange={setIndex}
-                initialLayout={{ width: layout.width }}
-                renderTabBar={props => <TabBar {...props} indicatorStyle={{ backgroundColor: theme.colors.primary }} style={{ backgroundColor: 'white' }} activeColor="black" inactiveColor="gray" />}
-            />
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }}>
+                {/* Info Cards */}
+                <Card style={styles.infoCard}>
+                    <Card.Content style={styles.infoRow}>
+                        <MaterialCommunityIcons name="email-outline" size={20} color="#555" />
+                        <View style={{ marginLeft: 12, flex: 1 }}>
+                            <Text style={styles.infoLabel}>Email Address</Text>
+                            <Text style={styles.infoValue}>{user.email || 'N/A'}</Text>
+                        </View>
+                    </Card.Content>
+                </Card>
+
+                <Card style={styles.infoCard}>
+                    <Card.Content style={styles.infoRow}>
+                        <MaterialCommunityIcons name="phone-outline" size={20} color="#555" />
+                        <View style={{ marginLeft: 12, flex: 1 }}>
+                            <Text style={styles.infoLabel}>Phone Number</Text>
+                            <Text style={styles.infoValue}>{user.phone || 'N/A'}</Text>
+                        </View>
+                    </Card.Content>
+                </Card>
+
+                <Card style={styles.punchCard}>
+                    <Card.Content>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <View>
+                                <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>
+                                    Attendance: <Text style={{ color: isPunchIn ? 'green' : (todaysAttendance ? 'red' : '#555') }}>
+                                        {isPunchIn ? 'CHECKED IN' : (todaysAttendance ? 'CHECKED OUT' : 'NOT MARKED')}
+                                    </Text>
+                                </Text>
+
+                                {todaysAttendance && (
+                                    <View style={{ marginTop: 8 }}>
+                                        <Text style={{ fontSize: 14, color: '#333' }}>
+                                            <MaterialCommunityIcons name="clock-in" size={14} color="green" /> In: {new Date(todaysAttendance.in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </Text>
+                                        {todaysAttendance.out_time && (
+                                            <Text style={{ fontSize: 14, color: '#333' }}>
+                                                <MaterialCommunityIcons name="clock-out" size={14} color="red" /> Out: {new Date(todaysAttendance.out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </Text>
+                                        )}
+                                        <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#1565c0', marginTop: 4 }}>
+                                            Duration: {loggedTime}
+                        </Text>
+                    </View>
+                )}
+                            </View>
+
+                            <Button
+                                mode="contained"
+                                buttonColor={isPunchIn ? '#d32f2f' : '#1565c0'}
+                                textColor="white"
+                                compact
+                                style={{ borderRadius: 8 }}
+                                onPress={async () => {
+                                    try {
+                                        await apiService.togglePunch(user.id);
+                                        const updated = await apiService.getUserById(user.id);
+                                        setUser(updated);
+                                        if (updated.todays_attendance_id) {
+                                            apiService.getUserAttendance(updated.id).then((list: any[]) => {
+                                                const today = list.sort((a, b) => new Date(b.in_time).getTime() - new Date(a.in_time).getTime())[0];
+                                                setTodaysAttendance(today);
+                                            });
+                                        } else {
+                                            setTodaysAttendance(null);
+                                        }
+                                        Alert.alert('Success', `Status Updated`);
+                                    } catch (e: any) {
+                                        // console.error(e); // Suppress Red Box for expected 409 errors
+                                        if (e.body) {
+                                            try {
+                                                const err = JSON.parse(e.body);
+                                                if (err.existing && err.existing.in_time) {
+                                                    const dt = new Date(err.existing.in_time).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+                                                    Alert.alert('Already Checked In', `You checked in today at ${dt}.\nOnly one session per day is allowed.`);
+                                                    return;
+                                                }
+                                                Alert.alert('Error', err.error || 'Failed to toggle status');
+                                            } catch (parseErr) {
+                                                Alert.alert('Error', 'Failed to toggle status (Parse Error)');
+                                            }
+                                        } else {
+                                            Alert.alert('Error', 'Failed to toggle status');
+                                        }
+                                    }
+                                }}
+                            >
+                                {isPunchIn ? 'Check Out' : 'Check In'}
+                            </Button>
+                        </View>
+                    </Card.Content>
+                </Card>
+
+                {/* Financial Summary */}
+                <Card style={styles.infoCard}>
+                    <Card.Content>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <MaterialCommunityIcons name="cash" size={20} color="#1565c0" />
+                                <Text style={{ marginLeft: 8, fontWeight: 'bold', fontSize: 14 }}>Monthly Subscription</Text>
+                            </View>
+                            <Text style={{ fontSize: 14 }}>₹{user.deposit_amount || 0}/month</Text>
+                        </View>
+
+                        {/* Progress Bar (Expenses vs Deposit) */}
+                        <View style={{ height: 4, backgroundColor: '#e0e0e0', borderRadius: 2, marginVertical: 8 }}>
+                            <View style={{
+                                width: `${Math.min(((user.total_debits || 0) / (user.deposit_amount || 1)) * 100, 100)}%`,
+                                height: '100%',
+                                backgroundColor: user.balance < 0 ? 'red' : '#1565c0',
+                                borderRadius: 2
+                            }} />
+                        </View>
+
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <View>
+                                <Text style={{ fontWeight: 'bold' }}>₹{user.total_debits || 0}</Text>
+                                <Text style={{ fontSize: 10, color: '#666' }}>Total Expenses</Text>
+                            </View>
+                            <View>
+                                <Text style={{ fontWeight: 'bold', color: user.balance < 0 ? 'red' : 'green' }}>
+                                    ₹{user.balance || 0}
+                                </Text>
+                                <Text style={{ fontSize: 10, color: '#666' }}>Current Balance</Text>
+                            </View>
+                        </View>
+                    </Card.Content>
+                </Card>
+
+                {/* Tabs Placeholder - In a real app, you might want to switch this to a list or keep the tabs below */}
+                <View style={{ height: 500, marginTop: 10 }}>
+                    <TabView
+                        navigationState={{ index, routes }}
+                        renderScene={renderScene}
+                        onIndexChange={setIndex}
+                        initialLayout={{ width: layout.width }}
+                        renderTabBar={props => <TabBar {...props} indicatorStyle={{ backgroundColor: theme.colors.primary }} style={{ backgroundColor: 'white' }} activeColor="black" inactiveColor="gray" />}
+                    />
+                </View>
+
+            </ScrollView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f3f4f6' },
+    container: { flex: 1, backgroundColor: '#f8f9fa' }, // Lighter background
     loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    profileHeader: {
-        backgroundColor: '#6200ee',
-        paddingTop: 60,
-        paddingBottom: 20,
+    headerContainer: {
+        backgroundColor: '#fff',
+    },
+    topNav: {
+        flexDirection: 'row',
         alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingTop: 40,
+        paddingBottom: 10
     },
-    tabContent: {
-        flex: 1,
-        padding: 16,
+    roleBadge: {
+        backgroundColor: '#e3f2fd',
+        paddingHorizontal: 16,
+        paddingVertical: 4,
+        borderRadius: 12,
+        marginTop: -12, // overlap avatar slightly
+        borderWidth: 2,
+        borderColor: 'white'
     },
-    ledgerCard: {
+    roleText: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#1565c0'
+    },
+    chipVip: {
+        backgroundColor: '#fff3e0',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        flexDirection: 'row',
+        alignItems: 'center'
+    },
+    chipLabel: {
+        backgroundColor: 'white',
+        borderWidth: 1,
+        borderColor: '#eee',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        flexDirection: 'row',
+        alignItems: 'center'
+    },
+    infoCard: {
+        marginHorizontal: 16,
         marginBottom: 10,
         backgroundColor: 'white',
+        borderRadius: 12,
+        elevation: 0,
+        borderWidth: 1,
+        borderColor: '#f0f0f0'
     },
-    fab: {
-        position: 'absolute',
-        margin: 16,
-        right: 0,
-        bottom: 0,
-        backgroundColor: '#6200ee'
-    }
+    infoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 4
+    },
+    infoLabel: {
+        fontSize: 10,
+        color: '#888'
+    },
+    infoValue: {
+        fontSize: 14,
+        color: '#333'
+    },
+    punchCard: {
+        marginHorizontal: 16,
+        marginBottom: 10,
+        backgroundColor: 'white',
+        borderRadius: 12,
+        elevation: 1,
+    },
+    timeBarContainer: {
+        marginTop: 15,
+        backgroundColor: '#e3f2fd', // Light blue bg
+        borderRadius: 12,
+        padding: 16,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+    },
+    // Keep legacy styles for sub-components
+    tabContent: { flex: 1, padding: 16 },
+    ledgerCard: { marginBottom: 10, backgroundColor: 'white' },
+    fab: { position: 'absolute', margin: 16, right: 0, bottom: 0, backgroundColor: '#6200ee' }
 });

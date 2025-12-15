@@ -17,7 +17,7 @@ export const checkIn = async (req: Request, res: Response) => {
     const checkInDate = new Date(actualInTime);
     checkInDate.setHours(0, 0, 0, 0);
 
-    // Check if already checked in for this date
+    // Check if any attendance exists for this date (Single Session constraint)
     const existing = await prisma.attendance.findFirst({
       where: {
         user_id: targetUserId,
@@ -56,19 +56,11 @@ export const checkIn = async (req: Request, res: Response) => {
 
     // Calculate daily fee based on subscription PAYMENT FREQUENCY
     if (activeSubscription?.plan) {
-      // Only charge daily fee if the user's frequency is DAILY
       if (activeSubscription.payment_frequency === 'DAILY') {
         if (activeSubscription.plan.rate_daily && activeSubscription.plan.rate_daily > 0) {
           dailyFee = activeSubscription.plan.rate_daily;
         }
-      } else {
-        // MONTHLY means they paid lump sum, no daily charge
-        dailyFee = 0;
       }
-    } else {
-      // No active subscription: Requirement "should not pay anything for this quota users playing in ground is free" applies to <18
-      // But for others... defaults to 0 as fallback or free.
-      dailyFee = 0;
     }
 
     // Create attendance record
@@ -77,7 +69,7 @@ export const checkIn = async (req: Request, res: Response) => {
         user_id: targetUserId,
         date: checkInDate,
         is_present: true,
-        in_time: actualInTime, // Uses the backdated time
+        in_time: actualInTime,
         location_lat: lat,
         location_lng: lng,
         daily_fee_charged: dailyFee > 0 ? dailyFee : null,
@@ -240,11 +232,28 @@ export const getAttendanceSummary = async (req: Request, res: Response) => {
 
 export const updateAttendance = async (req: Request, res: Response) => {
   try {
+    // RBAC Check
+    const currentUser = (req as any).user;
+    if (!currentUser || currentUser.role !== 'MANAGEMENT') {
+      return res.status(403).json({ error: 'Forbidden: Only Management can modify attendance' });
+    }
+
     const { id } = req.params;
     const { is_present, in_time, out_time, daily_fee_charged } = req.body;
 
+    const attendanceId = parseInt(id);
+
+    // Get original attendance to check for fee changes
+    const original = await prisma.attendance.findUnique({
+      where: { id: attendanceId }
+    });
+
+    if (!original) {
+      return res.status(404).json({ error: 'Attendance record not found' });
+    }
+
     const updated = await prisma.attendance.update({
-      where: { id: parseInt(id) },
+      where: { id: attendanceId },
       data: {
         is_present,
         in_time: in_time ? new Date(in_time) : undefined,
@@ -252,6 +261,61 @@ export const updateAttendance = async (req: Request, res: Response) => {
         daily_fee_charged: daily_fee_charged !== undefined ? Number(daily_fee_charged) : undefined,
       },
     });
+
+    // Sync Ledger if fee changed
+    if (daily_fee_charged !== undefined) {
+      const newFee = Number(daily_fee_charged);
+      if (original.daily_fee_charged !== newFee) {
+        // Find existing ledger entry for this attendance (DAILY_FEE, same user, same date)
+        // Note: Ledger doesn't link directly to attendance ID, so we match by User + Date + Type
+        // To be safe, we look for one created around the same time or just match date
+        const dateStart = new Date(original.date);
+        dateStart.setHours(0, 0, 0, 0);
+        const dateEnd = new Date(original.date);
+        dateEnd.setHours(23, 59, 59, 999);
+
+        const ledgerEntry = await prisma.feeLedger.findFirst({
+          where: {
+            user_id: original.user_id,
+            type: 'DAILY_FEE',
+            date: {
+              gte: dateStart,
+              lte: dateEnd
+            }
+          }
+        });
+
+        if (newFee > 0) {
+          if (ledgerEntry) {
+            // Update existing
+            await prisma.feeLedger.update({
+              where: { id: ledgerEntry.id },
+              data: { amount: newFee }
+            });
+          } else {
+            // Create new if it didn't exist (e.g. fee was 0 before)
+            await prisma.feeLedger.create({
+              data: {
+                user_id: original.user_id,
+                type: 'DAILY_FEE',
+                transaction_type: 'DEBIT',
+                amount: newFee,
+                date: original.date,
+                is_paid: false,
+                notes: `Daily fee for ${original.date.toISOString().split('T')[0]}`,
+              }
+            });
+          }
+        } else {
+          // New fee is 0, delete ledger entry if exists
+          if (ledgerEntry) {
+            await prisma.feeLedger.delete({
+              where: { id: ledgerEntry.id }
+            });
+          }
+        }
+      }
+    }
 
     res.json(updated);
   } catch (error) {
@@ -262,8 +326,62 @@ export const updateAttendance = async (req: Request, res: Response) => {
 
 export const deleteAttendance = async (req: Request, res: Response) => {
   try {
+    // RBAC Check (Hybrid: Token First, then DB Fallback)
+    const currentUser = (req as any).user;
+    if (!currentUser) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    let isAuthorized = currentUser.role === 'MANAGEMENT';
+
+    if (!isAuthorized) {
+      // Fallback: Check DB for strict/latest role if token is stale
+      const dbUser = await prisma.user.findUnique({
+        where: { id: currentUser.userId },
+        select: { role: true }
+      });
+      if (dbUser && dbUser.role === 'MANAGEMENT') {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
+      return res.status(403).json({ error: 'Forbidden: Only Management can delete attendance' });
+    }
+
     const { id } = req.params;
-    await prisma.attendance.delete({ where: { id: parseInt(id) } });
+    const attendanceId = parseInt(id);
+
+    const original = await prisma.attendance.findUnique({
+      where: { id: attendanceId }
+    });
+
+    if (original) {
+      // Delete associated ledger entry if it exists
+      const dateStart = new Date(original.date);
+      dateStart.setHours(0, 0, 0, 0);
+      const dateEnd = new Date(original.date);
+      dateEnd.setHours(23, 59, 59, 999);
+
+      const ledgerEntry = await prisma.feeLedger.findFirst({
+        where: {
+          user_id: original.user_id,
+          type: 'DAILY_FEE',
+          date: {
+            gte: dateStart,
+            lte: dateEnd
+          }
+        }
+      });
+
+      if (ledgerEntry) {
+        await prisma.feeLedger.delete({
+          where: { id: ledgerEntry.id }
+        });
+      }
+    }
+
+    await prisma.attendance.delete({ where: { id: attendanceId } });
     res.json({ message: 'Attendance deleted' });
   } catch (error) {
     console.error('Error deleting attendance:', error);

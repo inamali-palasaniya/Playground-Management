@@ -70,7 +70,7 @@ function AuthProtection({ children }: { children: ReactNode }) {
                 if (!token && !isLogin) {
                     router.replace('/login');
                 } else if (token && isLogin) {
-                    router.replace('/(tabs)/management');
+                    router.replace('/(tabs)/dashboard');
                 }
             } catch (e) {
                 console.error("Auth check failed", e);

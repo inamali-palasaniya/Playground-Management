@@ -119,6 +119,7 @@ export const getUsers = async (req: Request, res: Response) => {
                             lte: endOfToday
                         }
                     },
+                    orderBy: { in_time: 'desc' },
                     take: 1
                 }
             },
@@ -187,18 +188,59 @@ export const getUsers = async (req: Request, res: Response) => {
 export const getUserById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+        const now = new Date();
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+
         const user = await prisma.user.findUnique({
             where: { id: Number(id) },
             include: {
                 group: true,
-                subscriptions: true,
-                fee_ledger: true // Keep full ledger for details view
+                subscriptions: {
+                    where: { status: 'ACTIVE' },
+                    include: { plan: true },
+                    take: 1
+                },
+                fee_ledger: true,
+                attendances: {
+                    where: {
+                        date: {
+                            gte: startOfToday,
+                            lte: endOfToday
+                        }
+                    },
+                    orderBy: { in_time: 'desc' },
+                    take: 1
+                }
             },
         });
+
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        // Subscription & Plan Details
+        const sub = user.subscriptions[0];
+        const plan = sub?.plan;
+        let status = 'N/A';
+        let planName = 'No Plan';
+
+        if (plan) {
+            planName = plan.name;
+            status = sub.status;
+        }
+
+        // Attendance Status
+        const attendance = user.attendances[0];
+        let punchStatus = 'NONE';
+        if (attendance) {
+            if (attendance.out_time) punchStatus = 'OUT';
+            else punchStatus = 'IN';
+        }
+
+        // Financial Balance
         let totalDebits = 0;
         let totalCredits = 0;
         user.fee_ledger.forEach(t => {
@@ -207,8 +249,23 @@ export const getUserById = async (req: Request, res: Response) => {
         });
         const balance = totalDebits - totalCredits;
 
-        res.json({ ...user, balance, total_debits: totalDebits, total_credits: totalCredits });
+        // Remove large ledger for clean response if needed (but existing kept it)
+        // Keeping it as existing frontend might verify ledger in detail screen?
+        // Actually, frontend uses getUserLedger for the tab.
+        // But let's return full user object + calculated fields.
+
+        res.json({
+            ...user,
+            balance,
+            total_debits: totalDebits,
+            total_credits: totalCredits,
+            plan_name: planName,
+            subscription_status: status,
+            punch_status: punchStatus,
+            todays_attendance_id: attendance?.id
+        });
     } catch (error) {
+        console.error('Error fetching user by id:', error);
         res.status(500).json({ error: 'Failed to fetch user' });
     }
 };
@@ -287,7 +344,21 @@ export const updateUser = async (req: Request, res: Response) => {
             }
         }
 
-        res.json(user);
+        // If the user updated themselves, issue a new token to reflect potential role/email changes
+        let newToken = undefined;
+        const currentUser = (req as any).user;
+        if (currentUser && currentUser.userId === user.id) {
+            // Using direct jwt sign to ensure circular deps don't break simple controller logic
+            const jwt = require('jsonwebtoken'); // Import at top ideally, but ensuring safety here
+            const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-it';
+            newToken = jwt.sign(
+                { userId: user.id, email: user.email, role: user.role }, // Fresh Payload
+                JWT_SECRET,
+                { expiresIn: '24h' }
+            );
+        }
+
+        res.json({ ...user, token: newToken });
     } catch (error: any) {
         console.error('Error updating user:', error);
         if (error.code === 'P2002') {

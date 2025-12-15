@@ -9,6 +9,7 @@ import {
   updateAttendance,
   deleteAttendance
 } from '../controllers/attendance.controller.js';
+import { authenticateToken } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
@@ -18,7 +19,7 @@ router.get('/user/:userId', getUserAttendance);
 
 router.get('/date/:date', getAttendanceByDate);
 router.get('/summary/:userId', getAttendanceSummary);
-router.put('/:id', updateAttendance);
-router.delete('/:id', deleteAttendance);
+router.put('/:id', authenticateToken, updateAttendance);
+router.delete('/:id', authenticateToken, deleteAttendance);
 
 export default router;

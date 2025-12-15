@@ -4,9 +4,13 @@ import prisma from '../utils/prisma.js';
 // Financial Summary
 export const getFinancialSummary = async (req: Request, res: Response) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, userId } = req.query;
 
     const where: any = {};
+    if (userId) {
+      where.user_id = parseInt(userId as string);
+    }
+
     if (startDate || endDate) {
       where.date = {};
       if (startDate) where.date.gte = new Date(startDate as string);
@@ -72,9 +76,13 @@ export const getFinancialSummary = async (req: Request, res: Response) => {
 // Attendance Statistics
 export const getAttendanceStats = async (req: Request, res: Response) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, userId } = req.query;
 
     const where: any = {};
+    if (userId) {
+      where.user_id = parseInt(userId as string);
+    }
+
     if (startDate || endDate) {
       where.date = {};
       if (startDate) where.date.gte = new Date(startDate as string);
@@ -103,6 +111,33 @@ export const getAttendanceStats = async (req: Request, res: Response) => {
       ? totalAttendance / attendanceByDate.length
       : 0;
 
+    // --- Live Counters ---
+    // 1. Total Active Users (Normal users)
+    const totalActiveUsers = await prisma.user.count({
+      where: { role: 'NORMAL' }
+    });
+
+    // 2. Today's formatted date string (YYYY-MM-DD) for strict day matching or use date range
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+
+    // 3. Today In (Present users today)
+    const todayInCount = await prisma.attendance.count({
+      where: {
+        date: {
+          gte: startOfToday,
+          lte: endOfToday
+        },
+        is_present: true,
+        user: { role: 'NORMAL' } // Only count normal users
+      }
+    });
+
+    // 4. Today Out (Total - In)
+    const todayOutCount = Math.max(0, totalActiveUsers - todayInCount);
+
     res.json({
       total_attendance: totalAttendance,
       present_count: presentCount,
@@ -110,6 +145,10 @@ export const getAttendanceStats = async (req: Request, res: Response) => {
       total_days: attendanceByDate.length,
       avg_daily_attendance: Math.round(avgDailyAttendance * 10) / 10,
       attendance_rate: totalAttendance > 0 ? (presentCount / totalAttendance) * 100 : 0,
+      // New Live Stats
+      total_active_users: totalActiveUsers,
+      today_in: todayInCount,
+      today_out: todayOutCount
     });
   } catch (error) {
     console.error('Error fetching attendance stats:', error);

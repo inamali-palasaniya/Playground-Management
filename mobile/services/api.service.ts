@@ -20,8 +20,12 @@ interface User {
     phone: string;
     email?: string;
     role: string;
-    group?: any;
-    subscriptions?: any[];
+    todays_attendance_id?: number;
+    punch_status?: string;
+    deposit_amount?: number;
+    total_debits?: number;
+    total_credits?: number;
+    balance?: number;
 }
 
 interface CreateMatchData {
@@ -87,7 +91,7 @@ class ApiService {
             console.log('API Response Status:', response.status);
 
             if (!response.ok) {
-                if (response.status === 401 || response.status === 403) {
+                if (response.status === 401) {
                     console.warn(`Authentication Error: ${response.status}. Triggering logout.`);
                     // Import dynamically to avoid circular dependency issues if any, or just use imported
                     const { AuthService } = require('./auth.service');
@@ -108,7 +112,7 @@ class ApiService {
             console.log('API Response Data:', data);
             return data;
         } catch (error: any) {
-            console.error('API request failed:', error);
+            console.warn('API request failed:', error.message);
             // Re-throw so caller handles it, but now with .status property if it was HTTP error
             throw error;
         }
@@ -227,6 +231,32 @@ class ApiService {
             method: 'POST',
             body: JSON.stringify({ user_id, date }),
         });
+    }
+
+    async togglePunch(user_id: number): Promise<any> {
+        // Since we don't have a direct "toggle" endpoint, we check user status or use check-in/out.
+        // But backend `UserController` handles `punch_status`.
+        // Let's create a convenience wrapper or assume a hypothetical endpoint.
+        // Actually, matching the previous code assumption: `/api/attendance/punch` seems standard for toggles.
+        // If not, we can read user status and toggle.
+        // Checking backend routes... (I recall seeing check-in/out).
+        // Let's rely on Check-In/Check-Out.
+        // ERROR: I can't check 'current' status easily here without fetching user.
+        // But the Caller `UserDetailScreen` knows the status!
+        // Wait, the call site was `apiService.togglePunch(user.id)`.
+        // I should implement a "smart toggle" here that fetches user first? Or just add the missing endpoint if it exists?
+        // I checked backend controllers previously. `AttendanceController` has `checkIn` and `checkOut`.
+        // I don't recall a `toggle`.
+        // So I will implement `togglePunch` to Check In if OUT/NONE, and Check Out if IN.
+        // BUT I need to know the current status.
+        // I will fetch the user first.
+
+        const user = await this.getUserById(user_id);
+        if (user.punch_status === 'IN') {
+            return this.checkOut(user_id);
+        } else {
+            return this.checkIn(user_id);
+        }
     }
 
     async getUserAttendance(userId: number, startDate?: string, endDate?: string): Promise<any[]> {
