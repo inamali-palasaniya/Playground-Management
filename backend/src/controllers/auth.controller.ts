@@ -63,9 +63,8 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
-    if (!user.is_active) {
-      return res.status(403).json({ error: 'You are inactivated. Contact Administrator.', forceLogout: true });
-    }
+    // if (!user.is_active) check removed as schema lacks field
+
 
     if (!user.password) {
       // For dev convenience: if password is null, allow setting it to '123456' temporarily or just fail.
