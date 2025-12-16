@@ -51,6 +51,7 @@ export type UserMinAggregateOutputType = {
   password: string | null
   age: number | null
   user_type: $Enums.UserType | null
+  is_active: boolean | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -64,6 +65,7 @@ export type UserMaxAggregateOutputType = {
   password: string | null
   age: number | null
   user_type: $Enums.UserType | null
+  is_active: boolean | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -77,6 +79,7 @@ export type UserCountAggregateOutputType = {
   password: number
   age: number
   user_type: number
+  is_active: number
   _all: number
 }
 
@@ -106,6 +109,7 @@ export type UserMinAggregateInputType = {
   password?: true
   age?: true
   user_type?: true
+  is_active?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -119,6 +123,7 @@ export type UserMaxAggregateInputType = {
   password?: true
   age?: true
   user_type?: true
+  is_active?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -132,6 +137,7 @@ export type UserCountAggregateInputType = {
   password?: true
   age?: true
   user_type?: true
+  is_active?: true
   _all?: true
 }
 
@@ -232,6 +238,7 @@ export type UserGroupByOutputType = {
   password: string | null
   age: number | null
   user_type: $Enums.UserType
+  is_active: boolean
   _count: UserCountAggregateOutputType | null
   _avg: UserAvgAggregateOutputType | null
   _sum: UserSumAggregateOutputType | null
@@ -268,6 +275,7 @@ export type UserWhereInput = {
   password?: Prisma.StringNullableFilter<"User"> | string | null
   age?: Prisma.IntNullableFilter<"User"> | number | null
   user_type?: Prisma.EnumUserTypeFilter<"User"> | $Enums.UserType
+  is_active?: Prisma.BoolFilter<"User"> | boolean
   attendances?: Prisma.AttendanceListRelationFilter
   bowled_balls?: Prisma.BallEventListRelationFilter
   faced_balls?: Prisma.BallEventListRelationFilter
@@ -278,6 +286,7 @@ export type UserWhereInput = {
   series_won_mots?: Prisma.TournamentListRelationFilter
   group?: Prisma.XOR<Prisma.UserGroupNullableScalarRelationFilter, Prisma.UserGroupWhereInput> | null
   fines?: Prisma.UserFineListRelationFilter
+  permissions?: Prisma.PermissionListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -291,6 +300,7 @@ export type UserOrderByWithRelationInput = {
   password?: Prisma.SortOrderInput | Prisma.SortOrder
   age?: Prisma.SortOrderInput | Prisma.SortOrder
   user_type?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   attendances?: Prisma.AttendanceOrderByRelationAggregateInput
   bowled_balls?: Prisma.BallEventOrderByRelationAggregateInput
   faced_balls?: Prisma.BallEventOrderByRelationAggregateInput
@@ -301,6 +311,7 @@ export type UserOrderByWithRelationInput = {
   series_won_mots?: Prisma.TournamentOrderByRelationAggregateInput
   group?: Prisma.UserGroupOrderByWithRelationInput
   fines?: Prisma.UserFineOrderByRelationAggregateInput
+  permissions?: Prisma.PermissionOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -317,6 +328,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   password?: Prisma.StringNullableFilter<"User"> | string | null
   age?: Prisma.IntNullableFilter<"User"> | number | null
   user_type?: Prisma.EnumUserTypeFilter<"User"> | $Enums.UserType
+  is_active?: Prisma.BoolFilter<"User"> | boolean
   attendances?: Prisma.AttendanceListRelationFilter
   bowled_balls?: Prisma.BallEventListRelationFilter
   faced_balls?: Prisma.BallEventListRelationFilter
@@ -327,6 +339,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   series_won_mots?: Prisma.TournamentListRelationFilter
   group?: Prisma.XOR<Prisma.UserGroupNullableScalarRelationFilter, Prisma.UserGroupWhereInput> | null
   fines?: Prisma.UserFineListRelationFilter
+  permissions?: Prisma.PermissionListRelationFilter
 }, "id" | "phone" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -340,6 +353,7 @@ export type UserOrderByWithAggregationInput = {
   password?: Prisma.SortOrderInput | Prisma.SortOrder
   age?: Prisma.SortOrderInput | Prisma.SortOrder
   user_type?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
@@ -361,6 +375,7 @@ export type UserScalarWhereWithAggregatesInput = {
   password?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   age?: Prisma.IntNullableWithAggregatesFilter<"User"> | number | null
   user_type?: Prisma.EnumUserTypeWithAggregatesFilter<"User"> | $Enums.UserType
+  is_active?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
 }
 
 export type UserCreateInput = {
@@ -372,6 +387,7 @@ export type UserCreateInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
@@ -382,6 +398,7 @@ export type UserCreateInput = {
   series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -395,6 +412,7 @@ export type UserUncheckedCreateInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
@@ -404,6 +422,7 @@ export type UserUncheckedCreateInput = {
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -415,6 +434,7 @@ export type UserUpdateInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
@@ -425,6 +445,7 @@ export type UserUpdateInput = {
   series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -438,6 +459,7 @@ export type UserUncheckedUpdateInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
@@ -447,6 +469,7 @@ export type UserUncheckedUpdateInput = {
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -460,6 +483,7 @@ export type UserCreateManyInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
 }
 
 export type UserUpdateManyMutationInput = {
@@ -471,6 +495,7 @@ export type UserUpdateManyMutationInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -484,6 +509,7 @@ export type UserUncheckedUpdateManyInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type UserListRelationFilter = {
@@ -507,6 +533,7 @@ export type UserCountOrderByAggregateInput = {
   password?: Prisma.SortOrder
   age?: Prisma.SortOrder
   user_type?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
 }
 
 export type UserAvgOrderByAggregateInput = {
@@ -527,6 +554,7 @@ export type UserMaxOrderByAggregateInput = {
   password?: Prisma.SortOrder
   age?: Prisma.SortOrder
   user_type?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -540,6 +568,7 @@ export type UserMinOrderByAggregateInput = {
   password?: Prisma.SortOrder
   age?: Prisma.SortOrder
   user_type?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
 }
 
 export type UserSumOrderByAggregateInput = {
@@ -627,6 +656,10 @@ export type NullableIntFieldUpdateOperationsInput = {
 
 export type EnumUserTypeFieldUpdateOperationsInput = {
   set?: $Enums.UserType
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
 }
 
 export type UserCreateNestedOneWithoutSubscriptionsInput = {
@@ -759,6 +792,20 @@ export type UserUpdateOneRequiredWithoutFaced_ballsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutFaced_ballsInput, Prisma.UserUpdateWithoutFaced_ballsInput>, Prisma.UserUncheckedUpdateWithoutFaced_ballsInput>
 }
 
+export type UserCreateNestedOneWithoutPermissionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPermissionsInput, Prisma.UserUncheckedCreateWithoutPermissionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPermissionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPermissionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPermissionsInput, Prisma.UserUncheckedCreateWithoutPermissionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPermissionsInput
+  upsert?: Prisma.UserUpsertWithoutPermissionsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPermissionsInput, Prisma.UserUpdateWithoutPermissionsInput>, Prisma.UserUncheckedUpdateWithoutPermissionsInput>
+}
+
 export type UserCreateWithoutGroupInput = {
   name: string
   phone: string
@@ -768,6 +815,7 @@ export type UserCreateWithoutGroupInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
@@ -777,6 +825,7 @@ export type UserCreateWithoutGroupInput = {
   player_teams?: Prisma.TeamPlayerCreateNestedManyWithoutUserInput
   series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutGroupInput = {
@@ -789,6 +838,7 @@ export type UserUncheckedCreateWithoutGroupInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
@@ -798,6 +848,7 @@ export type UserUncheckedCreateWithoutGroupInput = {
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutGroupInput = {
@@ -840,6 +891,7 @@ export type UserScalarWhereInput = {
   password?: Prisma.StringNullableFilter<"User"> | string | null
   age?: Prisma.IntNullableFilter<"User"> | number | null
   user_type?: Prisma.EnumUserTypeFilter<"User"> | $Enums.UserType
+  is_active?: Prisma.BoolFilter<"User"> | boolean
 }
 
 export type UserCreateWithoutSubscriptionsInput = {
@@ -851,6 +903,7 @@ export type UserCreateWithoutSubscriptionsInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
@@ -860,6 +913,7 @@ export type UserCreateWithoutSubscriptionsInput = {
   series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSubscriptionsInput = {
@@ -873,6 +927,7 @@ export type UserUncheckedCreateWithoutSubscriptionsInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
@@ -881,6 +936,7 @@ export type UserUncheckedCreateWithoutSubscriptionsInput = {
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSubscriptionsInput = {
@@ -908,6 +964,7 @@ export type UserUpdateWithoutSubscriptionsInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
@@ -917,6 +974,7 @@ export type UserUpdateWithoutSubscriptionsInput = {
   series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubscriptionsInput = {
@@ -930,6 +988,7 @@ export type UserUncheckedUpdateWithoutSubscriptionsInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
@@ -938,6 +997,7 @@ export type UserUncheckedUpdateWithoutSubscriptionsInput = {
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAttendancesInput = {
@@ -949,6 +1009,7 @@ export type UserCreateWithoutAttendancesInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
@@ -958,6 +1019,7 @@ export type UserCreateWithoutAttendancesInput = {
   series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAttendancesInput = {
@@ -971,6 +1033,7 @@ export type UserUncheckedCreateWithoutAttendancesInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
@@ -979,6 +1042,7 @@ export type UserUncheckedCreateWithoutAttendancesInput = {
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAttendancesInput = {
@@ -1006,6 +1070,7 @@ export type UserUpdateWithoutAttendancesInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
@@ -1015,6 +1080,7 @@ export type UserUpdateWithoutAttendancesInput = {
   series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAttendancesInput = {
@@ -1028,6 +1094,7 @@ export type UserUncheckedUpdateWithoutAttendancesInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
@@ -1036,6 +1103,7 @@ export type UserUncheckedUpdateWithoutAttendancesInput = {
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutFee_ledgerInput = {
@@ -1047,6 +1115,7 @@ export type UserCreateWithoutFee_ledgerInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
@@ -1056,6 +1125,7 @@ export type UserCreateWithoutFee_ledgerInput = {
   series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutFee_ledgerInput = {
@@ -1069,6 +1139,7 @@ export type UserUncheckedCreateWithoutFee_ledgerInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
@@ -1077,6 +1148,7 @@ export type UserUncheckedCreateWithoutFee_ledgerInput = {
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutFee_ledgerInput = {
@@ -1104,6 +1176,7 @@ export type UserUpdateWithoutFee_ledgerInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
@@ -1113,6 +1186,7 @@ export type UserUpdateWithoutFee_ledgerInput = {
   series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFee_ledgerInput = {
@@ -1126,6 +1200,7 @@ export type UserUncheckedUpdateWithoutFee_ledgerInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
@@ -1134,6 +1209,7 @@ export type UserUncheckedUpdateWithoutFee_ledgerInput = {
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutFinesInput = {
@@ -1145,6 +1221,7 @@ export type UserCreateWithoutFinesInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
@@ -1154,6 +1231,7 @@ export type UserCreateWithoutFinesInput = {
   player_teams?: Prisma.TeamPlayerCreateNestedManyWithoutUserInput
   series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutFinesInput = {
@@ -1167,6 +1245,7 @@ export type UserUncheckedCreateWithoutFinesInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
@@ -1175,6 +1254,7 @@ export type UserUncheckedCreateWithoutFinesInput = {
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutFinesInput = {
@@ -1202,6 +1282,7 @@ export type UserUpdateWithoutFinesInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
@@ -1211,6 +1292,7 @@ export type UserUpdateWithoutFinesInput = {
   player_teams?: Prisma.TeamPlayerUpdateManyWithoutUserNestedInput
   series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFinesInput = {
@@ -1224,6 +1306,7 @@ export type UserUncheckedUpdateWithoutFinesInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
@@ -1232,6 +1315,7 @@ export type UserUncheckedUpdateWithoutFinesInput = {
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSeries_won_motsInput = {
@@ -1243,6 +1327,7 @@ export type UserCreateWithoutSeries_won_motsInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
@@ -1252,6 +1337,7 @@ export type UserCreateWithoutSeries_won_motsInput = {
   player_teams?: Prisma.TeamPlayerCreateNestedManyWithoutUserInput
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSeries_won_motsInput = {
@@ -1265,6 +1351,7 @@ export type UserUncheckedCreateWithoutSeries_won_motsInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
@@ -1273,6 +1360,7 @@ export type UserUncheckedCreateWithoutSeries_won_motsInput = {
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSeries_won_motsInput = {
@@ -1300,6 +1388,7 @@ export type UserUpdateWithoutSeries_won_motsInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
@@ -1309,6 +1398,7 @@ export type UserUpdateWithoutSeries_won_motsInput = {
   player_teams?: Prisma.TeamPlayerUpdateManyWithoutUserNestedInput
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSeries_won_motsInput = {
@@ -1322,6 +1412,7 @@ export type UserUncheckedUpdateWithoutSeries_won_motsInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
@@ -1330,6 +1421,7 @@ export type UserUncheckedUpdateWithoutSeries_won_motsInput = {
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPlayer_teamsInput = {
@@ -1341,6 +1433,7 @@ export type UserCreateWithoutPlayer_teamsInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
@@ -1350,6 +1443,7 @@ export type UserCreateWithoutPlayer_teamsInput = {
   series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPlayer_teamsInput = {
@@ -1363,6 +1457,7 @@ export type UserUncheckedCreateWithoutPlayer_teamsInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
@@ -1371,6 +1466,7 @@ export type UserUncheckedCreateWithoutPlayer_teamsInput = {
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPlayer_teamsInput = {
@@ -1398,6 +1494,7 @@ export type UserUpdateWithoutPlayer_teamsInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
@@ -1407,6 +1504,7 @@ export type UserUpdateWithoutPlayer_teamsInput = {
   series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlayer_teamsInput = {
@@ -1420,6 +1518,7 @@ export type UserUncheckedUpdateWithoutPlayer_teamsInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
@@ -1428,6 +1527,7 @@ export type UserUncheckedUpdateWithoutPlayer_teamsInput = {
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMatches_won_motmInput = {
@@ -1439,6 +1539,7 @@ export type UserCreateWithoutMatches_won_motmInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
@@ -1448,6 +1549,7 @@ export type UserCreateWithoutMatches_won_motmInput = {
   series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMatches_won_motmInput = {
@@ -1461,6 +1563,7 @@ export type UserUncheckedCreateWithoutMatches_won_motmInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
@@ -1469,6 +1572,7 @@ export type UserUncheckedCreateWithoutMatches_won_motmInput = {
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMatches_won_motmInput = {
@@ -1496,6 +1600,7 @@ export type UserUpdateWithoutMatches_won_motmInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
@@ -1505,6 +1610,7 @@ export type UserUpdateWithoutMatches_won_motmInput = {
   series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMatches_won_motmInput = {
@@ -1518,6 +1624,7 @@ export type UserUncheckedUpdateWithoutMatches_won_motmInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
@@ -1526,6 +1633,7 @@ export type UserUncheckedUpdateWithoutMatches_won_motmInput = {
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutBowled_ballsInput = {
@@ -1537,6 +1645,7 @@ export type UserCreateWithoutBowled_ballsInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
@@ -1546,6 +1655,7 @@ export type UserCreateWithoutBowled_ballsInput = {
   series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutBowled_ballsInput = {
@@ -1559,6 +1669,7 @@ export type UserUncheckedCreateWithoutBowled_ballsInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
@@ -1567,6 +1678,7 @@ export type UserUncheckedCreateWithoutBowled_ballsInput = {
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutBowled_ballsInput = {
@@ -1583,6 +1695,7 @@ export type UserCreateWithoutFaced_ballsInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
@@ -1592,6 +1705,7 @@ export type UserCreateWithoutFaced_ballsInput = {
   series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutFaced_ballsInput = {
@@ -1605,6 +1719,7 @@ export type UserUncheckedCreateWithoutFaced_ballsInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
@@ -1613,6 +1728,7 @@ export type UserUncheckedCreateWithoutFaced_ballsInput = {
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutFaced_ballsInput = {
@@ -1640,6 +1756,7 @@ export type UserUpdateWithoutBowled_ballsInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
@@ -1649,6 +1766,7 @@ export type UserUpdateWithoutBowled_ballsInput = {
   series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBowled_ballsInput = {
@@ -1662,6 +1780,7 @@ export type UserUncheckedUpdateWithoutBowled_ballsInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
@@ -1670,6 +1789,7 @@ export type UserUncheckedUpdateWithoutBowled_ballsInput = {
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutFaced_ballsInput = {
@@ -1692,6 +1812,7 @@ export type UserUpdateWithoutFaced_ballsInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
@@ -1701,6 +1822,7 @@ export type UserUpdateWithoutFaced_ballsInput = {
   series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFaced_ballsInput = {
@@ -1714,8 +1836,116 @@ export type UserUncheckedUpdateWithoutFaced_ballsInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
+  fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
+  matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
+  subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
+  series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
+  fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutPermissionsInput = {
+  name: string
+  phone: string
+  email?: string | null
+  role?: $Enums.UserRole
+  deposit_amount?: number
+  password?: string | null
+  age?: number | null
+  user_type?: $Enums.UserType
+  is_active?: boolean
+  attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
+  faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
+  matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
+  subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
+  player_teams?: Prisma.TeamPlayerCreateNestedManyWithoutUserInput
+  series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
+  group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
+  fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutPermissionsInput = {
+  id?: number
+  name: string
+  phone: string
+  email?: string | null
+  role?: $Enums.UserRole
+  deposit_amount?: number
+  group_id?: number | null
+  password?: string | null
+  age?: number | null
+  user_type?: $Enums.UserType
+  is_active?: boolean
+  attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
+  faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
+  matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
+  subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
+  player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
+  series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
+  fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutPermissionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPermissionsInput, Prisma.UserUncheckedCreateWithoutPermissionsInput>
+}
+
+export type UserUpsertWithoutPermissionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPermissionsInput, Prisma.UserUncheckedUpdateWithoutPermissionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPermissionsInput, Prisma.UserUncheckedCreateWithoutPermissionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPermissionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPermissionsInput, Prisma.UserUncheckedUpdateWithoutPermissionsInput>
+}
+
+export type UserUpdateWithoutPermissionsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
+  faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
+  matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
+  subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
+  player_teams?: Prisma.TeamPlayerUpdateManyWithoutUserNestedInput
+  series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
+  group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
+  fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPermissionsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
+  faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
@@ -1734,6 +1964,7 @@ export type UserCreateManyGroupInput = {
   password?: string | null
   age?: number | null
   user_type?: $Enums.UserType
+  is_active?: boolean
 }
 
 export type UserUpdateWithoutGroupInput = {
@@ -1745,6 +1976,7 @@ export type UserUpdateWithoutGroupInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
@@ -1754,6 +1986,7 @@ export type UserUpdateWithoutGroupInput = {
   player_teams?: Prisma.TeamPlayerUpdateManyWithoutUserNestedInput
   series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGroupInput = {
@@ -1766,6 +1999,7 @@ export type UserUncheckedUpdateWithoutGroupInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
@@ -1775,6 +2009,7 @@ export type UserUncheckedUpdateWithoutGroupInput = {
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutGroupInput = {
@@ -1787,6 +2022,7 @@ export type UserUncheckedUpdateManyWithoutGroupInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 
@@ -1804,6 +2040,7 @@ export type UserCountOutputType = {
   player_teams: number
   series_won_mots: number
   fines: number
+  permissions: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1816,6 +2053,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   player_teams?: boolean | UserCountOutputTypeCountPlayer_teamsArgs
   series_won_mots?: boolean | UserCountOutputTypeCountSeries_won_motsArgs
   fines?: boolean | UserCountOutputTypeCountFinesArgs
+  permissions?: boolean | UserCountOutputTypeCountPermissionsArgs
 }
 
 /**
@@ -1891,6 +2129,13 @@ export type UserCountOutputTypeCountFinesArgs<ExtArgs extends runtime.Types.Exte
   where?: Prisma.UserFineWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPermissionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PermissionWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1903,6 +2148,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   password?: boolean
   age?: boolean
   user_type?: boolean
+  is_active?: boolean
   attendances?: boolean | Prisma.User$attendancesArgs<ExtArgs>
   bowled_balls?: boolean | Prisma.User$bowled_ballsArgs<ExtArgs>
   faced_balls?: boolean | Prisma.User$faced_ballsArgs<ExtArgs>
@@ -1913,6 +2159,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   series_won_mots?: boolean | Prisma.User$series_won_motsArgs<ExtArgs>
   group?: boolean | Prisma.User$groupArgs<ExtArgs>
   fines?: boolean | Prisma.User$finesArgs<ExtArgs>
+  permissions?: boolean | Prisma.User$permissionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1927,6 +2174,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   password?: boolean
   age?: boolean
   user_type?: boolean
+  is_active?: boolean
   group?: boolean | Prisma.User$groupArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1941,6 +2189,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   password?: boolean
   age?: boolean
   user_type?: boolean
+  is_active?: boolean
   group?: boolean | Prisma.User$groupArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1955,9 +2204,10 @@ export type UserSelectScalar = {
   password?: boolean
   age?: boolean
   user_type?: boolean
+  is_active?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "phone" | "email" | "role" | "deposit_amount" | "group_id" | "password" | "age" | "user_type", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "phone" | "email" | "role" | "deposit_amount" | "group_id" | "password" | "age" | "user_type" | "is_active", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attendances?: boolean | Prisma.User$attendancesArgs<ExtArgs>
   bowled_balls?: boolean | Prisma.User$bowled_ballsArgs<ExtArgs>
@@ -1969,6 +2219,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   series_won_mots?: boolean | Prisma.User$series_won_motsArgs<ExtArgs>
   group?: boolean | Prisma.User$groupArgs<ExtArgs>
   fines?: boolean | Prisma.User$finesArgs<ExtArgs>
+  permissions?: boolean | Prisma.User$permissionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1991,6 +2242,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     series_won_mots: Prisma.$TournamentPayload<ExtArgs>[]
     group: Prisma.$UserGroupPayload<ExtArgs> | null
     fines: Prisma.$UserFinePayload<ExtArgs>[]
+    permissions: Prisma.$PermissionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -2003,6 +2255,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     password: string | null
     age: number | null
     user_type: $Enums.UserType
+    is_active: boolean
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -2407,6 +2660,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   series_won_mots<T extends Prisma.User$series_won_motsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$series_won_motsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TournamentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   group<T extends Prisma.User$groupArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$groupArgs<ExtArgs>>): Prisma.Prisma__UserGroupClient<runtime.Types.Result.GetResult<Prisma.$UserGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   fines<T extends Prisma.User$finesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$finesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserFinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  permissions<T extends Prisma.User$permissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$permissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2446,6 +2700,7 @@ export interface UserFieldRefs {
   readonly password: Prisma.FieldRef<"User", 'String'>
   readonly age: Prisma.FieldRef<"User", 'Int'>
   readonly user_type: Prisma.FieldRef<"User", 'UserType'>
+  readonly is_active: Prisma.FieldRef<"User", 'Boolean'>
 }
     
 
@@ -3074,6 +3329,30 @@ export type User$finesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
   take?: number
   skip?: number
   distinct?: Prisma.UserFineScalarFieldEnum | Prisma.UserFineScalarFieldEnum[]
+}
+
+/**
+ * User.permissions
+ */
+export type User$permissionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Permission
+   */
+  select?: Prisma.PermissionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Permission
+   */
+  omit?: Prisma.PermissionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PermissionInclude<ExtArgs> | null
+  where?: Prisma.PermissionWhereInput
+  orderBy?: Prisma.PermissionOrderByWithRelationInput | Prisma.PermissionOrderByWithRelationInput[]
+  cursor?: Prisma.PermissionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PermissionScalarFieldEnum | Prisma.PermissionScalarFieldEnum[]
 }
 
 /**

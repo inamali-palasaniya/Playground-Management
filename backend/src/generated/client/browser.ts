@@ -92,3 +92,8 @@ export type Match = Prisma.MatchModel
  * 
  */
 export type BallEvent = Prisma.BallEventModel
+/**
+ * Model Permission
+ * 
+ */
+export type Permission = Prisma.PermissionModel

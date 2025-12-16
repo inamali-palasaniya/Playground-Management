@@ -65,7 +65,8 @@ export const ModelName = {
   Team: 'Team',
   TeamPlayer: 'TeamPlayer',
   Match: 'Match',
-  BallEvent: 'BallEvent'
+  BallEvent: 'BallEvent',
+  Permission: 'Permission'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -110,7 +111,8 @@ export const UserScalarFieldEnum = {
   group_id: 'group_id',
   password: 'password',
   age: 'age',
-  user_type: 'user_type'
+  user_type: 'user_type',
+  is_active: 'is_active'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -273,6 +275,18 @@ export const BallEventScalarFieldEnum = {
 } as const
 
 export type BallEventScalarFieldEnum = (typeof BallEventScalarFieldEnum)[keyof typeof BallEventScalarFieldEnum]
+
+
+export const PermissionScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  module_name: 'module_name',
+  can_add: 'can_add',
+  can_edit: 'can_edit',
+  can_delete: 'can_delete'
+} as const
+
+export type PermissionScalarFieldEnum = (typeof PermissionScalarFieldEnum)[keyof typeof PermissionScalarFieldEnum]
 
 
 export const SortOrder = {

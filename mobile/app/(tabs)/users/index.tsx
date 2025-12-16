@@ -10,6 +10,7 @@ interface User {
     id: number;
     name: string;
     phone: string;
+    email?: string;
     role: string;
     group?: { id: number; name: string };
     plan_name?: string;
@@ -116,9 +117,11 @@ export default function UsersScreen() {
                         try {
                             await apiService.deleteUser(id);
                             loadData();
-                        } catch (error) {
-                            console.error('Delete error:', error);
-                            Alert.alert('Error', 'Failed to delete user');
+                        } catch (error: any) {
+                            console.warn('Delete error handled:', error.message || 'Unknown');
+                            // Show specific message if available
+                            const msg = error.message || error.error || 'Failed to delete user';
+                            Alert.alert('Unable to Delete', msg);
                         }
                     }
                 }
@@ -146,13 +149,43 @@ export default function UsersScreen() {
             <Card.Title
                 title={item.name}
                 subtitle={
-                    <Text>
-                        {item.role} • {item.group?.name || 'No Group'}
-                        {item.plan_name ? `\nPlan: ${item.plan_name}` : ''}
-                        {item.deposit_amount !== undefined && item.deposit_amount > 0 ? `\nDeposit: ₹${item.deposit_amount}` : ''}
-                        {item.balance !== undefined && item.balance > 0 && <Text style={{ color: 'red', fontWeight: 'bold' }}> • Payable: ₹{item.balance}</Text>}
-                        {item.balance !== undefined && item.balance < 0 && <Text style={{ color: 'green', fontWeight: 'bold' }}> • Advance: ₹{Math.abs(item.balance)}</Text>}
-                    </Text>
+                    <View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            {item.role === 'SUPER_ADMIN' && <MaterialCommunityIcons name="shield-crown" size={16} color="gold" style={{ marginRight: 4 }} />}
+                            <Text style={{ fontWeight: item.role === 'SUPER_ADMIN' ? 'bold' : 'normal', color: item.role === 'SUPER_ADMIN' ? '#d32f2f' : 'black' }}>
+                                {item.role === 'SUPER_ADMIN' ? 'Super Admin' : item.role}
+                            </Text>
+                            <Text> • {item.group?.name || 'No Group'}</Text>
+                        </View>
+
+                        <View style={{ marginTop: 2 }}>
+                            {item.email && (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                                    <MaterialCommunityIcons name="email-outline" size={12} color="gray" style={{ marginRight: 4 }} />
+                                    <Text variant="bodySmall" style={{ color: 'gray' }}>{item.email}</Text>
+                                </View>
+                            )}
+                            {item.phone && (
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <MaterialCommunityIcons name="phone-outline" size={12} color="gray" style={{ marginRight: 4 }} />
+                                    <Text variant="bodySmall" style={{ color: 'gray' }}>{item.phone}</Text>
+                                </View>
+                            )}
+                        </View>
+
+                        {item.plan_name ? <Text variant="bodySmall" style={{ color: '#555', marginTop: 2 }}>Plan: {item.plan_name}</Text> : null}
+                        {item.deposit_amount !== undefined && item.deposit_amount > 0 ? <Text variant="bodySmall" style={{ color: '#555' }}>Deposit: ₹{item.deposit_amount}</Text> : ''}
+
+                        {item.balance !== undefined && item.balance !== 0 && (
+                            <Text style={{
+                                fontWeight: 'bold',
+                                color: item.balance > 0 ? 'red' : 'green',
+                                marginTop: 2
+                            }}>
+                                • {item.balance > 0 ? `Payable: ₹${item.balance}` : `Advance: ₹${Math.abs(item.balance)}`}
+                            </Text>
+                        )}
+                    </View>
                 }
                 subtitleNumberOfLines={4}
                 left={(props) => <Avatar.Text {...props} label={item.name.substring(0, 2).toUpperCase()} />}
@@ -180,7 +213,7 @@ export default function UsersScreen() {
                                     iconColor="#4CAF50" // Green
                                     onPress={(e) => {
                                         e.stopPropagation();
-                                        router.push({ pathname: '/management/user/[id]', params: { id: item.id } });
+                                        router.push({ pathname: '/management/edit-user', params: { id: item.id } });
                                     }}
                                 />
                                 {/* 3. Delete Icon (Red) */}
@@ -270,8 +303,10 @@ export default function UsersScreen() {
                     open={fabOpen}
                     visible
                     icon={fabOpen ? 'close' : 'plus'}
+                    // In mobile/app/(tabs)/users/index.tsx (snippet)
                     actions={[
                         { icon: 'account-plus', label: 'Add User', onPress: () => router.push('/management/add-user') },
+                        { icon: 'cash-minus', label: 'Expenses', onPress: () => router.push('/management/expenses') },
                         { icon: 'database-cog', label: 'Manage Masters', onPress: () => router.push('/management/masters') },
                     ]}
                     onStateChange={({ open }) => setFabOpen(open)}

@@ -30,6 +30,7 @@ model User {
   password         String?
   age              Int?
   user_type        UserType     @default(NORMAL)
+  is_active        Boolean      @default(true)
   attendances      Attendance[]
   bowled_balls     BallEvent[]    @relation("Bowler")
   faced_balls      BallEvent[]    @relation("Striker")
@@ -40,6 +41,7 @@ model User {
   series_won_mots  Tournament[]   @relation("ManOfTheSeries")
   group            UserGroup?     @relation(fields: [group_id], references: [id])
   fines            UserFine[]
+  permissions      Permission[]
 }
 
 model SubscriptionPlan {
@@ -63,7 +65,7 @@ model Subscription {
   status      SubscriptionStatus @default(ACTIVE)
   createdAt   DateTime           @default(now())
   plan        SubscriptionPlan   @relation(fields: [plan_id], references: [id])
-  user        User               @relation(fields: [user_id], references: [id])
+  user        User               @relation(fields: [user_id], references: [id], onDelete: Cascade)
   payment_frequency PaymentFrequency @default(MONTHLY)
 
   @@index([user_id])
@@ -213,9 +215,22 @@ model BallEvent {
   striker     User     @relation("Striker", fields: [striker_id], references: [id])
 }
 
+model Permission {
+  id          Int     @id @default(autoincrement())
+  user_id     Int
+  module_name String
+  can_add     Boolean @default(false)
+  can_edit    Boolean @default(false)
+  can_delete  Boolean @default(false)
+  user        User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, module_name])
+}
+
 enum UserRole {
   MANAGEMENT
   NORMAL
+  SUPER_ADMIN
 }
 
 enum LedgerType {

@@ -19,7 +19,8 @@ export type PaymentFrequency = (typeof PaymentFrequency)[keyof typeof PaymentFre
 
 export const UserRole = {
   MANAGEMENT: 'MANAGEMENT',
-  NORMAL: 'NORMAL'
+  NORMAL: 'NORMAL',
+  SUPER_ADMIN: 'SUPER_ADMIN'
 } as const
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]

@@ -3,6 +3,9 @@ import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { TextInput, Button, RadioButton, Text, useTheme, ActivityIndicator } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import apiService from '../../services/api.service';
+import { PermissionSelector } from '../../components/PermissionSelector';
+
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function EditUserScreen() {
     const router = useRouter();
@@ -22,6 +25,10 @@ export default function EditUserScreen() {
     const [plans, setPlans] = useState<any[]>([]);
     const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
     const [paymentFrequency, setPaymentFrequency] = useState('MONTHLY');
+    const [permissions, setPermissions] = useState<any[]>([]);
+    const [isActive, setIsActive] = useState(true);
+    const [currentUser, setCurrentUser] = useState<any>(null); // To check if Super Admin is editing?
+    // Actually we rely on backend to block. But for UI, we might default 'SUPER_ADMIN' to disabled fields.
 
     useEffect(() => {
         const fetchData = async () => {
@@ -45,6 +52,13 @@ export default function EditUserScreen() {
                     if ((user as any).age) setAge((user as any).age.toString());
                     if ((user as any).user_type) setUserType((user as any).user_type);
                     if ((user as any).group_id) setSelectedGroup((user as any).group_id);
+                    if ((user as any).permissions) setPermissions((user as any).permissions);
+                    if ((user as any).is_active !== undefined) setIsActive((user as any).is_active);
+
+                    // Super Admin check?
+                    if (user.email === '91inamali@gmail.com') {
+                        // Maybe disable editing some fields?
+                    }
 
                     // Check active subscription for Plan and Frequency
                     if (user.subscriptions && user.subscriptions.length > 0) {
@@ -84,7 +98,9 @@ export default function EditUserScreen() {
                 age: age ? parseInt(age, 10) : undefined,
                 user_type: userType,
                 plan_id: selectedPlan || undefined,
-                payment_frequency: selectedPlan ? paymentFrequency : undefined
+                payment_frequency: selectedPlan ? paymentFrequency : undefined,
+                permissions: role === 'MANAGEMENT' ? permissions : [],
+                is_active: isActive
             });
             Alert.alert('Success', 'User updated successfully');
             router.back();
@@ -121,12 +137,19 @@ export default function EditUserScreen() {
             </View>
 
             <Text variant="titleMedium" style={{ marginTop: 10 }}>Role</Text>
-            <RadioButton.Group onValueChange={value => setRole(value)} value={role}>
-                <View style={styles.radioRow}>
-                    <RadioButton.Item label="Player" value="NORMAL" />
-                    <RadioButton.Item label="Management" value="MANAGEMENT" />
+            {role === 'SUPER_ADMIN' ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', padding: 8, backgroundColor: '#fff3cd', borderRadius: 8 }}>
+                    <MaterialCommunityIcons name="shield-crown" size={20} color="gold" />
+                    <Text style={{ marginLeft: 8, fontWeight: 'bold', color: '#856404' }}>Super Admin (Immutable)</Text>
                 </View>
-            </RadioButton.Group>
+            ) : (
+                    <RadioButton.Group onValueChange={value => setRole(value)} value={role}>
+                        <View style={styles.radioRow}>
+                            <RadioButton.Item label="Player" value="NORMAL" />
+                            <RadioButton.Item label="Management" value="MANAGEMENT" />
+                        </View>
+                    </RadioButton.Group>
+            )}
 
             <Text variant="titleMedium" style={{ marginTop: 10 }}>Group</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.groupScroll}>
@@ -168,6 +191,31 @@ export default function EditUserScreen() {
                     <Text variant="bodySmall" style={{ color: 'gray' }}>
                         {paymentFrequency === 'MONTHLY' ? 'User pays monthly fixed fee.' : 'User pays per attendance (Punch In).'}
                     </Text>
+                </View>
+            )}
+
+            <View style={{ marginTop: 20 }}>
+                <Text variant="titleMedium">Status</Text>
+                {role === 'SUPER_ADMIN' ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e8f5e9', padding: 10, borderRadius: 8, alignSelf: 'flex-start' }}>
+                        <MaterialCommunityIcons name="check-circle" size={20} color="green" />
+                        <Text style={{ marginLeft: 8, color: 'green', fontWeight: 'bold' }}>Active (Protected)</Text>
+                    </View>
+                ) : (
+                    <View style={styles.radioRow}>
+                        <Button mode={isActive ? 'contained' : 'outlined'} onPress={() => setIsActive(true)} style={styles.typeButton} compact buttonColor={isActive ? 'green' : undefined}>Active</Button>
+                        <Button mode={!isActive ? 'contained' : 'outlined'} onPress={() => setIsActive(false)} style={styles.typeButton} compact buttonColor={!isActive ? 'red' : undefined}>Inactive</Button>
+                    </View>
+                )}
+            </View>
+
+            {role === 'MANAGEMENT' && (
+                <View style={{ marginTop: 20 }}>
+                    <Text variant="titleMedium" style={{ marginBottom: 10 }}>Permissions</Text>
+                    <PermissionSelector
+                        permissions={permissions}
+                        onChange={setPermissions}
+                    />
                 </View>
             )}
 

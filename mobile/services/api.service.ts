@@ -1,5 +1,6 @@
 import { API_BASE_URL, API_ENDPOINTS } from '../constants/api';
 import * as SecureStore from 'expo-secure-store';
+import { loaderService } from './loader.service';
 
 interface Match {
     id: number;
@@ -48,6 +49,8 @@ interface CreateUserData {
     user_type?: string;
     password?: string;
     payment_frequency?: string;
+    permissions?: any[];
+    is_active?: boolean;
 }
 
 class ApiService {
@@ -72,6 +75,9 @@ class ApiService {
 
     // public for direct usage if needed
     public async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+        // Add loader control
+        loaderService.show();
+
         try {
             const url = `${API_BASE_URL}${endpoint}`;
             console.log('API Request:', url);
@@ -100,19 +106,39 @@ class ApiService {
                 }
 
                 const errorText = await response.text();
-                // Suppress 404 "not found" alerts by throwing a structured object the caller can inspect
                 console.warn(`API Error Response (${response.status}):`, errorText);
 
-                const customError: any = new Error(`HTTP error! status: ${response.status}`);
+                let errorMessage = `HTTP error! status: ${response.status}`;
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    if (errorJson.error) errorMessage = errorJson.error;
+                    else if (errorJson.message) errorMessage = errorJson.message;
+
+                    // Handle server-side forced logout (e.g. user deactivation)
+                    if (errorJson.forceLogout) {
+                        console.warn('Force Logout received from server.');
+                        const { AuthService } = require('./auth.service');
+                        AuthService.emitAuthExpired();
+                    }
+                } catch (e) {
+                    // Not a JSON response, stick to status
+                }
+
+                const customError: any = new Error(errorMessage);
                 customError.status = response.status;
                 customError.body = errorText;
+
+                loaderService.hide(); // Hide before throw
                 throw customError;
             }
 
             const data = await response.json();
             console.log('API Response Data:', data);
+
+            loaderService.hide();
             return data;
         } catch (error: any) {
+            loaderService.hide();
             console.warn('API request failed:', error.message);
             // Re-throw so caller handles it, but now with .status property if it was HTTP error
             throw error;

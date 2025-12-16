@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 
 export const createUser = async (req: Request, res: Response) => {
     try {
-        const { name, phone, email, role, group_id, age, user_type, plan_id, payment_frequency, password } = req.body;
+        const { name, phone, email, role, group_id, age, user_type, plan_id, payment_frequency, password, is_active, permissions } = req.body;
 
         if (!phone || !/^\d{10}$/.test(phone)) {
             return res.status(400).json({ error: 'Phone number must be exactly 10 digits.' });
@@ -15,17 +15,37 @@ export const createUser = async (req: Request, res: Response) => {
             hashedPassword = await bcrypt.hash(password, 10);
         }
 
+        const userData: any = {
+            name,
+            phone,
+            email: email && email.trim() !== '' ? email : null,
+            role,
+            group_id: group_id ? parseInt(group_id) : null,
+            age: age ? parseInt(age) : null,
+            user_type,
+            password: hashedPassword,
+            is_active: is_active !== undefined ? is_active : true
+        };
+
+        // If email is 91inamali@gmail.com, FORCE SUPER_ADMIN role and permissions
+        if (userData.email === '91inamali@gmail.com') {
+            userData.role = 'SUPER_ADMIN';
+            userData.is_active = true;
+        }
+
         const user = await prisma.user.create({
             data: {
-                name,
-                phone,
-                email: email && email.trim() !== '' ? email : null,
-                role,
-                group_id: group_id ? parseInt(group_id) : null,
-                age: age ? parseInt(age) : null,
-                user_type,
-                password: hashedPassword
+                ...userData,
+                permissions: {
+                    create: Array.isArray(permissions) ? permissions.map((p: any) => ({
+                        module_name: p.module_name,
+                        can_add: p.can_add || false,
+                        can_edit: p.can_edit || false,
+                        can_delete: p.can_delete || false
+                    })) : []
+                }
             },
+            include: { permissions: true }
         });
 
         if (plan_id) {
@@ -109,6 +129,7 @@ export const getUsers = async (req: Request, res: Response) => {
                     include: { plan: true },
                     take: 1
                 },
+                permissions: true,
                 fee_ledger: {
                     select: { amount: true, transaction_type: true }
                 },
@@ -135,15 +156,21 @@ export const getUsers = async (req: Request, res: Response) => {
             if (plan) {
                 planName = plan.name;
                 if (plan.rate_monthly && plan.rate_monthly > 0) {
-                    // This logic was weak (checking specific recent payment), 
-                    // ideally we rely on subscription status or simply balance.
-                    // Returning existing logic for consistency but can be improved.
-                    status = user.fee_ledger.some(l => l.transaction_type === 'CREDIT') ? 'ACTIVE' : 'EXPIRED';
-                    // Re-evaluate 'EXPIRED' logic if needed, but primarily focusing on Balance now.
+                    // Subscription Logic for "EXPIRED"
+                    // User Request: "If monthly subscriber are expire monthly subscription then show status expired... if current month payment not received"
+                    // Existing logic already checks this roughly. Let's refine.
+                    // If plan is monthly, and sub status is ACTIVE, check if current month fee is paid?
+                    // actually sub.status should reflect it.
                     status = sub.status; 
                 } else {
                     status = 'ACTIVE';
                 }
+            }
+
+            // Check for Expired Subscription Display logic
+            // If subscription is expired, status should be EXPIRED.
+            if (sub?.status === 'EXPIRED') {
+                status = 'EXPIRED';
             }
 
             // Financial Balance Calculation
@@ -203,6 +230,7 @@ export const getUserById = async (req: Request, res: Response) => {
                     include: { plan: true },
                     take: 1
                 },
+                permissions: true,
                 fee_ledger: true,
                 attendances: {
                     where: {
@@ -273,29 +301,103 @@ export const getUserById = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { name, phone, email, role, group_id, age, user_type, plan_id, payment_frequency, password } = req.body;
+        const { name, phone, email, role, group_id, age, user_type, plan_id, payment_frequency, password, is_active, permissions } = req.body;
 
         if (phone && !/^\d{10}$/.test(phone)) {
             return res.status(400).json({ error: 'Phone number must be exactly 10 digits.' });
         }
 
-        let hashedPassword = undefined; // Use undefined so it's not included in update if not provided
+        const existingUser = await prisma.user.findUnique({ where: { id: parseInt(id) } });
+        if (!existingUser) return res.status(404).json({ error: 'User not found' });
+
+        // PROTECT SUPER ADMIN
+        // If target is Super Admin (by email or role), prevent changing critical fields by anyone (even self?)
+        // User Request: "no one can change super admin type and its permission (include self super admin)"
+        const isSuperAdminTarget = existingUser.email === '91inamali@gmail.com' || existingUser.role === 'SUPER_ADMIN';
+
+        if (isSuperAdminTarget) {
+            // Cancel any attempt to explicitly *change* role, permissions, active status
+            // We only error if the new value is explicitly provided AND different from the current value
+            // Note: permissions comparison is simplified; for Super Admin it should be considered unchanged if not provided or effectively same intent
+
+            const isRoleChanging = role !== undefined && role !== existingUser.role;
+            const isActiveChanging = is_active !== undefined && is_active !== existingUser.is_active;
+            // For permissions, it's complex to compare deeply. 
+            // Better strategy: simply ignore `permissions`, `role`, `is_active` fields for Super Admin in the update query 
+            // rather than throwing 403, effectively "silently enforcing" the lock.
+            // BUT, if the user *intent* was to change them, a 403 warning is better feedback than silent ignore.
+            // Let's stick to 403 if they try to CHANGE it.
+
+            if (isRoleChanging || isActiveChanging) {
+                return res.status(403).json({ error: 'Cannot modify Super Admin permissions, role, or active status.' });
+            }
+            // For permissions, checking difference is hard. Let's just block strictly if permissions is sent
+            // UNLESS we just strip these fields from the update object later for Super Admin?
+            // "no one can change super admin type and its permission"
+            // If we just DELETE these keys from the input for Super Admin, we achieve the goal safely.
+
+            if (role !== undefined) delete req.body.role;
+            if (is_active !== undefined) delete req.body.is_active;
+            if (permissions !== undefined) delete req.body.permissions;
+        }
+
+        let hashedPassword = undefined; 
         if (password && password.trim() !== '') {
             hashedPassword = await bcrypt.hash(password, 10);
         }
 
-        const user = await prisma.user.update({
+        const updateData: any = {
+            name,
+            phone,
+            email: email && email.trim() !== '' ? email : null,
+            role,
+            group_id: group_id ? parseInt(group_id) : null,
+            age: age ? parseInt(age) : null, // Fix: Use 'age' properly if it was missing 
+            user_type,
+            ...(hashedPassword && { password: hashedPassword }),
+            ...(is_active !== undefined && { is_active })
+        };
+
+        // Filter undefined
+        Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
+        // Transaction for permissions update
+        const user = await prisma.$transaction(async (tx) => {
+            // Update User
+            const updated = await tx.user.update({
+                where: { id: parseInt(id) },
+                data: updateData,
+                include: { permissions: true }
+            });
+
+            // Update Permissions if provided
+            if (permissions && Array.isArray(permissions)) {
+                // Delete existing
+                await tx.permission.deleteMany({ where: { user_id: parseInt(id) } });
+
+                // Create new
+                // If user is MANAGEMENT only? No, we just set what is requested. Middleware checks who is REQUESTING.
+                // WE assume the caller has permission to set these.
+                if (permissions.length > 0) {
+                    await tx.permission.createMany({
+                        data: permissions.map((p: any) => ({
+                            user_id: parseInt(id),
+                            module_name: p.module_name,
+                            can_add: p.can_add || false,
+                            can_edit: p.can_edit || false,
+                            can_delete: p.can_delete || false
+                        }))
+                    });
+                }
+            }
+
+            return updated;
+        });
+
+        // Refetch to get fresh permissions if we just updated them
+        const finalUser = await prisma.user.findUnique({
             where: { id: parseInt(id) },
-            data: {
-                name,
-                phone,
-                email: email && email.trim() !== '' ? email : null,
-                role,
-                group_id: group_id ? parseInt(group_id) : null,
-                age: age ? parseInt(age) : null,
-                user_type,
-                ...(hashedPassword && { password: hashedPassword }) // Conditionally add password to update data
-            },
+            include: { permissions: true }
         });
 
         // Update Plan / Subscription if provided
@@ -377,12 +479,15 @@ export const deleteUser = async (req: Request, res: Response) => {
         if (!targetUser) return res.status(404).json({ error: 'User not found' });
 
         // PROTECT LAST MANAGEMENT USER
-        if (targetUser.role === 'MANAGEMENT') {
-            const adminCount = await prisma.user.count({ where: { role: 'MANAGEMENT' } });
-            if (adminCount <= 1) {
-                return res.status(409).json({ error: 'Cannot delete the last Management user. Please create another Management user first.' });
-            }
+        if (targetUser.role === 'SUPER_ADMIN') {
+            throw new Error('Cannot delete the Super Admin user.');
         }
+        // if (targetUser.role === 'MANAGEMENT') {
+        //     const adminCount = await prisma.user.count({ where: { role: 'MANAGEMENT' } });
+        //     if (adminCount <= 1) {
+        //         return res.status(409).json({ error: 'Cannot delete the last Management user. Please create another Management user first.' });
+        //     }
+        // }
 
         await prisma.$transaction(async (tx) => {
             // 1. Delete Financial & Attendance Records
@@ -392,7 +497,7 @@ export const deleteUser = async (req: Request, res: Response) => {
             // Delete child ledgers
             await tx.feeLedger.deleteMany({ where: { user_id: userId } });
 
-            await tx.subscription.deleteMany({ where: { user_id: userId } });
+            // await tx.subscription.deleteMany({ where: { user_id: userId } }); // Cascades now
             await tx.teamPlayer.deleteMany({ where: { user_id: userId } });
 
             // Note: We are NOT deleting BallEvent, Match Awards etc. 
@@ -408,7 +513,7 @@ export const deleteUser = async (req: Request, res: Response) => {
     } catch (error: any) {
         console.error('Error deleting user:', error);
         if (error.code === 'P2003') {
-            res.status(409).json({ error: 'Cannot delete user: They have linked match history (Bowling/Batting/Awards) which must be preserved.' });
+            res.status(409).json({ error: 'Cannot delete user: They have linked match history or other preserved records.' });
         } else {
             res.status(500).json({ error: 'Failed to delete user', details: error.message });
         }

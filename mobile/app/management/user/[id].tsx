@@ -1,14 +1,66 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, useWindowDimensions, Alert, Platform } from 'react-native';
-import { Text, Avatar, Button, Card, useTheme, DataTable, FAB, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Menu } from 'react-native-paper';
+import { Text, Avatar, Button, Card, useTheme, DataTable, FAB, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Menu, Divider } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import apiService from '../../../services/api.service';
 import { format } from 'date-fns';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Linking } from 'react-native';
+import { PermissionSelector } from '../../../components/PermissionSelector';
+import { generateReceipt } from '../../../utils/receiptGenerator';
 
 // --- Sub-Components for Tabs ---
+
+const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: { userId: number, permissions: any[], onUpdate: () => void, canEdit: boolean, userRole?: string }) => {
+    const [saving, setSaving] = useState(false);
+
+    const isSuperAdmin = userRole === 'SUPER_ADMIN';
+
+    const handleSave = async (updatedPermissions: any[]) => {
+        if (!canEdit || isSuperAdmin) return;
+        setSaving(true);
+        try {
+            await apiService.updateUser(userId, { permissions: updatedPermissions });
+            onUpdate();
+            Alert.alert('Success', 'Permissions updated');
+        } catch (e) {
+            console.error(e);
+            Alert.alert('Error', 'Failed to update permissions');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (isSuperAdmin) {
+        return (
+            <ScrollView style={styles.tabContent}>
+                <View style={{ padding: 16, alignItems: 'center' }}>
+                    <MaterialCommunityIcons name="shield-crown" size={64} color="gold" />
+                    <Text variant="titleMedium" style={{ marginTop: 10, fontWeight: 'bold' }}>Success Admin Access</Text>
+                    <Text style={{ textAlign: 'center', color: 'gray', marginTop: 5 }}>
+                        This user is a Super Admin and has full access to all features.
+                        Permissions cannot be modified.
+                    </Text>
+                </View>
+            </ScrollView>
+        );
+    }
+
+    return (
+        <ScrollView style={styles.tabContent}>
+            <View style={{ padding: 16 }}>
+                <PermissionSelector
+                    permissions={permissions || []}
+                    onChange={handleSave}
+                    readonly={!canEdit}
+                />
+                {canEdit && <Text style={{ textAlign: 'center', marginTop: 10, color: 'gray' }}>Tap icons to toggle permissions immediately.</Text>}
+            </View>
+        </ScrollView>
+    );
+};
 
 const FineRoute = ({ userId }: { userId: number }) => {
     const [fines, setFines] = useState<any[]>([]);
@@ -106,6 +158,51 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
         });
     };
 
+    const handleReceipt = async (item: any) => {
+        try {
+            // Prepare data
+            // If it's a payment, showing what it paid off (children) is nice.
+            // If it's a root charge, showing payment status is nice.
+
+            const items = [];
+            // If it has children (allocations), list them
+            // Schema relation is child_ledger but fetched as child_ledger
+            // Check if frontend receives 'children' or 'child_ledger'
+            // Prisma sends what is included. So it will be 'child_ledger'.
+            const children = item.child_ledger || item.children;
+
+            if (children && children.length > 0) {
+                children.forEach((c: any) => {
+                    items.push({ description: `Payment: ${c.type}`, amount: c.amount, date: c.date, ref: `PMT-${c.id}` });
+                });
+            } else {
+                // Determine description
+                const desc = item.notes || item.type.replace('_', ' ');
+                items.push({ description: desc, amount: item.amount, date: item.date, ref: `${item.transaction_type.substring(0, 3)}-${item.id}` });
+            }
+
+            // If it's a payment record itself (child logic handled if we clicked parent charge?)
+            // If we click a PAYMENT record (which is usually a child in my UI logic? No, root items are Charges OR Unlinked Payments).
+            // If transaction_type is CREDIT (Payment), it's a Receipt.
+            // If DEBIT (Charge), it's an Invoice.
+
+            const type = item.transaction_type === 'CREDIT' ? 'PAYMENT' : 'CHARGE';
+
+            await generateReceipt({
+                title: type === 'PAYMENT' ? 'Payment Receipt' : 'Invoice',
+                userName: 'User', // In real app, pass user name prop to LedgerRoute or fetch it
+                id: item.id,
+                date: item.date,
+                totalAmount: item.amount,
+                items: items,
+                transactionType: type,
+                userPhone: '' // Pass if available
+            });
+        } catch (e: any) {
+            Alert.alert('Error', e.message);
+        }
+    };
+
     // Process Hierarchy
     const ledgerMap = new Map();
     const rootItems: any[] = [];
@@ -192,6 +289,7 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
                                             )}
 
                                             <IconButton icon="pencil" size={18} onPress={() => handleEditStart(item)} />
+                                            <IconButton icon="file-document-outline" size={18} iconColor="#1565c0" onPress={() => handleReceipt(item)} />
                                             <IconButton icon="delete" size={18} iconColor="red" onPress={() => handleDelete(item.id)} />
                                         </View>
                                     </View>
@@ -505,6 +603,7 @@ export default function UserDetailScreen() {
         { key: 'ledger', title: 'Ledger' },
         { key: 'fine', title: 'Fines' },
         { key: 'attendance', title: 'Attendance' },
+        { key: 'permissions', title: 'Perms' },
     ]);
 
     // Calculate duration
@@ -567,6 +666,17 @@ export default function UserDetailScreen() {
                 return <FineRoute userId={Number(id)} />;
             case 'attendance':
                 return <AttendanceRoute userId={Number(id)} onUpdate={refreshUser} />;
+            case 'permissions':
+                // Only Management can edit permissions? And maybe not Super Admin if target is Super Admin (backend blocks).
+                // Frontend check:
+                const canEditPermissions = true;
+                return <PermissionsRoute
+                    userId={Number(id)}
+                    permissions={user?.permissions}
+                    onUpdate={refreshUser}
+                    canEdit={canEditPermissions}
+                    userRole={user?.role}
+                />;
             default:
                 return null;
         }
@@ -581,124 +691,182 @@ export default function UserDetailScreen() {
 
     return (
         <View style={styles.container}>
-            {/* Header / Profile Card */}
-            <View style={styles.headerContainer}>
-                <View style={styles.topNav}>
-                    <IconButton icon="arrow-left" size={24} onPress={() => router.back()} />
-                    <Text variant="titleLarge" style={{ fontWeight: 'bold', flex: 1, textAlign: 'center' }}>
-                        {user.name}
-                    </Text>
-
-                    {/* Professional Menu Action */}
-                    <View style={{ flexDirection: 'row' }}>
-                        <Menu
-                            visible={menuVisible}
-                            onDismiss={closeMenu}
-                            anchor={<IconButton icon="dots-vertical" onPress={openMenu} />}
-                        >
-                            <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Payment" leadingIcon="cash-plus" />
-                            <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Charge" leadingIcon="cash-minus" />
-                        </Menu>
-                    </View>
-                </View>
-
-                {/* Avatar & Role */}
-                <View style={{ alignItems: 'center', marginBottom: 16 }}>
-                    <Avatar.Text
-                        size={80}
-                        label={user.name.substring(0, 2).toUpperCase()}
-                        style={{ backgroundColor: theme.colors.primary }}
-                        color="white"
-                    />
-                    <View style={styles.roleBadge}>
-                        <Text style={styles.roleText}>{user.role || 'User'}</Text>
-                    </View>
-                </View>
-            </View>
-
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }}>
-                {/* Info Cards */}
-                <Card style={styles.infoCard}>
-                    <Card.Content style={styles.infoRow}>
-                        <MaterialCommunityIcons name="email-outline" size={20} color="#555" />
-                        <View style={{ marginLeft: 12, flex: 1 }}>
-                            <Text style={styles.infoLabel}>Email Address</Text>
-                            <Text style={styles.infoValue}>{user.email || 'N/A'}</Text>
-                        </View>
-                    </Card.Content>
-                </Card>
-
-                <Card style={styles.infoCard}>
-                    <Card.Content style={styles.infoRow}>
-                        <MaterialCommunityIcons name="phone-outline" size={20} color="#555" />
-                        <View style={{ marginLeft: 12, flex: 1 }}>
-                            <Text style={styles.infoLabel}>Phone Number</Text>
-                            <Text style={styles.infoValue}>{user.phone || 'N/A'}</Text>
-                        </View>
-                    </Card.Content>
-                </Card>
-
-                <Card style={styles.punchCard}>
-                    <Card.Content>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <View>
-                                <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>
-                                    Attendance: <Text style={{ color: isPunchIn ? 'green' : (todaysAttendance ? 'red' : '#555') }}>
-                                        {isPunchIn ? 'CHECKED IN' : (todaysAttendance ? 'CHECKED OUT' : 'NOT MARKED')}
-                                    </Text>
-                                </Text>
-
-                                {todaysAttendance && (
-                                    <View style={{ marginTop: 8 }}>
-                                        <Text style={{ fontSize: 14, color: '#333' }}>
-                                            <MaterialCommunityIcons name="clock-in" size={14} color="green" /> In: {new Date(todaysAttendance.in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </Text>
-                                        {todaysAttendance.out_time && (
-                                            <Text style={{ fontSize: 14, color: '#333' }}>
-                                                <MaterialCommunityIcons name="clock-out" size={14} color="red" /> Out: {new Date(todaysAttendance.out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </Text>
-                                        )}
-                                        <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#1565c0', marginTop: 4 }}>
-                                            Duration: {loggedTime}
+            {/* Header / Profile Card - Fixed Top Section */}
+            <View>
+                {/* Header Container */}
+                <View style={styles.headerContainer}>
+                    <View style={styles.topNav}>
+                        <IconButton icon="arrow-left" size={24} onPress={() => router.back()} />
+                        <Text variant="titleLarge" style={{ fontWeight: 'bold', flex: 1, textAlign: 'center' }}>
+                            {user.name}
                         </Text>
-                    </View>
-                )}
-                            </View>
 
-                            <Button
+                        {/* Professional Menu Action */}
+                        <View style={{ flexDirection: 'row' }}>
+                            <Menu
+                                visible={menuVisible}
+                                onDismiss={closeMenu}
+                                anchor={<IconButton icon="dots-vertical" onPress={openMenu} />}
+                            >
+                                <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Payment" leadingIcon="cash-plus" />
+                                <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Charge" leadingIcon="cash-minus" />
+                            </Menu>
+                        </View>
+                    </View>
+
+                    {/* Avatar & Role */}
+                    <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                        <Avatar.Text
+                            size={80}
+                            label={user.name.substring(0, 2).toUpperCase()}
+                            style={{ backgroundColor: theme.colors.primary }}
+                            color="white"
+                        />
+                        <View style={styles.roleBadge}>
+                            <Text style={styles.roleText}>{user.role === 'SUPER_ADMIN' ? 'Super Admin' : user.role || 'User'}</Text>
+                        </View>
+                        {!user.is_active && (
+                            <View style={{ backgroundColor: 'red', borderRadius: 4, paddingHorizontal: 8, marginTop: 4 }}>
+                                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>INACTIVE</Text>
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Status Actions */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 10, gap: 10 }}>
+                        <IconButton
+                            icon="phone"
+                            mode="contained"
+                            containerColor="#e0f2f1"
+                            iconColor="#00695c"
+                            onPress={() => Linking.openURL(`tel:${user.phone}`)}
+                            disabled={!user.phone}
+                        />
+                        {user.phone && (
+                            <IconButton
+                                icon="whatsapp"
                                 mode="contained"
-                                buttonColor={isPunchIn ? '#d32f2f' : '#1565c0'}
-                                textColor="white"
-                                compact
-                                style={{ borderRadius: 8 }}
-                                onPress={async () => {
-                                    try {
-                                        await apiService.togglePunch(user.id);
-                                        const updated = await apiService.getUserById(user.id);
-                                        setUser(updated);
-                                        if (updated.todays_attendance_id) {
-                                            apiService.getUserAttendance(updated.id).then((list: any[]) => {
-                                                const today = list.sort((a, b) => new Date(b.in_time).getTime() - new Date(a.in_time).getTime())[0];
-                                                setTodaysAttendance(today);
-                                            });
-                                        } else {
-                                            setTodaysAttendance(null);
-                                        }
-                                        Alert.alert('Success', `Status Updated`);
-                                    } catch (e: any) {
-                                        // console.error(e); // Suppress Red Box for expected 409 errors
-                                        if (e.body) {
-                                            try {
-                                                const err = JSON.parse(e.body);
-                                                if (err.existing && err.existing.in_time) {
-                                                    const dt = new Date(err.existing.in_time).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-                                                    Alert.alert('Already Checked In', `You checked in today at ${dt}.\nOnly one session per day is allowed.`);
-                                                    return;
-                                                }
-                                                Alert.alert('Error', err.error || 'Failed to toggle status');
-                                            } catch (parseErr) {
-                                                Alert.alert('Error', 'Failed to toggle status (Parse Error)');
+                                containerColor="#25D366" // WhatsApp green
+                                iconColor="white"
+                                size={24}
+                                onPress={() => Linking.openURL(`whatsapp://send?phone=${user.phone}`)}
+                            />
+                        )}
+                        <IconButton
+                            icon="email"
+                            mode="contained"
+                            containerColor="#e0e0e0"
+                            iconColor="#333"
+                            size={24}
+                            onPress={() => user.email && Linking.openURL(`mailto:${user.email}`)}
+                            disabled={!user.email}
+                        />
+                    </View>
+
+                    {/* Status Toggle */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+                        <Text style={{ marginRight: 8 }}>Status:</Text>
+                        {user.role === 'SUPER_ADMIN' ? (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e8f5e9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}>
+                                <MaterialCommunityIcons name="check-circle" size={16} color="green" />
+                                <Text style={{ marginLeft: 4, color: 'green', fontWeight: 'bold' }}>Active</Text>
+                            </View>
+                        ) : (
+                            <>
+                                <Button
+                                    mode={user.is_active ? 'contained' : 'outlined'}
+                                    compact
+                                    buttonColor={user.is_active ? 'green' : undefined}
+                                    textColor={user.is_active ? 'white' : 'gray'}
+                                    onPress={() => {
+                                        apiService.updateUser(user.id, { is_active: true } as any).then(() => refreshUser()).catch(e => Alert.alert('Error', 'Update failed'));
+                                    }}
+                                    style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                                >
+                                    Active
+                                </Button>
+                                <Button
+                                    mode={!user.is_active ? 'contained' : 'outlined'}
+                                    compact
+                                    buttonColor={!user.is_active ? 'red' : undefined}
+                                    textColor={!user.is_active ? 'white' : 'gray'}
+                                    onPress={() => {
+                                        apiService.updateUser(user.id, { is_active: false } as any).then(() => refreshUser()).catch(e => Alert.alert('Error', 'Update failed'));
+                                    }}
+                                    style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
+                                >
+                                    Inactive
+                                </Button>
+                            </>
+                        )}
+                    </View>
+
+                    {/* EXPIRED Banner */}
+                    {user.subscription_status === 'EXPIRED' && (
+                        <View style={{ backgroundColor: '#ffebee', padding: 10, marginHorizontal: 16, marginBottom: 10, borderRadius: 8, flexDirection: 'row', alignItems: 'center', borderColor: 'red', borderWidth: 1 }}>
+                            <MaterialCommunityIcons name="alert-circle" size={24} color="red" />
+                            <Text style={{ marginLeft: 10, color: 'red', fontWeight: 'bold' }}>Subscription Expired! Payment Due.</Text>
+                        </View>
+                    )}
+                </View>
+
+                {/* Info Cards (Attendance/Subscription) - Keeping stable */}
+                <View>
+                    {/* Info Cards */}
+                    <Card style={styles.infoCard}>
+                        <Card.Content style={styles.infoRow}>
+                            <MaterialCommunityIcons name="email-outline" size={20} color="#555" />
+                            <View style={{ marginLeft: 12, flex: 1 }}>
+                                <Text style={styles.infoLabel}>Email Address</Text>
+                                <Text style={styles.infoValue}>{user.email || 'N/A'}</Text>
+                            </View>
+                        </Card.Content>
+                        <Divider />
+                        <Card.Content style={styles.infoRow}>
+                            <MaterialCommunityIcons name="phone-outline" size={20} color="#555" />
+                            <View style={{ marginLeft: 12, flex: 1 }}>
+                                <Text style={styles.infoLabel}>Phone Number</Text>
+                                <Text style={styles.infoValue}>{user.phone}</Text>
+                            </View>
+                        </Card.Content>
+                    </Card>
+
+                    {/* Attendance Today Card */}
+                    <Card style={styles.infoCard}>
+                        <Card.Content>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <View>
+                                    <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>Attendance: {todaysAttendance ? (todaysAttendance.out_time ? 'COMPLETED' : 'PRESENT') : 'NOT MARKED'}</Text>
+                                    {isPunchIn && <Text style={{ color: 'green', marginTop: 4 }}>Time Logged: {loggedTime}</Text>}
+                                </View>
+                                <Button
+                                    mode="contained"
+                                    buttonColor={isPunchIn ? '#d32f2f' : '#1565c0'}
+                                    onPress={async () => {
+                                        try {
+                                            if (isPunchIn) {
+                                                // Check out
+                                                await apiService.checkOut(user.id);
+                                                Alert.alert('Success', 'Checked Out');
+                                            } else {
+                                                // Quick Check In
+                                                await apiService.checkIn(user.id);
+                                                Alert.alert('Success', 'Checked In');
                                             }
+                                            refreshUser(); // Refresh user data to update attendance status
+                                        } catch (e: any) {
+                                            if (e.body) {
+                                                try {
+                                                    const err = JSON.parse(e.body);
+                                                    if (err.existing && err.existing.in_time) {
+                                                        const dt = new Date(err.existing.in_time).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+                                                        Alert.alert('Already Checked In', `You checked in today at ${dt}.\nOnly one session per day is allowed.`);
+                                                        return;
+                                                    }
+                                                    Alert.alert('Error', err.error || 'Failed to toggle status');
+                                                } catch (parseErr) {
+                                                    Alert.alert('Error', 'Failed to toggle status (Parse Error)');
+                                                }
                                         } else {
                                             Alert.alert('Error', 'Failed to toggle status');
                                         }
@@ -746,19 +914,19 @@ export default function UserDetailScreen() {
                         </View>
                     </Card.Content>
                 </Card>
-
-                {/* Tabs Placeholder - In a real app, you might want to switch this to a list or keep the tabs below */}
-                <View style={{ height: 500, marginTop: 10 }}>
-                    <TabView
-                        navigationState={{ index, routes }}
-                        renderScene={renderScene}
-                        onIndexChange={setIndex}
-                        initialLayout={{ width: layout.width }}
-                        renderTabBar={props => <TabBar {...props} indicatorStyle={{ backgroundColor: theme.colors.primary }} style={{ backgroundColor: 'white' }} activeColor="black" inactiveColor="gray" />}
-                    />
                 </View>
+            </View>
 
-            </ScrollView>
+            {/* Tabs Filling Remaining Space */}
+            <View style={{ flex: 1 }}>
+                <TabView
+                    navigationState={{ index, routes }}
+                    renderScene={renderScene}
+                    onIndexChange={setIndex}
+                    initialLayout={{ width: layout.width }}
+                    renderTabBar={props => <TabBar {...props} indicatorStyle={{ backgroundColor: theme.colors.primary }} style={{ backgroundColor: 'white' }} activeColor="black" inactiveColor="gray" />}
+                />
+            </View>
         </View>
     );
 }

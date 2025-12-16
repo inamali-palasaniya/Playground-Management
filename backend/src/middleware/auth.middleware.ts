@@ -11,7 +11,12 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
+import prisma from '../utils/prisma.js';
+
+// Remove local instantiation
+// const prisma = new PrismaClient();
+
+export const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -21,10 +26,21 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
 
   try {
     const verified = jwt.verify(token, JWT_SECRET) as any;
+
+    // Check DB for Active Status (Force Logout)
+    const user = await prisma.user.findUnique({
+      where: { id: verified.userId },
+      select: { is_active: true, role: true } // Fetch minimal data
+    });
+
+    if (!user || !user.is_active) {
+      return res.status(403).json({ error: 'You are inactivated. Contact Administrator.', forceLogout: true });
+    }
+
     req.user = verified;
     next();
   } catch (error) {
-    res.status(403).json({ error: 'Invalid token.' });
+    res.status(401).json({ error: 'Invalid token.' });
   }
 };
 

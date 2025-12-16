@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Component, type ErrorInfo, type ReactNode, useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { AuthService } from '../services/auth.service';
+import { GlobalLoader } from '../components/GlobalLoader';
 
 const theme = {
     ...MD3LightTheme,
@@ -119,6 +120,7 @@ export default function Layout() {
             <SafeAreaProvider>
                 <PaperProvider theme={theme}>
                     <AuthProtection>
+                        <GlobalLoader />
                         <Slot />
                     </AuthProtection>
                 </PaperProvider>

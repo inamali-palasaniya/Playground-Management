@@ -211,6 +211,7 @@ export const getUserFinancials = async (req: Request, res: Response) => {
         const { userId } = req.params;
         const ledger = await prisma.feeLedger.findMany({
             where: { user_id: Number(userId) },
+            include: { child_ledger: true },
             orderBy: { date: 'desc' }
         });
 

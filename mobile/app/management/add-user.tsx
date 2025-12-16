@@ -4,6 +4,8 @@ import { TextInput, Button, RadioButton, Text, useTheme } from 'react-native-pap
 import { useRouter } from 'expo-router';
 import apiService from '../../services/api.service';
 
+import { PermissionSelector } from '../../components/PermissionSelector';
+
 export default function AddUserScreen() {
     const router = useRouter();
     const theme = useTheme();
@@ -20,6 +22,7 @@ export default function AddUserScreen() {
     const [plans, setPlans] = useState<any[]>([]);
     const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
     const [paymentFrequency, setPaymentFrequency] = useState('MONTHLY');
+    const [permissions, setPermissions] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -66,7 +69,8 @@ export default function AddUserScreen() {
                     age,
                     user_type: userType,
                     plan_id: selectedPlan,
-                    payment_frequency: selectedPlan ? paymentFrequency : undefined
+                    payment_frequency: selectedPlan ? paymentFrequency : undefined,
+                    permissions: role === 'MANAGEMENT' ? permissions : []
                 }),
             });
             Alert.alert('Success', 'User created successfully');
@@ -79,8 +83,8 @@ export default function AddUserScreen() {
     };
 
     return (
-        <ScrollView style={styles.container}>
-            <Text variant="headlineSmall" style={styles.header}>Add New User</Text>
+        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 50 }}>
+            <Text variant="headlineSmall" style={styles.header}>Create New User</Text>
 
             <TextInput label="Name *" value={name} onChangeText={setName} style={styles.input} />
             <TextInput label="Phone *" value={phone} onChangeText={setPhone} keyboardType="phone-pad" style={styles.input} />
@@ -144,6 +148,16 @@ export default function AddUserScreen() {
                     <Text variant="bodySmall" style={{ color: 'gray' }}>
                         {paymentFrequency === 'MONTHLY' ? 'User pays monthly fixed fee.' : 'User pays per attendance (Punch In).'}
                     </Text>
+                </View>
+            )}
+
+            {role === 'MANAGEMENT' && (
+                <View style={{ marginTop: 20 }}>
+                    <Text variant="titleMedium" style={{ marginBottom: 10 }}>Permissions</Text>
+                    <PermissionSelector
+                        permissions={permissions}
+                        onChange={setPermissions}
+                    />
                 </View>
             )}
 
