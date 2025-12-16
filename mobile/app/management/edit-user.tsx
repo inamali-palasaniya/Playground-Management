@@ -11,14 +11,14 @@ export default function EditUserScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
     const theme = useTheme();
-    
+
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
     const [age, setAge] = useState('');
     const [userType, setUserType] = useState('NORMAL');
     const [role, setRole] = useState('NORMAL');
-    
+
     const [loading, setLoading] = useState(true);
     const [groups, setGroups] = useState<any[]>([]);
     const [selectedGroup, setSelectedGroup] = useState<number | null>(null);
@@ -102,7 +102,7 @@ export default function EditUserScreen() {
                 permissions: role === 'MANAGEMENT' ? permissions : [],
                 is_active: isActive
             });
-            Alert.alert('Success', 'User updated successfully');
+            // Alert.alert('Success', 'User updated successfully');
             router.back();
         } catch (error: any) {
             Alert.alert('Error', error.message || 'Failed to update user');
@@ -126,7 +126,7 @@ export default function EditUserScreen() {
             <TextInput label="Name *" value={name} onChangeText={setName} style={styles.input} />
             <TextInput label="Phone *" value={phone} onChangeText={setPhone} keyboardType="phone-pad" style={styles.input} />
             <TextInput label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" style={styles.input} />
-            
+
             <TextInput label="Age" value={age} onChangeText={setAge} keyboardType="numeric" style={styles.input} />
 
             <Text variant="titleMedium" style={{ marginTop: 10 }}>User Type</Text>
@@ -143,12 +143,12 @@ export default function EditUserScreen() {
                     <Text style={{ marginLeft: 8, fontWeight: 'bold', color: '#856404' }}>Super Admin (Immutable)</Text>
                 </View>
             ) : (
-                    <RadioButton.Group onValueChange={value => setRole(value)} value={role}>
-                        <View style={styles.radioRow}>
-                            <RadioButton.Item label="Player" value="NORMAL" />
-                            <RadioButton.Item label="Management" value="MANAGEMENT" />
-                        </View>
-                    </RadioButton.Group>
+                <RadioButton.Group onValueChange={value => setRole(value)} value={role}>
+                    <View style={styles.radioRow}>
+                        <RadioButton.Item label="Player" value="NORMAL" />
+                        <RadioButton.Item label="Management" value="MANAGEMENT" />
+                    </View>
+                </RadioButton.Group>
             )}
 
             <Text variant="titleMedium" style={{ marginTop: 10 }}>Group</Text>

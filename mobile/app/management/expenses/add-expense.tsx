@@ -72,10 +72,10 @@ export default function AddExpenseScreen() {
                     method: 'PUT',
                     body: JSON.stringify(payload)
                 });
-                Alert.alert('Success', 'Expense updated');
+                // Alert.alert('Success', 'Expense updated');
             } else {
                 await apiService.createExpense(payload);
-                Alert.alert('Success', 'Expense created');
+                // Alert.alert('Success', 'Expense created');
             }
             router.back();
         } catch (error: any) {
@@ -95,10 +95,8 @@ export default function AddExpenseScreen() {
             <ScrollView contentContainerStyle={styles.content}>
                 <TextInput
                     label="Title / Description *"
-                    value={notes} // User put name in notes often? Let's assume Name is primary. 
-                    // Actually, let's keep it simple. REQUIRED: Name.
-                    // Let's repurpose "Notes" as the optional description and add a proper "Title" field.
-                    onChangeText={setNotes} // Wait, I used notes as state. Let's add a separate name state.
+                    value={name}
+                    onChangeText={setName}
                     style={styles.input}
                 />
 

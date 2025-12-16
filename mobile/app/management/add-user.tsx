@@ -57,7 +57,7 @@ export default function AddUserScreen() {
         }
         setLoading(true);
         try {
-            await apiService.request('/api/users', { 
+            await apiService.request('/api/users', {
                 method: 'POST',
                 body: JSON.stringify({
                     name,
@@ -73,8 +73,8 @@ export default function AddUserScreen() {
                     permissions: role === 'MANAGEMENT' ? permissions : []
                 }),
             });
-            Alert.alert('Success', 'User created successfully');
-            router.back();
+            // Alert.alert('Success', 'User created successfully');
+            router.replace('/(tabs)/users');
         } catch (error: any) {
             Alert.alert('Error', error.message || 'Failed to create user');
         } finally {
