@@ -29,10 +29,13 @@ export type AggregateBallEvent = {
 export type BallEventAvgAggregateOutputType = {
   id: number | null
   match_id: number | null
+  innings: number | null
   over_number: number | null
   ball_number: number | null
   bowler_id: number | null
   striker_id: number | null
+  non_striker_id: number | null
+  batting_team_id: number | null
   runs_scored: number | null
   extras: number | null
 }
@@ -40,10 +43,13 @@ export type BallEventAvgAggregateOutputType = {
 export type BallEventSumAggregateOutputType = {
   id: number | null
   match_id: number | null
+  innings: number | null
   over_number: number | null
   ball_number: number | null
   bowler_id: number | null
   striker_id: number | null
+  non_striker_id: number | null
+  batting_team_id: number | null
   runs_scored: number | null
   extras: number | null
 }
@@ -51,45 +57,57 @@ export type BallEventSumAggregateOutputType = {
 export type BallEventMinAggregateOutputType = {
   id: number | null
   match_id: number | null
+  innings: number | null
   over_number: number | null
   ball_number: number | null
   bowler_id: number | null
   striker_id: number | null
+  non_striker_id: number | null
+  batting_team_id: number | null
   runs_scored: number | null
   is_wicket: boolean | null
   wicket_type: string | null
   extras: number | null
   extra_type: string | null
+  is_valid_ball: boolean | null
   timestamp: Date | null
 }
 
 export type BallEventMaxAggregateOutputType = {
   id: number | null
   match_id: number | null
+  innings: number | null
   over_number: number | null
   ball_number: number | null
   bowler_id: number | null
   striker_id: number | null
+  non_striker_id: number | null
+  batting_team_id: number | null
   runs_scored: number | null
   is_wicket: boolean | null
   wicket_type: string | null
   extras: number | null
   extra_type: string | null
+  is_valid_ball: boolean | null
   timestamp: Date | null
 }
 
 export type BallEventCountAggregateOutputType = {
   id: number
   match_id: number
+  innings: number
   over_number: number
   ball_number: number
   bowler_id: number
   striker_id: number
+  non_striker_id: number
+  batting_team_id: number
   runs_scored: number
   is_wicket: number
   wicket_type: number
   extras: number
   extra_type: number
+  is_valid_ball: number
   timestamp: number
   _all: number
 }
@@ -98,10 +116,13 @@ export type BallEventCountAggregateOutputType = {
 export type BallEventAvgAggregateInputType = {
   id?: true
   match_id?: true
+  innings?: true
   over_number?: true
   ball_number?: true
   bowler_id?: true
   striker_id?: true
+  non_striker_id?: true
+  batting_team_id?: true
   runs_scored?: true
   extras?: true
 }
@@ -109,10 +130,13 @@ export type BallEventAvgAggregateInputType = {
 export type BallEventSumAggregateInputType = {
   id?: true
   match_id?: true
+  innings?: true
   over_number?: true
   ball_number?: true
   bowler_id?: true
   striker_id?: true
+  non_striker_id?: true
+  batting_team_id?: true
   runs_scored?: true
   extras?: true
 }
@@ -120,45 +144,57 @@ export type BallEventSumAggregateInputType = {
 export type BallEventMinAggregateInputType = {
   id?: true
   match_id?: true
+  innings?: true
   over_number?: true
   ball_number?: true
   bowler_id?: true
   striker_id?: true
+  non_striker_id?: true
+  batting_team_id?: true
   runs_scored?: true
   is_wicket?: true
   wicket_type?: true
   extras?: true
   extra_type?: true
+  is_valid_ball?: true
   timestamp?: true
 }
 
 export type BallEventMaxAggregateInputType = {
   id?: true
   match_id?: true
+  innings?: true
   over_number?: true
   ball_number?: true
   bowler_id?: true
   striker_id?: true
+  non_striker_id?: true
+  batting_team_id?: true
   runs_scored?: true
   is_wicket?: true
   wicket_type?: true
   extras?: true
   extra_type?: true
+  is_valid_ball?: true
   timestamp?: true
 }
 
 export type BallEventCountAggregateInputType = {
   id?: true
   match_id?: true
+  innings?: true
   over_number?: true
   ball_number?: true
   bowler_id?: true
   striker_id?: true
+  non_striker_id?: true
+  batting_team_id?: true
   runs_scored?: true
   is_wicket?: true
   wicket_type?: true
   extras?: true
   extra_type?: true
+  is_valid_ball?: true
   timestamp?: true
   _all?: true
 }
@@ -252,15 +288,19 @@ export type BallEventGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
 export type BallEventGroupByOutputType = {
   id: number
   match_id: number
+  innings: number
   over_number: number
   ball_number: number
   bowler_id: number
   striker_id: number
+  non_striker_id: number | null
+  batting_team_id: number | null
   runs_scored: number
   is_wicket: boolean
   wicket_type: string | null
   extras: number
   extra_type: string | null
+  is_valid_ball: boolean
   timestamp: Date
   _count: BallEventCountAggregateOutputType | null
   _avg: BallEventAvgAggregateOutputType | null
@@ -290,37 +330,47 @@ export type BallEventWhereInput = {
   NOT?: Prisma.BallEventWhereInput | Prisma.BallEventWhereInput[]
   id?: Prisma.IntFilter<"BallEvent"> | number
   match_id?: Prisma.IntFilter<"BallEvent"> | number
+  innings?: Prisma.IntFilter<"BallEvent"> | number
   over_number?: Prisma.IntFilter<"BallEvent"> | number
   ball_number?: Prisma.IntFilter<"BallEvent"> | number
   bowler_id?: Prisma.IntFilter<"BallEvent"> | number
   striker_id?: Prisma.IntFilter<"BallEvent"> | number
+  non_striker_id?: Prisma.IntNullableFilter<"BallEvent"> | number | null
+  batting_team_id?: Prisma.IntNullableFilter<"BallEvent"> | number | null
   runs_scored?: Prisma.IntFilter<"BallEvent"> | number
   is_wicket?: Prisma.BoolFilter<"BallEvent"> | boolean
   wicket_type?: Prisma.StringNullableFilter<"BallEvent"> | string | null
   extras?: Prisma.IntFilter<"BallEvent"> | number
   extra_type?: Prisma.StringNullableFilter<"BallEvent"> | string | null
+  is_valid_ball?: Prisma.BoolFilter<"BallEvent"> | boolean
   timestamp?: Prisma.DateTimeFilter<"BallEvent"> | Date | string
   bowler?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   match?: Prisma.XOR<Prisma.MatchScalarRelationFilter, Prisma.MatchWhereInput>
   striker?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  non_striker?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type BallEventOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   match_id?: Prisma.SortOrder
+  innings?: Prisma.SortOrder
   over_number?: Prisma.SortOrder
   ball_number?: Prisma.SortOrder
   bowler_id?: Prisma.SortOrder
   striker_id?: Prisma.SortOrder
+  non_striker_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  batting_team_id?: Prisma.SortOrderInput | Prisma.SortOrder
   runs_scored?: Prisma.SortOrder
   is_wicket?: Prisma.SortOrder
   wicket_type?: Prisma.SortOrderInput | Prisma.SortOrder
   extras?: Prisma.SortOrder
   extra_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  is_valid_ball?: Prisma.SortOrder
   timestamp?: Prisma.SortOrder
   bowler?: Prisma.UserOrderByWithRelationInput
   match?: Prisma.MatchOrderByWithRelationInput
   striker?: Prisma.UserOrderByWithRelationInput
+  non_striker?: Prisma.UserOrderByWithRelationInput
 }
 
 export type BallEventWhereUniqueInput = Prisma.AtLeast<{
@@ -329,33 +379,42 @@ export type BallEventWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.BallEventWhereInput[]
   NOT?: Prisma.BallEventWhereInput | Prisma.BallEventWhereInput[]
   match_id?: Prisma.IntFilter<"BallEvent"> | number
+  innings?: Prisma.IntFilter<"BallEvent"> | number
   over_number?: Prisma.IntFilter<"BallEvent"> | number
   ball_number?: Prisma.IntFilter<"BallEvent"> | number
   bowler_id?: Prisma.IntFilter<"BallEvent"> | number
   striker_id?: Prisma.IntFilter<"BallEvent"> | number
+  non_striker_id?: Prisma.IntNullableFilter<"BallEvent"> | number | null
+  batting_team_id?: Prisma.IntNullableFilter<"BallEvent"> | number | null
   runs_scored?: Prisma.IntFilter<"BallEvent"> | number
   is_wicket?: Prisma.BoolFilter<"BallEvent"> | boolean
   wicket_type?: Prisma.StringNullableFilter<"BallEvent"> | string | null
   extras?: Prisma.IntFilter<"BallEvent"> | number
   extra_type?: Prisma.StringNullableFilter<"BallEvent"> | string | null
+  is_valid_ball?: Prisma.BoolFilter<"BallEvent"> | boolean
   timestamp?: Prisma.DateTimeFilter<"BallEvent"> | Date | string
   bowler?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   match?: Prisma.XOR<Prisma.MatchScalarRelationFilter, Prisma.MatchWhereInput>
   striker?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  non_striker?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
 
 export type BallEventOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   match_id?: Prisma.SortOrder
+  innings?: Prisma.SortOrder
   over_number?: Prisma.SortOrder
   ball_number?: Prisma.SortOrder
   bowler_id?: Prisma.SortOrder
   striker_id?: Prisma.SortOrder
+  non_striker_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  batting_team_id?: Prisma.SortOrderInput | Prisma.SortOrder
   runs_scored?: Prisma.SortOrder
   is_wicket?: Prisma.SortOrder
   wicket_type?: Prisma.SortOrderInput | Prisma.SortOrder
   extras?: Prisma.SortOrder
   extra_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  is_valid_ball?: Prisma.SortOrder
   timestamp?: Prisma.SortOrder
   _count?: Prisma.BallEventCountOrderByAggregateInput
   _avg?: Prisma.BallEventAvgOrderByAggregateInput
@@ -370,114 +429,145 @@ export type BallEventScalarWhereWithAggregatesInput = {
   NOT?: Prisma.BallEventScalarWhereWithAggregatesInput | Prisma.BallEventScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"BallEvent"> | number
   match_id?: Prisma.IntWithAggregatesFilter<"BallEvent"> | number
+  innings?: Prisma.IntWithAggregatesFilter<"BallEvent"> | number
   over_number?: Prisma.IntWithAggregatesFilter<"BallEvent"> | number
   ball_number?: Prisma.IntWithAggregatesFilter<"BallEvent"> | number
   bowler_id?: Prisma.IntWithAggregatesFilter<"BallEvent"> | number
   striker_id?: Prisma.IntWithAggregatesFilter<"BallEvent"> | number
+  non_striker_id?: Prisma.IntNullableWithAggregatesFilter<"BallEvent"> | number | null
+  batting_team_id?: Prisma.IntNullableWithAggregatesFilter<"BallEvent"> | number | null
   runs_scored?: Prisma.IntWithAggregatesFilter<"BallEvent"> | number
   is_wicket?: Prisma.BoolWithAggregatesFilter<"BallEvent"> | boolean
   wicket_type?: Prisma.StringNullableWithAggregatesFilter<"BallEvent"> | string | null
   extras?: Prisma.IntWithAggregatesFilter<"BallEvent"> | number
   extra_type?: Prisma.StringNullableWithAggregatesFilter<"BallEvent"> | string | null
+  is_valid_ball?: Prisma.BoolWithAggregatesFilter<"BallEvent"> | boolean
   timestamp?: Prisma.DateTimeWithAggregatesFilter<"BallEvent"> | Date | string
 }
 
 export type BallEventCreateInput = {
+  innings?: number
   over_number: number
   ball_number: number
+  batting_team_id?: number | null
   runs_scored?: number
   is_wicket?: boolean
   wicket_type?: string | null
   extras?: number
   extra_type?: string | null
+  is_valid_ball?: boolean
   timestamp?: Date | string
   bowler: Prisma.UserCreateNestedOneWithoutBowled_ballsInput
   match: Prisma.MatchCreateNestedOneWithoutBall_eventsInput
   striker: Prisma.UserCreateNestedOneWithoutFaced_ballsInput
+  non_striker?: Prisma.UserCreateNestedOneWithoutNon_striker_ballsInput
 }
 
 export type BallEventUncheckedCreateInput = {
   id?: number
   match_id: number
+  innings?: number
   over_number: number
   ball_number: number
   bowler_id: number
   striker_id: number
+  non_striker_id?: number | null
+  batting_team_id?: number | null
   runs_scored?: number
   is_wicket?: boolean
   wicket_type?: string | null
   extras?: number
   extra_type?: string | null
+  is_valid_ball?: boolean
   timestamp?: Date | string
 }
 
 export type BallEventUpdateInput = {
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
   over_number?: Prisma.IntFieldUpdateOperationsInput | number
   ball_number?: Prisma.IntFieldUpdateOperationsInput | number
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
   is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bowler?: Prisma.UserUpdateOneRequiredWithoutBowled_ballsNestedInput
   match?: Prisma.MatchUpdateOneRequiredWithoutBall_eventsNestedInput
   striker?: Prisma.UserUpdateOneRequiredWithoutFaced_ballsNestedInput
+  non_striker?: Prisma.UserUpdateOneWithoutNon_striker_ballsNestedInput
 }
 
 export type BallEventUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   match_id?: Prisma.IntFieldUpdateOperationsInput | number
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
   over_number?: Prisma.IntFieldUpdateOperationsInput | number
   ball_number?: Prisma.IntFieldUpdateOperationsInput | number
   bowler_id?: Prisma.IntFieldUpdateOperationsInput | number
   striker_id?: Prisma.IntFieldUpdateOperationsInput | number
+  non_striker_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
   is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type BallEventCreateManyInput = {
   id?: number
   match_id: number
+  innings?: number
   over_number: number
   ball_number: number
   bowler_id: number
   striker_id: number
+  non_striker_id?: number | null
+  batting_team_id?: number | null
   runs_scored?: number
   is_wicket?: boolean
   wicket_type?: string | null
   extras?: number
   extra_type?: string | null
+  is_valid_ball?: boolean
   timestamp?: Date | string
 }
 
 export type BallEventUpdateManyMutationInput = {
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
   over_number?: Prisma.IntFieldUpdateOperationsInput | number
   ball_number?: Prisma.IntFieldUpdateOperationsInput | number
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
   is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type BallEventUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   match_id?: Prisma.IntFieldUpdateOperationsInput | number
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
   over_number?: Prisma.IntFieldUpdateOperationsInput | number
   ball_number?: Prisma.IntFieldUpdateOperationsInput | number
   bowler_id?: Prisma.IntFieldUpdateOperationsInput | number
   striker_id?: Prisma.IntFieldUpdateOperationsInput | number
+  non_striker_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
   is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -494,25 +584,32 @@ export type BallEventOrderByRelationAggregateInput = {
 export type BallEventCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   match_id?: Prisma.SortOrder
+  innings?: Prisma.SortOrder
   over_number?: Prisma.SortOrder
   ball_number?: Prisma.SortOrder
   bowler_id?: Prisma.SortOrder
   striker_id?: Prisma.SortOrder
+  non_striker_id?: Prisma.SortOrder
+  batting_team_id?: Prisma.SortOrder
   runs_scored?: Prisma.SortOrder
   is_wicket?: Prisma.SortOrder
   wicket_type?: Prisma.SortOrder
   extras?: Prisma.SortOrder
   extra_type?: Prisma.SortOrder
+  is_valid_ball?: Prisma.SortOrder
   timestamp?: Prisma.SortOrder
 }
 
 export type BallEventAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   match_id?: Prisma.SortOrder
+  innings?: Prisma.SortOrder
   over_number?: Prisma.SortOrder
   ball_number?: Prisma.SortOrder
   bowler_id?: Prisma.SortOrder
   striker_id?: Prisma.SortOrder
+  non_striker_id?: Prisma.SortOrder
+  batting_team_id?: Prisma.SortOrder
   runs_scored?: Prisma.SortOrder
   extras?: Prisma.SortOrder
 }
@@ -520,40 +617,51 @@ export type BallEventAvgOrderByAggregateInput = {
 export type BallEventMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   match_id?: Prisma.SortOrder
+  innings?: Prisma.SortOrder
   over_number?: Prisma.SortOrder
   ball_number?: Prisma.SortOrder
   bowler_id?: Prisma.SortOrder
   striker_id?: Prisma.SortOrder
+  non_striker_id?: Prisma.SortOrder
+  batting_team_id?: Prisma.SortOrder
   runs_scored?: Prisma.SortOrder
   is_wicket?: Prisma.SortOrder
   wicket_type?: Prisma.SortOrder
   extras?: Prisma.SortOrder
   extra_type?: Prisma.SortOrder
+  is_valid_ball?: Prisma.SortOrder
   timestamp?: Prisma.SortOrder
 }
 
 export type BallEventMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   match_id?: Prisma.SortOrder
+  innings?: Prisma.SortOrder
   over_number?: Prisma.SortOrder
   ball_number?: Prisma.SortOrder
   bowler_id?: Prisma.SortOrder
   striker_id?: Prisma.SortOrder
+  non_striker_id?: Prisma.SortOrder
+  batting_team_id?: Prisma.SortOrder
   runs_scored?: Prisma.SortOrder
   is_wicket?: Prisma.SortOrder
   wicket_type?: Prisma.SortOrder
   extras?: Prisma.SortOrder
   extra_type?: Prisma.SortOrder
+  is_valid_ball?: Prisma.SortOrder
   timestamp?: Prisma.SortOrder
 }
 
 export type BallEventSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   match_id?: Prisma.SortOrder
+  innings?: Prisma.SortOrder
   over_number?: Prisma.SortOrder
   ball_number?: Prisma.SortOrder
   bowler_id?: Prisma.SortOrder
   striker_id?: Prisma.SortOrder
+  non_striker_id?: Prisma.SortOrder
+  batting_team_id?: Prisma.SortOrder
   runs_scored?: Prisma.SortOrder
   extras?: Prisma.SortOrder
 }
@@ -572,6 +680,13 @@ export type BallEventCreateNestedManyWithoutStrikerInput = {
   connect?: Prisma.BallEventWhereUniqueInput | Prisma.BallEventWhereUniqueInput[]
 }
 
+export type BallEventCreateNestedManyWithoutNon_strikerInput = {
+  create?: Prisma.XOR<Prisma.BallEventCreateWithoutNon_strikerInput, Prisma.BallEventUncheckedCreateWithoutNon_strikerInput> | Prisma.BallEventCreateWithoutNon_strikerInput[] | Prisma.BallEventUncheckedCreateWithoutNon_strikerInput[]
+  connectOrCreate?: Prisma.BallEventCreateOrConnectWithoutNon_strikerInput | Prisma.BallEventCreateOrConnectWithoutNon_strikerInput[]
+  createMany?: Prisma.BallEventCreateManyNon_strikerInputEnvelope
+  connect?: Prisma.BallEventWhereUniqueInput | Prisma.BallEventWhereUniqueInput[]
+}
+
 export type BallEventUncheckedCreateNestedManyWithoutBowlerInput = {
   create?: Prisma.XOR<Prisma.BallEventCreateWithoutBowlerInput, Prisma.BallEventUncheckedCreateWithoutBowlerInput> | Prisma.BallEventCreateWithoutBowlerInput[] | Prisma.BallEventUncheckedCreateWithoutBowlerInput[]
   connectOrCreate?: Prisma.BallEventCreateOrConnectWithoutBowlerInput | Prisma.BallEventCreateOrConnectWithoutBowlerInput[]
@@ -583,6 +698,13 @@ export type BallEventUncheckedCreateNestedManyWithoutStrikerInput = {
   create?: Prisma.XOR<Prisma.BallEventCreateWithoutStrikerInput, Prisma.BallEventUncheckedCreateWithoutStrikerInput> | Prisma.BallEventCreateWithoutStrikerInput[] | Prisma.BallEventUncheckedCreateWithoutStrikerInput[]
   connectOrCreate?: Prisma.BallEventCreateOrConnectWithoutStrikerInput | Prisma.BallEventCreateOrConnectWithoutStrikerInput[]
   createMany?: Prisma.BallEventCreateManyStrikerInputEnvelope
+  connect?: Prisma.BallEventWhereUniqueInput | Prisma.BallEventWhereUniqueInput[]
+}
+
+export type BallEventUncheckedCreateNestedManyWithoutNon_strikerInput = {
+  create?: Prisma.XOR<Prisma.BallEventCreateWithoutNon_strikerInput, Prisma.BallEventUncheckedCreateWithoutNon_strikerInput> | Prisma.BallEventCreateWithoutNon_strikerInput[] | Prisma.BallEventUncheckedCreateWithoutNon_strikerInput[]
+  connectOrCreate?: Prisma.BallEventCreateOrConnectWithoutNon_strikerInput | Prisma.BallEventCreateOrConnectWithoutNon_strikerInput[]
+  createMany?: Prisma.BallEventCreateManyNon_strikerInputEnvelope
   connect?: Prisma.BallEventWhereUniqueInput | Prisma.BallEventWhereUniqueInput[]
 }
 
@@ -614,6 +736,20 @@ export type BallEventUpdateManyWithoutStrikerNestedInput = {
   deleteMany?: Prisma.BallEventScalarWhereInput | Prisma.BallEventScalarWhereInput[]
 }
 
+export type BallEventUpdateManyWithoutNon_strikerNestedInput = {
+  create?: Prisma.XOR<Prisma.BallEventCreateWithoutNon_strikerInput, Prisma.BallEventUncheckedCreateWithoutNon_strikerInput> | Prisma.BallEventCreateWithoutNon_strikerInput[] | Prisma.BallEventUncheckedCreateWithoutNon_strikerInput[]
+  connectOrCreate?: Prisma.BallEventCreateOrConnectWithoutNon_strikerInput | Prisma.BallEventCreateOrConnectWithoutNon_strikerInput[]
+  upsert?: Prisma.BallEventUpsertWithWhereUniqueWithoutNon_strikerInput | Prisma.BallEventUpsertWithWhereUniqueWithoutNon_strikerInput[]
+  createMany?: Prisma.BallEventCreateManyNon_strikerInputEnvelope
+  set?: Prisma.BallEventWhereUniqueInput | Prisma.BallEventWhereUniqueInput[]
+  disconnect?: Prisma.BallEventWhereUniqueInput | Prisma.BallEventWhereUniqueInput[]
+  delete?: Prisma.BallEventWhereUniqueInput | Prisma.BallEventWhereUniqueInput[]
+  connect?: Prisma.BallEventWhereUniqueInput | Prisma.BallEventWhereUniqueInput[]
+  update?: Prisma.BallEventUpdateWithWhereUniqueWithoutNon_strikerInput | Prisma.BallEventUpdateWithWhereUniqueWithoutNon_strikerInput[]
+  updateMany?: Prisma.BallEventUpdateManyWithWhereWithoutNon_strikerInput | Prisma.BallEventUpdateManyWithWhereWithoutNon_strikerInput[]
+  deleteMany?: Prisma.BallEventScalarWhereInput | Prisma.BallEventScalarWhereInput[]
+}
+
 export type BallEventUncheckedUpdateManyWithoutBowlerNestedInput = {
   create?: Prisma.XOR<Prisma.BallEventCreateWithoutBowlerInput, Prisma.BallEventUncheckedCreateWithoutBowlerInput> | Prisma.BallEventCreateWithoutBowlerInput[] | Prisma.BallEventUncheckedCreateWithoutBowlerInput[]
   connectOrCreate?: Prisma.BallEventCreateOrConnectWithoutBowlerInput | Prisma.BallEventCreateOrConnectWithoutBowlerInput[]
@@ -639,6 +775,20 @@ export type BallEventUncheckedUpdateManyWithoutStrikerNestedInput = {
   connect?: Prisma.BallEventWhereUniqueInput | Prisma.BallEventWhereUniqueInput[]
   update?: Prisma.BallEventUpdateWithWhereUniqueWithoutStrikerInput | Prisma.BallEventUpdateWithWhereUniqueWithoutStrikerInput[]
   updateMany?: Prisma.BallEventUpdateManyWithWhereWithoutStrikerInput | Prisma.BallEventUpdateManyWithWhereWithoutStrikerInput[]
+  deleteMany?: Prisma.BallEventScalarWhereInput | Prisma.BallEventScalarWhereInput[]
+}
+
+export type BallEventUncheckedUpdateManyWithoutNon_strikerNestedInput = {
+  create?: Prisma.XOR<Prisma.BallEventCreateWithoutNon_strikerInput, Prisma.BallEventUncheckedCreateWithoutNon_strikerInput> | Prisma.BallEventCreateWithoutNon_strikerInput[] | Prisma.BallEventUncheckedCreateWithoutNon_strikerInput[]
+  connectOrCreate?: Prisma.BallEventCreateOrConnectWithoutNon_strikerInput | Prisma.BallEventCreateOrConnectWithoutNon_strikerInput[]
+  upsert?: Prisma.BallEventUpsertWithWhereUniqueWithoutNon_strikerInput | Prisma.BallEventUpsertWithWhereUniqueWithoutNon_strikerInput[]
+  createMany?: Prisma.BallEventCreateManyNon_strikerInputEnvelope
+  set?: Prisma.BallEventWhereUniqueInput | Prisma.BallEventWhereUniqueInput[]
+  disconnect?: Prisma.BallEventWhereUniqueInput | Prisma.BallEventWhereUniqueInput[]
+  delete?: Prisma.BallEventWhereUniqueInput | Prisma.BallEventWhereUniqueInput[]
+  connect?: Prisma.BallEventWhereUniqueInput | Prisma.BallEventWhereUniqueInput[]
+  update?: Prisma.BallEventUpdateWithWhereUniqueWithoutNon_strikerInput | Prisma.BallEventUpdateWithWhereUniqueWithoutNon_strikerInput[]
+  updateMany?: Prisma.BallEventUpdateManyWithWhereWithoutNon_strikerInput | Prisma.BallEventUpdateManyWithWhereWithoutNon_strikerInput[]
   deleteMany?: Prisma.BallEventScalarWhereInput | Prisma.BallEventScalarWhereInput[]
 }
 
@@ -685,29 +835,37 @@ export type BallEventUncheckedUpdateManyWithoutMatchNestedInput = {
 }
 
 export type BallEventCreateWithoutBowlerInput = {
+  innings?: number
   over_number: number
   ball_number: number
+  batting_team_id?: number | null
   runs_scored?: number
   is_wicket?: boolean
   wicket_type?: string | null
   extras?: number
   extra_type?: string | null
+  is_valid_ball?: boolean
   timestamp?: Date | string
   match: Prisma.MatchCreateNestedOneWithoutBall_eventsInput
   striker: Prisma.UserCreateNestedOneWithoutFaced_ballsInput
+  non_striker?: Prisma.UserCreateNestedOneWithoutNon_striker_ballsInput
 }
 
 export type BallEventUncheckedCreateWithoutBowlerInput = {
   id?: number
   match_id: number
+  innings?: number
   over_number: number
   ball_number: number
   striker_id: number
+  non_striker_id?: number | null
+  batting_team_id?: number | null
   runs_scored?: number
   is_wicket?: boolean
   wicket_type?: string | null
   extras?: number
   extra_type?: string | null
+  is_valid_ball?: boolean
   timestamp?: Date | string
 }
 
@@ -722,29 +880,37 @@ export type BallEventCreateManyBowlerInputEnvelope = {
 }
 
 export type BallEventCreateWithoutStrikerInput = {
+  innings?: number
   over_number: number
   ball_number: number
+  batting_team_id?: number | null
   runs_scored?: number
   is_wicket?: boolean
   wicket_type?: string | null
   extras?: number
   extra_type?: string | null
+  is_valid_ball?: boolean
   timestamp?: Date | string
   bowler: Prisma.UserCreateNestedOneWithoutBowled_ballsInput
   match: Prisma.MatchCreateNestedOneWithoutBall_eventsInput
+  non_striker?: Prisma.UserCreateNestedOneWithoutNon_striker_ballsInput
 }
 
 export type BallEventUncheckedCreateWithoutStrikerInput = {
   id?: number
   match_id: number
+  innings?: number
   over_number: number
   ball_number: number
   bowler_id: number
+  non_striker_id?: number | null
+  batting_team_id?: number | null
   runs_scored?: number
   is_wicket?: boolean
   wicket_type?: string | null
   extras?: number
   extra_type?: string | null
+  is_valid_ball?: boolean
   timestamp?: Date | string
 }
 
@@ -755,6 +921,51 @@ export type BallEventCreateOrConnectWithoutStrikerInput = {
 
 export type BallEventCreateManyStrikerInputEnvelope = {
   data: Prisma.BallEventCreateManyStrikerInput | Prisma.BallEventCreateManyStrikerInput[]
+  skipDuplicates?: boolean
+}
+
+export type BallEventCreateWithoutNon_strikerInput = {
+  innings?: number
+  over_number: number
+  ball_number: number
+  batting_team_id?: number | null
+  runs_scored?: number
+  is_wicket?: boolean
+  wicket_type?: string | null
+  extras?: number
+  extra_type?: string | null
+  is_valid_ball?: boolean
+  timestamp?: Date | string
+  bowler: Prisma.UserCreateNestedOneWithoutBowled_ballsInput
+  match: Prisma.MatchCreateNestedOneWithoutBall_eventsInput
+  striker: Prisma.UserCreateNestedOneWithoutFaced_ballsInput
+}
+
+export type BallEventUncheckedCreateWithoutNon_strikerInput = {
+  id?: number
+  match_id: number
+  innings?: number
+  over_number: number
+  ball_number: number
+  bowler_id: number
+  striker_id: number
+  batting_team_id?: number | null
+  runs_scored?: number
+  is_wicket?: boolean
+  wicket_type?: string | null
+  extras?: number
+  extra_type?: string | null
+  is_valid_ball?: boolean
+  timestamp?: Date | string
+}
+
+export type BallEventCreateOrConnectWithoutNon_strikerInput = {
+  where: Prisma.BallEventWhereUniqueInput
+  create: Prisma.XOR<Prisma.BallEventCreateWithoutNon_strikerInput, Prisma.BallEventUncheckedCreateWithoutNon_strikerInput>
+}
+
+export type BallEventCreateManyNon_strikerInputEnvelope = {
+  data: Prisma.BallEventCreateManyNon_strikerInput | Prisma.BallEventCreateManyNon_strikerInput[]
   skipDuplicates?: boolean
 }
 
@@ -780,15 +991,19 @@ export type BallEventScalarWhereInput = {
   NOT?: Prisma.BallEventScalarWhereInput | Prisma.BallEventScalarWhereInput[]
   id?: Prisma.IntFilter<"BallEvent"> | number
   match_id?: Prisma.IntFilter<"BallEvent"> | number
+  innings?: Prisma.IntFilter<"BallEvent"> | number
   over_number?: Prisma.IntFilter<"BallEvent"> | number
   ball_number?: Prisma.IntFilter<"BallEvent"> | number
   bowler_id?: Prisma.IntFilter<"BallEvent"> | number
   striker_id?: Prisma.IntFilter<"BallEvent"> | number
+  non_striker_id?: Prisma.IntNullableFilter<"BallEvent"> | number | null
+  batting_team_id?: Prisma.IntNullableFilter<"BallEvent"> | number | null
   runs_scored?: Prisma.IntFilter<"BallEvent"> | number
   is_wicket?: Prisma.BoolFilter<"BallEvent"> | boolean
   wicket_type?: Prisma.StringNullableFilter<"BallEvent"> | string | null
   extras?: Prisma.IntFilter<"BallEvent"> | number
   extra_type?: Prisma.StringNullableFilter<"BallEvent"> | string | null
+  is_valid_ball?: Prisma.BoolFilter<"BallEvent"> | boolean
   timestamp?: Prisma.DateTimeFilter<"BallEvent"> | Date | string
 }
 
@@ -808,30 +1023,54 @@ export type BallEventUpdateManyWithWhereWithoutStrikerInput = {
   data: Prisma.XOR<Prisma.BallEventUpdateManyMutationInput, Prisma.BallEventUncheckedUpdateManyWithoutStrikerInput>
 }
 
+export type BallEventUpsertWithWhereUniqueWithoutNon_strikerInput = {
+  where: Prisma.BallEventWhereUniqueInput
+  update: Prisma.XOR<Prisma.BallEventUpdateWithoutNon_strikerInput, Prisma.BallEventUncheckedUpdateWithoutNon_strikerInput>
+  create: Prisma.XOR<Prisma.BallEventCreateWithoutNon_strikerInput, Prisma.BallEventUncheckedCreateWithoutNon_strikerInput>
+}
+
+export type BallEventUpdateWithWhereUniqueWithoutNon_strikerInput = {
+  where: Prisma.BallEventWhereUniqueInput
+  data: Prisma.XOR<Prisma.BallEventUpdateWithoutNon_strikerInput, Prisma.BallEventUncheckedUpdateWithoutNon_strikerInput>
+}
+
+export type BallEventUpdateManyWithWhereWithoutNon_strikerInput = {
+  where: Prisma.BallEventScalarWhereInput
+  data: Prisma.XOR<Prisma.BallEventUpdateManyMutationInput, Prisma.BallEventUncheckedUpdateManyWithoutNon_strikerInput>
+}
+
 export type BallEventCreateWithoutMatchInput = {
+  innings?: number
   over_number: number
   ball_number: number
+  batting_team_id?: number | null
   runs_scored?: number
   is_wicket?: boolean
   wicket_type?: string | null
   extras?: number
   extra_type?: string | null
+  is_valid_ball?: boolean
   timestamp?: Date | string
   bowler: Prisma.UserCreateNestedOneWithoutBowled_ballsInput
   striker: Prisma.UserCreateNestedOneWithoutFaced_ballsInput
+  non_striker?: Prisma.UserCreateNestedOneWithoutNon_striker_ballsInput
 }
 
 export type BallEventUncheckedCreateWithoutMatchInput = {
   id?: number
+  innings?: number
   over_number: number
   ball_number: number
   bowler_id: number
   striker_id: number
+  non_striker_id?: number | null
+  batting_team_id?: number | null
   runs_scored?: number
   is_wicket?: boolean
   wicket_type?: string | null
   extras?: number
   extra_type?: string | null
+  is_valid_ball?: boolean
   timestamp?: Date | string
 }
 
@@ -864,165 +1103,284 @@ export type BallEventUpdateManyWithWhereWithoutMatchInput = {
 export type BallEventCreateManyBowlerInput = {
   id?: number
   match_id: number
+  innings?: number
   over_number: number
   ball_number: number
   striker_id: number
+  non_striker_id?: number | null
+  batting_team_id?: number | null
   runs_scored?: number
   is_wicket?: boolean
   wicket_type?: string | null
   extras?: number
   extra_type?: string | null
+  is_valid_ball?: boolean
   timestamp?: Date | string
 }
 
 export type BallEventCreateManyStrikerInput = {
   id?: number
   match_id: number
+  innings?: number
   over_number: number
   ball_number: number
   bowler_id: number
+  non_striker_id?: number | null
+  batting_team_id?: number | null
   runs_scored?: number
   is_wicket?: boolean
   wicket_type?: string | null
   extras?: number
   extra_type?: string | null
+  is_valid_ball?: boolean
+  timestamp?: Date | string
+}
+
+export type BallEventCreateManyNon_strikerInput = {
+  id?: number
+  match_id: number
+  innings?: number
+  over_number: number
+  ball_number: number
+  bowler_id: number
+  striker_id: number
+  batting_team_id?: number | null
+  runs_scored?: number
+  is_wicket?: boolean
+  wicket_type?: string | null
+  extras?: number
+  extra_type?: string | null
+  is_valid_ball?: boolean
   timestamp?: Date | string
 }
 
 export type BallEventUpdateWithoutBowlerInput = {
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
   over_number?: Prisma.IntFieldUpdateOperationsInput | number
   ball_number?: Prisma.IntFieldUpdateOperationsInput | number
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
   is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   match?: Prisma.MatchUpdateOneRequiredWithoutBall_eventsNestedInput
   striker?: Prisma.UserUpdateOneRequiredWithoutFaced_ballsNestedInput
+  non_striker?: Prisma.UserUpdateOneWithoutNon_striker_ballsNestedInput
 }
 
 export type BallEventUncheckedUpdateWithoutBowlerInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   match_id?: Prisma.IntFieldUpdateOperationsInput | number
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
   over_number?: Prisma.IntFieldUpdateOperationsInput | number
   ball_number?: Prisma.IntFieldUpdateOperationsInput | number
   striker_id?: Prisma.IntFieldUpdateOperationsInput | number
+  non_striker_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
   is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type BallEventUncheckedUpdateManyWithoutBowlerInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   match_id?: Prisma.IntFieldUpdateOperationsInput | number
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
   over_number?: Prisma.IntFieldUpdateOperationsInput | number
   ball_number?: Prisma.IntFieldUpdateOperationsInput | number
   striker_id?: Prisma.IntFieldUpdateOperationsInput | number
+  non_striker_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
   is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type BallEventUpdateWithoutStrikerInput = {
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
   over_number?: Prisma.IntFieldUpdateOperationsInput | number
   ball_number?: Prisma.IntFieldUpdateOperationsInput | number
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
   is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bowler?: Prisma.UserUpdateOneRequiredWithoutBowled_ballsNestedInput
   match?: Prisma.MatchUpdateOneRequiredWithoutBall_eventsNestedInput
+  non_striker?: Prisma.UserUpdateOneWithoutNon_striker_ballsNestedInput
 }
 
 export type BallEventUncheckedUpdateWithoutStrikerInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   match_id?: Prisma.IntFieldUpdateOperationsInput | number
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
   over_number?: Prisma.IntFieldUpdateOperationsInput | number
   ball_number?: Prisma.IntFieldUpdateOperationsInput | number
   bowler_id?: Prisma.IntFieldUpdateOperationsInput | number
+  non_striker_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
   is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type BallEventUncheckedUpdateManyWithoutStrikerInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   match_id?: Prisma.IntFieldUpdateOperationsInput | number
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
   over_number?: Prisma.IntFieldUpdateOperationsInput | number
   ball_number?: Prisma.IntFieldUpdateOperationsInput | number
   bowler_id?: Prisma.IntFieldUpdateOperationsInput | number
+  non_striker_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
   is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type BallEventUpdateWithoutNon_strikerInput = {
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
+  over_number?: Prisma.IntFieldUpdateOperationsInput | number
+  ball_number?: Prisma.IntFieldUpdateOperationsInput | number
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
+  is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  extras?: Prisma.IntFieldUpdateOperationsInput | number
+  extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bowler?: Prisma.UserUpdateOneRequiredWithoutBowled_ballsNestedInput
+  match?: Prisma.MatchUpdateOneRequiredWithoutBall_eventsNestedInput
+  striker?: Prisma.UserUpdateOneRequiredWithoutFaced_ballsNestedInput
+}
+
+export type BallEventUncheckedUpdateWithoutNon_strikerInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  match_id?: Prisma.IntFieldUpdateOperationsInput | number
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
+  over_number?: Prisma.IntFieldUpdateOperationsInput | number
+  ball_number?: Prisma.IntFieldUpdateOperationsInput | number
+  bowler_id?: Prisma.IntFieldUpdateOperationsInput | number
+  striker_id?: Prisma.IntFieldUpdateOperationsInput | number
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
+  is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  extras?: Prisma.IntFieldUpdateOperationsInput | number
+  extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type BallEventUncheckedUpdateManyWithoutNon_strikerInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  match_id?: Prisma.IntFieldUpdateOperationsInput | number
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
+  over_number?: Prisma.IntFieldUpdateOperationsInput | number
+  ball_number?: Prisma.IntFieldUpdateOperationsInput | number
+  bowler_id?: Prisma.IntFieldUpdateOperationsInput | number
+  striker_id?: Prisma.IntFieldUpdateOperationsInput | number
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
+  is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  extras?: Prisma.IntFieldUpdateOperationsInput | number
+  extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type BallEventCreateManyMatchInput = {
   id?: number
+  innings?: number
   over_number: number
   ball_number: number
   bowler_id: number
   striker_id: number
+  non_striker_id?: number | null
+  batting_team_id?: number | null
   runs_scored?: number
   is_wicket?: boolean
   wicket_type?: string | null
   extras?: number
   extra_type?: string | null
+  is_valid_ball?: boolean
   timestamp?: Date | string
 }
 
 export type BallEventUpdateWithoutMatchInput = {
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
   over_number?: Prisma.IntFieldUpdateOperationsInput | number
   ball_number?: Prisma.IntFieldUpdateOperationsInput | number
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
   is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   bowler?: Prisma.UserUpdateOneRequiredWithoutBowled_ballsNestedInput
   striker?: Prisma.UserUpdateOneRequiredWithoutFaced_ballsNestedInput
+  non_striker?: Prisma.UserUpdateOneWithoutNon_striker_ballsNestedInput
 }
 
 export type BallEventUncheckedUpdateWithoutMatchInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
   over_number?: Prisma.IntFieldUpdateOperationsInput | number
   ball_number?: Prisma.IntFieldUpdateOperationsInput | number
   bowler_id?: Prisma.IntFieldUpdateOperationsInput | number
   striker_id?: Prisma.IntFieldUpdateOperationsInput | number
+  non_striker_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
   is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type BallEventUncheckedUpdateManyWithoutMatchInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  innings?: Prisma.IntFieldUpdateOperationsInput | number
   over_number?: Prisma.IntFieldUpdateOperationsInput | number
   ball_number?: Prisma.IntFieldUpdateOperationsInput | number
   bowler_id?: Prisma.IntFieldUpdateOperationsInput | number
   striker_id?: Prisma.IntFieldUpdateOperationsInput | number
+  non_striker_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  batting_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   runs_scored?: Prisma.IntFieldUpdateOperationsInput | number
   is_wicket?: Prisma.BoolFieldUpdateOperationsInput | boolean
   wicket_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   extras?: Prisma.IntFieldUpdateOperationsInput | number
   extra_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_valid_ball?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -1031,87 +1389,109 @@ export type BallEventUncheckedUpdateManyWithoutMatchInput = {
 export type BallEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   match_id?: boolean
+  innings?: boolean
   over_number?: boolean
   ball_number?: boolean
   bowler_id?: boolean
   striker_id?: boolean
+  non_striker_id?: boolean
+  batting_team_id?: boolean
   runs_scored?: boolean
   is_wicket?: boolean
   wicket_type?: boolean
   extras?: boolean
   extra_type?: boolean
+  is_valid_ball?: boolean
   timestamp?: boolean
   bowler?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   striker?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  non_striker?: boolean | Prisma.BallEvent$non_strikerArgs<ExtArgs>
 }, ExtArgs["result"]["ballEvent"]>
 
 export type BallEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   match_id?: boolean
+  innings?: boolean
   over_number?: boolean
   ball_number?: boolean
   bowler_id?: boolean
   striker_id?: boolean
+  non_striker_id?: boolean
+  batting_team_id?: boolean
   runs_scored?: boolean
   is_wicket?: boolean
   wicket_type?: boolean
   extras?: boolean
   extra_type?: boolean
+  is_valid_ball?: boolean
   timestamp?: boolean
   bowler?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   striker?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  non_striker?: boolean | Prisma.BallEvent$non_strikerArgs<ExtArgs>
 }, ExtArgs["result"]["ballEvent"]>
 
 export type BallEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   match_id?: boolean
+  innings?: boolean
   over_number?: boolean
   ball_number?: boolean
   bowler_id?: boolean
   striker_id?: boolean
+  non_striker_id?: boolean
+  batting_team_id?: boolean
   runs_scored?: boolean
   is_wicket?: boolean
   wicket_type?: boolean
   extras?: boolean
   extra_type?: boolean
+  is_valid_ball?: boolean
   timestamp?: boolean
   bowler?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   striker?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  non_striker?: boolean | Prisma.BallEvent$non_strikerArgs<ExtArgs>
 }, ExtArgs["result"]["ballEvent"]>
 
 export type BallEventSelectScalar = {
   id?: boolean
   match_id?: boolean
+  innings?: boolean
   over_number?: boolean
   ball_number?: boolean
   bowler_id?: boolean
   striker_id?: boolean
+  non_striker_id?: boolean
+  batting_team_id?: boolean
   runs_scored?: boolean
   is_wicket?: boolean
   wicket_type?: boolean
   extras?: boolean
   extra_type?: boolean
+  is_valid_ball?: boolean
   timestamp?: boolean
 }
 
-export type BallEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "match_id" | "over_number" | "ball_number" | "bowler_id" | "striker_id" | "runs_scored" | "is_wicket" | "wicket_type" | "extras" | "extra_type" | "timestamp", ExtArgs["result"]["ballEvent"]>
+export type BallEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "match_id" | "innings" | "over_number" | "ball_number" | "bowler_id" | "striker_id" | "non_striker_id" | "batting_team_id" | "runs_scored" | "is_wicket" | "wicket_type" | "extras" | "extra_type" | "is_valid_ball" | "timestamp", ExtArgs["result"]["ballEvent"]>
 export type BallEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   bowler?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   striker?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  non_striker?: boolean | Prisma.BallEvent$non_strikerArgs<ExtArgs>
 }
 export type BallEventIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   bowler?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   striker?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  non_striker?: boolean | Prisma.BallEvent$non_strikerArgs<ExtArgs>
 }
 export type BallEventIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   bowler?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   striker?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  non_striker?: boolean | Prisma.BallEvent$non_strikerArgs<ExtArgs>
 }
 
 export type $BallEventPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1120,19 +1500,24 @@ export type $BallEventPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     bowler: Prisma.$UserPayload<ExtArgs>
     match: Prisma.$MatchPayload<ExtArgs>
     striker: Prisma.$UserPayload<ExtArgs>
+    non_striker: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     match_id: number
+    innings: number
     over_number: number
     ball_number: number
     bowler_id: number
     striker_id: number
+    non_striker_id: number | null
+    batting_team_id: number | null
     runs_scored: number
     is_wicket: boolean
     wicket_type: string | null
     extras: number
     extra_type: string | null
+    is_valid_ball: boolean
     timestamp: Date
   }, ExtArgs["result"]["ballEvent"]>
   composites: {}
@@ -1531,6 +1916,7 @@ export interface Prisma__BallEventClient<T, Null = never, ExtArgs extends runtim
   bowler<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   match<T extends Prisma.MatchDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.MatchDefaultArgs<ExtArgs>>): Prisma.Prisma__MatchClient<runtime.Types.Result.GetResult<Prisma.$MatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   striker<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  non_striker<T extends Prisma.BallEvent$non_strikerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BallEvent$non_strikerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1562,15 +1948,19 @@ export interface Prisma__BallEventClient<T, Null = never, ExtArgs extends runtim
 export interface BallEventFieldRefs {
   readonly id: Prisma.FieldRef<"BallEvent", 'Int'>
   readonly match_id: Prisma.FieldRef<"BallEvent", 'Int'>
+  readonly innings: Prisma.FieldRef<"BallEvent", 'Int'>
   readonly over_number: Prisma.FieldRef<"BallEvent", 'Int'>
   readonly ball_number: Prisma.FieldRef<"BallEvent", 'Int'>
   readonly bowler_id: Prisma.FieldRef<"BallEvent", 'Int'>
   readonly striker_id: Prisma.FieldRef<"BallEvent", 'Int'>
+  readonly non_striker_id: Prisma.FieldRef<"BallEvent", 'Int'>
+  readonly batting_team_id: Prisma.FieldRef<"BallEvent", 'Int'>
   readonly runs_scored: Prisma.FieldRef<"BallEvent", 'Int'>
   readonly is_wicket: Prisma.FieldRef<"BallEvent", 'Boolean'>
   readonly wicket_type: Prisma.FieldRef<"BallEvent", 'String'>
   readonly extras: Prisma.FieldRef<"BallEvent", 'Int'>
   readonly extra_type: Prisma.FieldRef<"BallEvent", 'String'>
+  readonly is_valid_ball: Prisma.FieldRef<"BallEvent", 'Boolean'>
   readonly timestamp: Prisma.FieldRef<"BallEvent", 'DateTime'>
 }
     
@@ -1965,6 +2355,25 @@ export type BallEventDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Limit how many BallEvents to delete.
    */
   limit?: number
+}
+
+/**
+ * BallEvent.non_striker
+ */
+export type BallEvent$non_strikerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
 }
 
 /**

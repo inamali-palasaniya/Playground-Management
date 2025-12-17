@@ -12,7 +12,7 @@ import {
   addPlayerToTeam,
   removePlayerFromTeam,
 } from '../controllers/tournament.controller.js';
-import { setManOfTheSeries } from '../controllers/match-analytics.controller.js';
+import { setManOfTheSeries, getPointsTable, getTournamentStats } from '../controllers/match-analytics.controller.js';
 
 const router = Router();
 
@@ -22,6 +22,10 @@ router.get('/:id', getTournamentById);
 router.post('/', createTournament);
 router.put('/:id', updateTournament);
 router.delete('/:id', deleteTournament);
+
+// Points Table & Stats
+router.get('/:tournamentId/points-table', getPointsTable);
+router.get('/:tournamentId/stats', getTournamentStats);
 
 // Team routes
 router.get('/:tournamentId/teams', getTeamsByTournament);

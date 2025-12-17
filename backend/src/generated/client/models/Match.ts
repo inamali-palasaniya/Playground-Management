@@ -32,6 +32,9 @@ export type MatchAvgAggregateOutputType = {
   team_a_id: number | null
   team_b_id: number | null
   overs: number | null
+  current_innings: number | null
+  toss_winner_id: number | null
+  winning_team_id: number | null
   man_of_the_match_id: number | null
 }
 
@@ -41,6 +44,9 @@ export type MatchSumAggregateOutputType = {
   team_a_id: number | null
   team_b_id: number | null
   overs: number | null
+  current_innings: number | null
+  toss_winner_id: number | null
+  winning_team_id: number | null
   man_of_the_match_id: number | null
 }
 
@@ -52,6 +58,12 @@ export type MatchMinAggregateOutputType = {
   start_time: Date | null
   status: $Enums.MatchStatus | null
   overs: number | null
+  current_innings: number | null
+  is_completed: boolean | null
+  toss_winner_id: number | null
+  toss_decision: string | null
+  winning_team_id: number | null
+  result_description: string | null
   man_of_the_match_id: number | null
 }
 
@@ -63,6 +75,12 @@ export type MatchMaxAggregateOutputType = {
   start_time: Date | null
   status: $Enums.MatchStatus | null
   overs: number | null
+  current_innings: number | null
+  is_completed: boolean | null
+  toss_winner_id: number | null
+  toss_decision: string | null
+  winning_team_id: number | null
+  result_description: string | null
   man_of_the_match_id: number | null
 }
 
@@ -74,6 +92,12 @@ export type MatchCountAggregateOutputType = {
   start_time: number
   status: number
   overs: number
+  current_innings: number
+  is_completed: number
+  toss_winner_id: number
+  toss_decision: number
+  winning_team_id: number
+  result_description: number
   man_of_the_match_id: number
   _all: number
 }
@@ -85,6 +109,9 @@ export type MatchAvgAggregateInputType = {
   team_a_id?: true
   team_b_id?: true
   overs?: true
+  current_innings?: true
+  toss_winner_id?: true
+  winning_team_id?: true
   man_of_the_match_id?: true
 }
 
@@ -94,6 +121,9 @@ export type MatchSumAggregateInputType = {
   team_a_id?: true
   team_b_id?: true
   overs?: true
+  current_innings?: true
+  toss_winner_id?: true
+  winning_team_id?: true
   man_of_the_match_id?: true
 }
 
@@ -105,6 +135,12 @@ export type MatchMinAggregateInputType = {
   start_time?: true
   status?: true
   overs?: true
+  current_innings?: true
+  is_completed?: true
+  toss_winner_id?: true
+  toss_decision?: true
+  winning_team_id?: true
+  result_description?: true
   man_of_the_match_id?: true
 }
 
@@ -116,6 +152,12 @@ export type MatchMaxAggregateInputType = {
   start_time?: true
   status?: true
   overs?: true
+  current_innings?: true
+  is_completed?: true
+  toss_winner_id?: true
+  toss_decision?: true
+  winning_team_id?: true
+  result_description?: true
   man_of_the_match_id?: true
 }
 
@@ -127,6 +169,12 @@ export type MatchCountAggregateInputType = {
   start_time?: true
   status?: true
   overs?: true
+  current_innings?: true
+  is_completed?: true
+  toss_winner_id?: true
+  toss_decision?: true
+  winning_team_id?: true
+  result_description?: true
   man_of_the_match_id?: true
   _all?: true
 }
@@ -225,6 +273,12 @@ export type MatchGroupByOutputType = {
   start_time: Date
   status: $Enums.MatchStatus
   overs: number
+  current_innings: number
+  is_completed: boolean
+  toss_winner_id: number | null
+  toss_decision: string | null
+  winning_team_id: number | null
+  result_description: string | null
   man_of_the_match_id: number | null
   _count: MatchCountAggregateOutputType | null
   _avg: MatchAvgAggregateOutputType | null
@@ -259,11 +313,19 @@ export type MatchWhereInput = {
   start_time?: Prisma.DateTimeFilter<"Match"> | Date | string
   status?: Prisma.EnumMatchStatusFilter<"Match"> | $Enums.MatchStatus
   overs?: Prisma.IntFilter<"Match"> | number
+  current_innings?: Prisma.IntFilter<"Match"> | number
+  is_completed?: Prisma.BoolFilter<"Match"> | boolean
+  toss_winner_id?: Prisma.IntNullableFilter<"Match"> | number | null
+  toss_decision?: Prisma.StringNullableFilter<"Match"> | string | null
+  winning_team_id?: Prisma.IntNullableFilter<"Match"> | number | null
+  result_description?: Prisma.StringNullableFilter<"Match"> | string | null
   man_of_the_match_id?: Prisma.IntNullableFilter<"Match"> | number | null
   ball_events?: Prisma.BallEventListRelationFilter
   man_of_the_match?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   team_a?: Prisma.XOR<Prisma.TeamScalarRelationFilter, Prisma.TeamWhereInput>
   team_b?: Prisma.XOR<Prisma.TeamScalarRelationFilter, Prisma.TeamWhereInput>
+  toss_winner?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
+  winning_team?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
   tournament?: Prisma.XOR<Prisma.TournamentScalarRelationFilter, Prisma.TournamentWhereInput>
 }
 
@@ -275,11 +337,19 @@ export type MatchOrderByWithRelationInput = {
   start_time?: Prisma.SortOrder
   status?: Prisma.SortOrder
   overs?: Prisma.SortOrder
+  current_innings?: Prisma.SortOrder
+  is_completed?: Prisma.SortOrder
+  toss_winner_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  toss_decision?: Prisma.SortOrderInput | Prisma.SortOrder
+  winning_team_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  result_description?: Prisma.SortOrderInput | Prisma.SortOrder
   man_of_the_match_id?: Prisma.SortOrderInput | Prisma.SortOrder
   ball_events?: Prisma.BallEventOrderByRelationAggregateInput
   man_of_the_match?: Prisma.UserOrderByWithRelationInput
   team_a?: Prisma.TeamOrderByWithRelationInput
   team_b?: Prisma.TeamOrderByWithRelationInput
+  toss_winner?: Prisma.TeamOrderByWithRelationInput
+  winning_team?: Prisma.TeamOrderByWithRelationInput
   tournament?: Prisma.TournamentOrderByWithRelationInput
 }
 
@@ -294,11 +364,19 @@ export type MatchWhereUniqueInput = Prisma.AtLeast<{
   start_time?: Prisma.DateTimeFilter<"Match"> | Date | string
   status?: Prisma.EnumMatchStatusFilter<"Match"> | $Enums.MatchStatus
   overs?: Prisma.IntFilter<"Match"> | number
+  current_innings?: Prisma.IntFilter<"Match"> | number
+  is_completed?: Prisma.BoolFilter<"Match"> | boolean
+  toss_winner_id?: Prisma.IntNullableFilter<"Match"> | number | null
+  toss_decision?: Prisma.StringNullableFilter<"Match"> | string | null
+  winning_team_id?: Prisma.IntNullableFilter<"Match"> | number | null
+  result_description?: Prisma.StringNullableFilter<"Match"> | string | null
   man_of_the_match_id?: Prisma.IntNullableFilter<"Match"> | number | null
   ball_events?: Prisma.BallEventListRelationFilter
   man_of_the_match?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   team_a?: Prisma.XOR<Prisma.TeamScalarRelationFilter, Prisma.TeamWhereInput>
   team_b?: Prisma.XOR<Prisma.TeamScalarRelationFilter, Prisma.TeamWhereInput>
+  toss_winner?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
+  winning_team?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
   tournament?: Prisma.XOR<Prisma.TournamentScalarRelationFilter, Prisma.TournamentWhereInput>
 }, "id">
 
@@ -310,6 +388,12 @@ export type MatchOrderByWithAggregationInput = {
   start_time?: Prisma.SortOrder
   status?: Prisma.SortOrder
   overs?: Prisma.SortOrder
+  current_innings?: Prisma.SortOrder
+  is_completed?: Prisma.SortOrder
+  toss_winner_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  toss_decision?: Prisma.SortOrderInput | Prisma.SortOrder
+  winning_team_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  result_description?: Prisma.SortOrderInput | Prisma.SortOrder
   man_of_the_match_id?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.MatchCountOrderByAggregateInput
   _avg?: Prisma.MatchAvgOrderByAggregateInput
@@ -329,6 +413,12 @@ export type MatchScalarWhereWithAggregatesInput = {
   start_time?: Prisma.DateTimeWithAggregatesFilter<"Match"> | Date | string
   status?: Prisma.EnumMatchStatusWithAggregatesFilter<"Match"> | $Enums.MatchStatus
   overs?: Prisma.IntWithAggregatesFilter<"Match"> | number
+  current_innings?: Prisma.IntWithAggregatesFilter<"Match"> | number
+  is_completed?: Prisma.BoolWithAggregatesFilter<"Match"> | boolean
+  toss_winner_id?: Prisma.IntNullableWithAggregatesFilter<"Match"> | number | null
+  toss_decision?: Prisma.StringNullableWithAggregatesFilter<"Match"> | string | null
+  winning_team_id?: Prisma.IntNullableWithAggregatesFilter<"Match"> | number | null
+  result_description?: Prisma.StringNullableWithAggregatesFilter<"Match"> | string | null
   man_of_the_match_id?: Prisma.IntNullableWithAggregatesFilter<"Match"> | number | null
 }
 
@@ -336,10 +426,16 @@ export type MatchCreateInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_decision?: string | null
+  result_description?: string | null
   ball_events?: Prisma.BallEventCreateNestedManyWithoutMatchInput
   man_of_the_match?: Prisma.UserCreateNestedOneWithoutMatches_won_motmInput
   team_a: Prisma.TeamCreateNestedOneWithoutMatches_as_aInput
   team_b: Prisma.TeamCreateNestedOneWithoutMatches_as_bInput
+  toss_winner?: Prisma.TeamCreateNestedOneWithoutToss_wonInput
+  winning_team?: Prisma.TeamCreateNestedOneWithoutMatches_wonInput
   tournament: Prisma.TournamentCreateNestedOneWithoutMatchesInput
 }
 
@@ -351,6 +447,12 @@ export type MatchUncheckedCreateInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_winner_id?: number | null
+  toss_decision?: string | null
+  winning_team_id?: number | null
+  result_description?: string | null
   man_of_the_match_id?: number | null
   ball_events?: Prisma.BallEventUncheckedCreateNestedManyWithoutMatchInput
 }
@@ -359,10 +461,16 @@ export type MatchUpdateInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ball_events?: Prisma.BallEventUpdateManyWithoutMatchNestedInput
   man_of_the_match?: Prisma.UserUpdateOneWithoutMatches_won_motmNestedInput
   team_a?: Prisma.TeamUpdateOneRequiredWithoutMatches_as_aNestedInput
   team_b?: Prisma.TeamUpdateOneRequiredWithoutMatches_as_bNestedInput
+  toss_winner?: Prisma.TeamUpdateOneWithoutToss_wonNestedInput
+  winning_team?: Prisma.TeamUpdateOneWithoutMatches_wonNestedInput
   tournament?: Prisma.TournamentUpdateOneRequiredWithoutMatchesNestedInput
 }
 
@@ -374,6 +482,12 @@ export type MatchUncheckedUpdateInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_winner_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  winning_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   man_of_the_match_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ball_events?: Prisma.BallEventUncheckedUpdateManyWithoutMatchNestedInput
 }
@@ -386,6 +500,12 @@ export type MatchCreateManyInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_winner_id?: number | null
+  toss_decision?: string | null
+  winning_team_id?: number | null
+  result_description?: string | null
   man_of_the_match_id?: number | null
 }
 
@@ -393,6 +513,10 @@ export type MatchUpdateManyMutationInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type MatchUncheckedUpdateManyInput = {
@@ -403,6 +527,12 @@ export type MatchUncheckedUpdateManyInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_winner_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  winning_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   man_of_the_match_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
@@ -424,6 +554,12 @@ export type MatchCountOrderByAggregateInput = {
   start_time?: Prisma.SortOrder
   status?: Prisma.SortOrder
   overs?: Prisma.SortOrder
+  current_innings?: Prisma.SortOrder
+  is_completed?: Prisma.SortOrder
+  toss_winner_id?: Prisma.SortOrder
+  toss_decision?: Prisma.SortOrder
+  winning_team_id?: Prisma.SortOrder
+  result_description?: Prisma.SortOrder
   man_of_the_match_id?: Prisma.SortOrder
 }
 
@@ -433,6 +569,9 @@ export type MatchAvgOrderByAggregateInput = {
   team_a_id?: Prisma.SortOrder
   team_b_id?: Prisma.SortOrder
   overs?: Prisma.SortOrder
+  current_innings?: Prisma.SortOrder
+  toss_winner_id?: Prisma.SortOrder
+  winning_team_id?: Prisma.SortOrder
   man_of_the_match_id?: Prisma.SortOrder
 }
 
@@ -444,6 +583,12 @@ export type MatchMaxOrderByAggregateInput = {
   start_time?: Prisma.SortOrder
   status?: Prisma.SortOrder
   overs?: Prisma.SortOrder
+  current_innings?: Prisma.SortOrder
+  is_completed?: Prisma.SortOrder
+  toss_winner_id?: Prisma.SortOrder
+  toss_decision?: Prisma.SortOrder
+  winning_team_id?: Prisma.SortOrder
+  result_description?: Prisma.SortOrder
   man_of_the_match_id?: Prisma.SortOrder
 }
 
@@ -455,6 +600,12 @@ export type MatchMinOrderByAggregateInput = {
   start_time?: Prisma.SortOrder
   status?: Prisma.SortOrder
   overs?: Prisma.SortOrder
+  current_innings?: Prisma.SortOrder
+  is_completed?: Prisma.SortOrder
+  toss_winner_id?: Prisma.SortOrder
+  toss_decision?: Prisma.SortOrder
+  winning_team_id?: Prisma.SortOrder
+  result_description?: Prisma.SortOrder
   man_of_the_match_id?: Prisma.SortOrder
 }
 
@@ -464,6 +615,9 @@ export type MatchSumOrderByAggregateInput = {
   team_a_id?: Prisma.SortOrder
   team_b_id?: Prisma.SortOrder
   overs?: Prisma.SortOrder
+  current_innings?: Prisma.SortOrder
+  toss_winner_id?: Prisma.SortOrder
+  winning_team_id?: Prisma.SortOrder
   man_of_the_match_id?: Prisma.SortOrder
 }
 
@@ -570,6 +724,20 @@ export type MatchCreateNestedManyWithoutTeam_bInput = {
   connect?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
 }
 
+export type MatchCreateNestedManyWithoutToss_winnerInput = {
+  create?: Prisma.XOR<Prisma.MatchCreateWithoutToss_winnerInput, Prisma.MatchUncheckedCreateWithoutToss_winnerInput> | Prisma.MatchCreateWithoutToss_winnerInput[] | Prisma.MatchUncheckedCreateWithoutToss_winnerInput[]
+  connectOrCreate?: Prisma.MatchCreateOrConnectWithoutToss_winnerInput | Prisma.MatchCreateOrConnectWithoutToss_winnerInput[]
+  createMany?: Prisma.MatchCreateManyToss_winnerInputEnvelope
+  connect?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+}
+
+export type MatchCreateNestedManyWithoutWinning_teamInput = {
+  create?: Prisma.XOR<Prisma.MatchCreateWithoutWinning_teamInput, Prisma.MatchUncheckedCreateWithoutWinning_teamInput> | Prisma.MatchCreateWithoutWinning_teamInput[] | Prisma.MatchUncheckedCreateWithoutWinning_teamInput[]
+  connectOrCreate?: Prisma.MatchCreateOrConnectWithoutWinning_teamInput | Prisma.MatchCreateOrConnectWithoutWinning_teamInput[]
+  createMany?: Prisma.MatchCreateManyWinning_teamInputEnvelope
+  connect?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+}
+
 export type MatchUncheckedCreateNestedManyWithoutTeam_aInput = {
   create?: Prisma.XOR<Prisma.MatchCreateWithoutTeam_aInput, Prisma.MatchUncheckedCreateWithoutTeam_aInput> | Prisma.MatchCreateWithoutTeam_aInput[] | Prisma.MatchUncheckedCreateWithoutTeam_aInput[]
   connectOrCreate?: Prisma.MatchCreateOrConnectWithoutTeam_aInput | Prisma.MatchCreateOrConnectWithoutTeam_aInput[]
@@ -581,6 +749,20 @@ export type MatchUncheckedCreateNestedManyWithoutTeam_bInput = {
   create?: Prisma.XOR<Prisma.MatchCreateWithoutTeam_bInput, Prisma.MatchUncheckedCreateWithoutTeam_bInput> | Prisma.MatchCreateWithoutTeam_bInput[] | Prisma.MatchUncheckedCreateWithoutTeam_bInput[]
   connectOrCreate?: Prisma.MatchCreateOrConnectWithoutTeam_bInput | Prisma.MatchCreateOrConnectWithoutTeam_bInput[]
   createMany?: Prisma.MatchCreateManyTeam_bInputEnvelope
+  connect?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+}
+
+export type MatchUncheckedCreateNestedManyWithoutToss_winnerInput = {
+  create?: Prisma.XOR<Prisma.MatchCreateWithoutToss_winnerInput, Prisma.MatchUncheckedCreateWithoutToss_winnerInput> | Prisma.MatchCreateWithoutToss_winnerInput[] | Prisma.MatchUncheckedCreateWithoutToss_winnerInput[]
+  connectOrCreate?: Prisma.MatchCreateOrConnectWithoutToss_winnerInput | Prisma.MatchCreateOrConnectWithoutToss_winnerInput[]
+  createMany?: Prisma.MatchCreateManyToss_winnerInputEnvelope
+  connect?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+}
+
+export type MatchUncheckedCreateNestedManyWithoutWinning_teamInput = {
+  create?: Prisma.XOR<Prisma.MatchCreateWithoutWinning_teamInput, Prisma.MatchUncheckedCreateWithoutWinning_teamInput> | Prisma.MatchCreateWithoutWinning_teamInput[] | Prisma.MatchUncheckedCreateWithoutWinning_teamInput[]
+  connectOrCreate?: Prisma.MatchCreateOrConnectWithoutWinning_teamInput | Prisma.MatchCreateOrConnectWithoutWinning_teamInput[]
+  createMany?: Prisma.MatchCreateManyWinning_teamInputEnvelope
   connect?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
 }
 
@@ -612,6 +794,34 @@ export type MatchUpdateManyWithoutTeam_bNestedInput = {
   deleteMany?: Prisma.MatchScalarWhereInput | Prisma.MatchScalarWhereInput[]
 }
 
+export type MatchUpdateManyWithoutToss_winnerNestedInput = {
+  create?: Prisma.XOR<Prisma.MatchCreateWithoutToss_winnerInput, Prisma.MatchUncheckedCreateWithoutToss_winnerInput> | Prisma.MatchCreateWithoutToss_winnerInput[] | Prisma.MatchUncheckedCreateWithoutToss_winnerInput[]
+  connectOrCreate?: Prisma.MatchCreateOrConnectWithoutToss_winnerInput | Prisma.MatchCreateOrConnectWithoutToss_winnerInput[]
+  upsert?: Prisma.MatchUpsertWithWhereUniqueWithoutToss_winnerInput | Prisma.MatchUpsertWithWhereUniqueWithoutToss_winnerInput[]
+  createMany?: Prisma.MatchCreateManyToss_winnerInputEnvelope
+  set?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  disconnect?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  delete?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  connect?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  update?: Prisma.MatchUpdateWithWhereUniqueWithoutToss_winnerInput | Prisma.MatchUpdateWithWhereUniqueWithoutToss_winnerInput[]
+  updateMany?: Prisma.MatchUpdateManyWithWhereWithoutToss_winnerInput | Prisma.MatchUpdateManyWithWhereWithoutToss_winnerInput[]
+  deleteMany?: Prisma.MatchScalarWhereInput | Prisma.MatchScalarWhereInput[]
+}
+
+export type MatchUpdateManyWithoutWinning_teamNestedInput = {
+  create?: Prisma.XOR<Prisma.MatchCreateWithoutWinning_teamInput, Prisma.MatchUncheckedCreateWithoutWinning_teamInput> | Prisma.MatchCreateWithoutWinning_teamInput[] | Prisma.MatchUncheckedCreateWithoutWinning_teamInput[]
+  connectOrCreate?: Prisma.MatchCreateOrConnectWithoutWinning_teamInput | Prisma.MatchCreateOrConnectWithoutWinning_teamInput[]
+  upsert?: Prisma.MatchUpsertWithWhereUniqueWithoutWinning_teamInput | Prisma.MatchUpsertWithWhereUniqueWithoutWinning_teamInput[]
+  createMany?: Prisma.MatchCreateManyWinning_teamInputEnvelope
+  set?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  disconnect?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  delete?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  connect?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  update?: Prisma.MatchUpdateWithWhereUniqueWithoutWinning_teamInput | Prisma.MatchUpdateWithWhereUniqueWithoutWinning_teamInput[]
+  updateMany?: Prisma.MatchUpdateManyWithWhereWithoutWinning_teamInput | Prisma.MatchUpdateManyWithWhereWithoutWinning_teamInput[]
+  deleteMany?: Prisma.MatchScalarWhereInput | Prisma.MatchScalarWhereInput[]
+}
+
 export type MatchUncheckedUpdateManyWithoutTeam_aNestedInput = {
   create?: Prisma.XOR<Prisma.MatchCreateWithoutTeam_aInput, Prisma.MatchUncheckedCreateWithoutTeam_aInput> | Prisma.MatchCreateWithoutTeam_aInput[] | Prisma.MatchUncheckedCreateWithoutTeam_aInput[]
   connectOrCreate?: Prisma.MatchCreateOrConnectWithoutTeam_aInput | Prisma.MatchCreateOrConnectWithoutTeam_aInput[]
@@ -640,6 +850,34 @@ export type MatchUncheckedUpdateManyWithoutTeam_bNestedInput = {
   deleteMany?: Prisma.MatchScalarWhereInput | Prisma.MatchScalarWhereInput[]
 }
 
+export type MatchUncheckedUpdateManyWithoutToss_winnerNestedInput = {
+  create?: Prisma.XOR<Prisma.MatchCreateWithoutToss_winnerInput, Prisma.MatchUncheckedCreateWithoutToss_winnerInput> | Prisma.MatchCreateWithoutToss_winnerInput[] | Prisma.MatchUncheckedCreateWithoutToss_winnerInput[]
+  connectOrCreate?: Prisma.MatchCreateOrConnectWithoutToss_winnerInput | Prisma.MatchCreateOrConnectWithoutToss_winnerInput[]
+  upsert?: Prisma.MatchUpsertWithWhereUniqueWithoutToss_winnerInput | Prisma.MatchUpsertWithWhereUniqueWithoutToss_winnerInput[]
+  createMany?: Prisma.MatchCreateManyToss_winnerInputEnvelope
+  set?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  disconnect?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  delete?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  connect?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  update?: Prisma.MatchUpdateWithWhereUniqueWithoutToss_winnerInput | Prisma.MatchUpdateWithWhereUniqueWithoutToss_winnerInput[]
+  updateMany?: Prisma.MatchUpdateManyWithWhereWithoutToss_winnerInput | Prisma.MatchUpdateManyWithWhereWithoutToss_winnerInput[]
+  deleteMany?: Prisma.MatchScalarWhereInput | Prisma.MatchScalarWhereInput[]
+}
+
+export type MatchUncheckedUpdateManyWithoutWinning_teamNestedInput = {
+  create?: Prisma.XOR<Prisma.MatchCreateWithoutWinning_teamInput, Prisma.MatchUncheckedCreateWithoutWinning_teamInput> | Prisma.MatchCreateWithoutWinning_teamInput[] | Prisma.MatchUncheckedCreateWithoutWinning_teamInput[]
+  connectOrCreate?: Prisma.MatchCreateOrConnectWithoutWinning_teamInput | Prisma.MatchCreateOrConnectWithoutWinning_teamInput[]
+  upsert?: Prisma.MatchUpsertWithWhereUniqueWithoutWinning_teamInput | Prisma.MatchUpsertWithWhereUniqueWithoutWinning_teamInput[]
+  createMany?: Prisma.MatchCreateManyWinning_teamInputEnvelope
+  set?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  disconnect?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  delete?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  connect?: Prisma.MatchWhereUniqueInput | Prisma.MatchWhereUniqueInput[]
+  update?: Prisma.MatchUpdateWithWhereUniqueWithoutWinning_teamInput | Prisma.MatchUpdateWithWhereUniqueWithoutWinning_teamInput[]
+  updateMany?: Prisma.MatchUpdateManyWithWhereWithoutWinning_teamInput | Prisma.MatchUpdateManyWithWhereWithoutWinning_teamInput[]
+  deleteMany?: Prisma.MatchScalarWhereInput | Prisma.MatchScalarWhereInput[]
+}
+
 export type EnumMatchStatusFieldUpdateOperationsInput = {
   set?: $Enums.MatchStatus
 }
@@ -662,9 +900,15 @@ export type MatchCreateWithoutMan_of_the_matchInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_decision?: string | null
+  result_description?: string | null
   ball_events?: Prisma.BallEventCreateNestedManyWithoutMatchInput
   team_a: Prisma.TeamCreateNestedOneWithoutMatches_as_aInput
   team_b: Prisma.TeamCreateNestedOneWithoutMatches_as_bInput
+  toss_winner?: Prisma.TeamCreateNestedOneWithoutToss_wonInput
+  winning_team?: Prisma.TeamCreateNestedOneWithoutMatches_wonInput
   tournament: Prisma.TournamentCreateNestedOneWithoutMatchesInput
 }
 
@@ -676,6 +920,12 @@ export type MatchUncheckedCreateWithoutMan_of_the_matchInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_winner_id?: number | null
+  toss_decision?: string | null
+  winning_team_id?: number | null
+  result_description?: string | null
   ball_events?: Prisma.BallEventUncheckedCreateNestedManyWithoutMatchInput
 }
 
@@ -716,6 +966,12 @@ export type MatchScalarWhereInput = {
   start_time?: Prisma.DateTimeFilter<"Match"> | Date | string
   status?: Prisma.EnumMatchStatusFilter<"Match"> | $Enums.MatchStatus
   overs?: Prisma.IntFilter<"Match"> | number
+  current_innings?: Prisma.IntFilter<"Match"> | number
+  is_completed?: Prisma.BoolFilter<"Match"> | boolean
+  toss_winner_id?: Prisma.IntNullableFilter<"Match"> | number | null
+  toss_decision?: Prisma.StringNullableFilter<"Match"> | string | null
+  winning_team_id?: Prisma.IntNullableFilter<"Match"> | number | null
+  result_description?: Prisma.StringNullableFilter<"Match"> | string | null
   man_of_the_match_id?: Prisma.IntNullableFilter<"Match"> | number | null
 }
 
@@ -723,10 +979,16 @@ export type MatchCreateWithoutTournamentInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_decision?: string | null
+  result_description?: string | null
   ball_events?: Prisma.BallEventCreateNestedManyWithoutMatchInput
   man_of_the_match?: Prisma.UserCreateNestedOneWithoutMatches_won_motmInput
   team_a: Prisma.TeamCreateNestedOneWithoutMatches_as_aInput
   team_b: Prisma.TeamCreateNestedOneWithoutMatches_as_bInput
+  toss_winner?: Prisma.TeamCreateNestedOneWithoutToss_wonInput
+  winning_team?: Prisma.TeamCreateNestedOneWithoutMatches_wonInput
 }
 
 export type MatchUncheckedCreateWithoutTournamentInput = {
@@ -736,6 +998,12 @@ export type MatchUncheckedCreateWithoutTournamentInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_winner_id?: number | null
+  toss_decision?: string | null
+  winning_team_id?: number | null
+  result_description?: string | null
   man_of_the_match_id?: number | null
   ball_events?: Prisma.BallEventUncheckedCreateNestedManyWithoutMatchInput
 }
@@ -770,9 +1038,15 @@ export type MatchCreateWithoutTeam_aInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_decision?: string | null
+  result_description?: string | null
   ball_events?: Prisma.BallEventCreateNestedManyWithoutMatchInput
   man_of_the_match?: Prisma.UserCreateNestedOneWithoutMatches_won_motmInput
   team_b: Prisma.TeamCreateNestedOneWithoutMatches_as_bInput
+  toss_winner?: Prisma.TeamCreateNestedOneWithoutToss_wonInput
+  winning_team?: Prisma.TeamCreateNestedOneWithoutMatches_wonInput
   tournament: Prisma.TournamentCreateNestedOneWithoutMatchesInput
 }
 
@@ -783,6 +1057,12 @@ export type MatchUncheckedCreateWithoutTeam_aInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_winner_id?: number | null
+  toss_decision?: string | null
+  winning_team_id?: number | null
+  result_description?: string | null
   man_of_the_match_id?: number | null
   ball_events?: Prisma.BallEventUncheckedCreateNestedManyWithoutMatchInput
 }
@@ -801,9 +1081,15 @@ export type MatchCreateWithoutTeam_bInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_decision?: string | null
+  result_description?: string | null
   ball_events?: Prisma.BallEventCreateNestedManyWithoutMatchInput
   man_of_the_match?: Prisma.UserCreateNestedOneWithoutMatches_won_motmInput
   team_a: Prisma.TeamCreateNestedOneWithoutMatches_as_aInput
+  toss_winner?: Prisma.TeamCreateNestedOneWithoutToss_wonInput
+  winning_team?: Prisma.TeamCreateNestedOneWithoutMatches_wonInput
   tournament: Prisma.TournamentCreateNestedOneWithoutMatchesInput
 }
 
@@ -814,6 +1100,12 @@ export type MatchUncheckedCreateWithoutTeam_bInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_winner_id?: number | null
+  toss_decision?: string | null
+  winning_team_id?: number | null
+  result_description?: string | null
   man_of_the_match_id?: number | null
   ball_events?: Prisma.BallEventUncheckedCreateNestedManyWithoutMatchInput
 }
@@ -825,6 +1117,92 @@ export type MatchCreateOrConnectWithoutTeam_bInput = {
 
 export type MatchCreateManyTeam_bInputEnvelope = {
   data: Prisma.MatchCreateManyTeam_bInput | Prisma.MatchCreateManyTeam_bInput[]
+  skipDuplicates?: boolean
+}
+
+export type MatchCreateWithoutToss_winnerInput = {
+  start_time: Date | string
+  status?: $Enums.MatchStatus
+  overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_decision?: string | null
+  result_description?: string | null
+  ball_events?: Prisma.BallEventCreateNestedManyWithoutMatchInput
+  man_of_the_match?: Prisma.UserCreateNestedOneWithoutMatches_won_motmInput
+  team_a: Prisma.TeamCreateNestedOneWithoutMatches_as_aInput
+  team_b: Prisma.TeamCreateNestedOneWithoutMatches_as_bInput
+  winning_team?: Prisma.TeamCreateNestedOneWithoutMatches_wonInput
+  tournament: Prisma.TournamentCreateNestedOneWithoutMatchesInput
+}
+
+export type MatchUncheckedCreateWithoutToss_winnerInput = {
+  id?: number
+  tournament_id: number
+  team_a_id: number
+  team_b_id: number
+  start_time: Date | string
+  status?: $Enums.MatchStatus
+  overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_decision?: string | null
+  winning_team_id?: number | null
+  result_description?: string | null
+  man_of_the_match_id?: number | null
+  ball_events?: Prisma.BallEventUncheckedCreateNestedManyWithoutMatchInput
+}
+
+export type MatchCreateOrConnectWithoutToss_winnerInput = {
+  where: Prisma.MatchWhereUniqueInput
+  create: Prisma.XOR<Prisma.MatchCreateWithoutToss_winnerInput, Prisma.MatchUncheckedCreateWithoutToss_winnerInput>
+}
+
+export type MatchCreateManyToss_winnerInputEnvelope = {
+  data: Prisma.MatchCreateManyToss_winnerInput | Prisma.MatchCreateManyToss_winnerInput[]
+  skipDuplicates?: boolean
+}
+
+export type MatchCreateWithoutWinning_teamInput = {
+  start_time: Date | string
+  status?: $Enums.MatchStatus
+  overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_decision?: string | null
+  result_description?: string | null
+  ball_events?: Prisma.BallEventCreateNestedManyWithoutMatchInput
+  man_of_the_match?: Prisma.UserCreateNestedOneWithoutMatches_won_motmInput
+  team_a: Prisma.TeamCreateNestedOneWithoutMatches_as_aInput
+  team_b: Prisma.TeamCreateNestedOneWithoutMatches_as_bInput
+  toss_winner?: Prisma.TeamCreateNestedOneWithoutToss_wonInput
+  tournament: Prisma.TournamentCreateNestedOneWithoutMatchesInput
+}
+
+export type MatchUncheckedCreateWithoutWinning_teamInput = {
+  id?: number
+  tournament_id: number
+  team_a_id: number
+  team_b_id: number
+  start_time: Date | string
+  status?: $Enums.MatchStatus
+  overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_winner_id?: number | null
+  toss_decision?: string | null
+  result_description?: string | null
+  man_of_the_match_id?: number | null
+  ball_events?: Prisma.BallEventUncheckedCreateNestedManyWithoutMatchInput
+}
+
+export type MatchCreateOrConnectWithoutWinning_teamInput = {
+  where: Prisma.MatchWhereUniqueInput
+  create: Prisma.XOR<Prisma.MatchCreateWithoutWinning_teamInput, Prisma.MatchUncheckedCreateWithoutWinning_teamInput>
+}
+
+export type MatchCreateManyWinning_teamInputEnvelope = {
+  data: Prisma.MatchCreateManyWinning_teamInput | Prisma.MatchCreateManyWinning_teamInput[]
   skipDuplicates?: boolean
 }
 
@@ -860,13 +1238,51 @@ export type MatchUpdateManyWithWhereWithoutTeam_bInput = {
   data: Prisma.XOR<Prisma.MatchUpdateManyMutationInput, Prisma.MatchUncheckedUpdateManyWithoutTeam_bInput>
 }
 
+export type MatchUpsertWithWhereUniqueWithoutToss_winnerInput = {
+  where: Prisma.MatchWhereUniqueInput
+  update: Prisma.XOR<Prisma.MatchUpdateWithoutToss_winnerInput, Prisma.MatchUncheckedUpdateWithoutToss_winnerInput>
+  create: Prisma.XOR<Prisma.MatchCreateWithoutToss_winnerInput, Prisma.MatchUncheckedCreateWithoutToss_winnerInput>
+}
+
+export type MatchUpdateWithWhereUniqueWithoutToss_winnerInput = {
+  where: Prisma.MatchWhereUniqueInput
+  data: Prisma.XOR<Prisma.MatchUpdateWithoutToss_winnerInput, Prisma.MatchUncheckedUpdateWithoutToss_winnerInput>
+}
+
+export type MatchUpdateManyWithWhereWithoutToss_winnerInput = {
+  where: Prisma.MatchScalarWhereInput
+  data: Prisma.XOR<Prisma.MatchUpdateManyMutationInput, Prisma.MatchUncheckedUpdateManyWithoutToss_winnerInput>
+}
+
+export type MatchUpsertWithWhereUniqueWithoutWinning_teamInput = {
+  where: Prisma.MatchWhereUniqueInput
+  update: Prisma.XOR<Prisma.MatchUpdateWithoutWinning_teamInput, Prisma.MatchUncheckedUpdateWithoutWinning_teamInput>
+  create: Prisma.XOR<Prisma.MatchCreateWithoutWinning_teamInput, Prisma.MatchUncheckedCreateWithoutWinning_teamInput>
+}
+
+export type MatchUpdateWithWhereUniqueWithoutWinning_teamInput = {
+  where: Prisma.MatchWhereUniqueInput
+  data: Prisma.XOR<Prisma.MatchUpdateWithoutWinning_teamInput, Prisma.MatchUncheckedUpdateWithoutWinning_teamInput>
+}
+
+export type MatchUpdateManyWithWhereWithoutWinning_teamInput = {
+  where: Prisma.MatchScalarWhereInput
+  data: Prisma.XOR<Prisma.MatchUpdateManyMutationInput, Prisma.MatchUncheckedUpdateManyWithoutWinning_teamInput>
+}
+
 export type MatchCreateWithoutBall_eventsInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_decision?: string | null
+  result_description?: string | null
   man_of_the_match?: Prisma.UserCreateNestedOneWithoutMatches_won_motmInput
   team_a: Prisma.TeamCreateNestedOneWithoutMatches_as_aInput
   team_b: Prisma.TeamCreateNestedOneWithoutMatches_as_bInput
+  toss_winner?: Prisma.TeamCreateNestedOneWithoutToss_wonInput
+  winning_team?: Prisma.TeamCreateNestedOneWithoutMatches_wonInput
   tournament: Prisma.TournamentCreateNestedOneWithoutMatchesInput
 }
 
@@ -878,6 +1294,12 @@ export type MatchUncheckedCreateWithoutBall_eventsInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_winner_id?: number | null
+  toss_decision?: string | null
+  winning_team_id?: number | null
+  result_description?: string | null
   man_of_the_match_id?: number | null
 }
 
@@ -901,9 +1323,15 @@ export type MatchUpdateWithoutBall_eventsInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   man_of_the_match?: Prisma.UserUpdateOneWithoutMatches_won_motmNestedInput
   team_a?: Prisma.TeamUpdateOneRequiredWithoutMatches_as_aNestedInput
   team_b?: Prisma.TeamUpdateOneRequiredWithoutMatches_as_bNestedInput
+  toss_winner?: Prisma.TeamUpdateOneWithoutToss_wonNestedInput
+  winning_team?: Prisma.TeamUpdateOneWithoutMatches_wonNestedInput
   tournament?: Prisma.TournamentUpdateOneRequiredWithoutMatchesNestedInput
 }
 
@@ -915,6 +1343,12 @@ export type MatchUncheckedUpdateWithoutBall_eventsInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_winner_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  winning_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   man_of_the_match_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
@@ -926,15 +1360,27 @@ export type MatchCreateManyMan_of_the_matchInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_winner_id?: number | null
+  toss_decision?: string | null
+  winning_team_id?: number | null
+  result_description?: string | null
 }
 
 export type MatchUpdateWithoutMan_of_the_matchInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ball_events?: Prisma.BallEventUpdateManyWithoutMatchNestedInput
   team_a?: Prisma.TeamUpdateOneRequiredWithoutMatches_as_aNestedInput
   team_b?: Prisma.TeamUpdateOneRequiredWithoutMatches_as_bNestedInput
+  toss_winner?: Prisma.TeamUpdateOneWithoutToss_wonNestedInput
+  winning_team?: Prisma.TeamUpdateOneWithoutMatches_wonNestedInput
   tournament?: Prisma.TournamentUpdateOneRequiredWithoutMatchesNestedInput
 }
 
@@ -946,6 +1392,12 @@ export type MatchUncheckedUpdateWithoutMan_of_the_matchInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_winner_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  winning_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ball_events?: Prisma.BallEventUncheckedUpdateManyWithoutMatchNestedInput
 }
 
@@ -957,6 +1409,12 @@ export type MatchUncheckedUpdateManyWithoutMan_of_the_matchInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_winner_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  winning_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type MatchCreateManyTournamentInput = {
@@ -966,6 +1424,12 @@ export type MatchCreateManyTournamentInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_winner_id?: number | null
+  toss_decision?: string | null
+  winning_team_id?: number | null
+  result_description?: string | null
   man_of_the_match_id?: number | null
 }
 
@@ -973,10 +1437,16 @@ export type MatchUpdateWithoutTournamentInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ball_events?: Prisma.BallEventUpdateManyWithoutMatchNestedInput
   man_of_the_match?: Prisma.UserUpdateOneWithoutMatches_won_motmNestedInput
   team_a?: Prisma.TeamUpdateOneRequiredWithoutMatches_as_aNestedInput
   team_b?: Prisma.TeamUpdateOneRequiredWithoutMatches_as_bNestedInput
+  toss_winner?: Prisma.TeamUpdateOneWithoutToss_wonNestedInput
+  winning_team?: Prisma.TeamUpdateOneWithoutMatches_wonNestedInput
 }
 
 export type MatchUncheckedUpdateWithoutTournamentInput = {
@@ -986,6 +1456,12 @@ export type MatchUncheckedUpdateWithoutTournamentInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_winner_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  winning_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   man_of_the_match_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ball_events?: Prisma.BallEventUncheckedUpdateManyWithoutMatchNestedInput
 }
@@ -997,6 +1473,12 @@ export type MatchUncheckedUpdateManyWithoutTournamentInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_winner_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  winning_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   man_of_the_match_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
@@ -1007,6 +1489,12 @@ export type MatchCreateManyTeam_aInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_winner_id?: number | null
+  toss_decision?: string | null
+  winning_team_id?: number | null
+  result_description?: string | null
   man_of_the_match_id?: number | null
 }
 
@@ -1017,6 +1505,44 @@ export type MatchCreateManyTeam_bInput = {
   start_time: Date | string
   status?: $Enums.MatchStatus
   overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_winner_id?: number | null
+  toss_decision?: string | null
+  winning_team_id?: number | null
+  result_description?: string | null
+  man_of_the_match_id?: number | null
+}
+
+export type MatchCreateManyToss_winnerInput = {
+  id?: number
+  tournament_id: number
+  team_a_id: number
+  team_b_id: number
+  start_time: Date | string
+  status?: $Enums.MatchStatus
+  overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_decision?: string | null
+  winning_team_id?: number | null
+  result_description?: string | null
+  man_of_the_match_id?: number | null
+}
+
+export type MatchCreateManyWinning_teamInput = {
+  id?: number
+  tournament_id: number
+  team_a_id: number
+  team_b_id: number
+  start_time: Date | string
+  status?: $Enums.MatchStatus
+  overs?: number
+  current_innings?: number
+  is_completed?: boolean
+  toss_winner_id?: number | null
+  toss_decision?: string | null
+  result_description?: string | null
   man_of_the_match_id?: number | null
 }
 
@@ -1024,9 +1550,15 @@ export type MatchUpdateWithoutTeam_aInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ball_events?: Prisma.BallEventUpdateManyWithoutMatchNestedInput
   man_of_the_match?: Prisma.UserUpdateOneWithoutMatches_won_motmNestedInput
   team_b?: Prisma.TeamUpdateOneRequiredWithoutMatches_as_bNestedInput
+  toss_winner?: Prisma.TeamUpdateOneWithoutToss_wonNestedInput
+  winning_team?: Prisma.TeamUpdateOneWithoutMatches_wonNestedInput
   tournament?: Prisma.TournamentUpdateOneRequiredWithoutMatchesNestedInput
 }
 
@@ -1037,6 +1569,12 @@ export type MatchUncheckedUpdateWithoutTeam_aInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_winner_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  winning_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   man_of_the_match_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ball_events?: Prisma.BallEventUncheckedUpdateManyWithoutMatchNestedInput
 }
@@ -1048,6 +1586,12 @@ export type MatchUncheckedUpdateManyWithoutTeam_aInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_winner_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  winning_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   man_of_the_match_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
@@ -1055,9 +1599,15 @@ export type MatchUpdateWithoutTeam_bInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ball_events?: Prisma.BallEventUpdateManyWithoutMatchNestedInput
   man_of_the_match?: Prisma.UserUpdateOneWithoutMatches_won_motmNestedInput
   team_a?: Prisma.TeamUpdateOneRequiredWithoutMatches_as_aNestedInput
+  toss_winner?: Prisma.TeamUpdateOneWithoutToss_wonNestedInput
+  winning_team?: Prisma.TeamUpdateOneWithoutMatches_wonNestedInput
   tournament?: Prisma.TournamentUpdateOneRequiredWithoutMatchesNestedInput
 }
 
@@ -1068,6 +1618,12 @@ export type MatchUncheckedUpdateWithoutTeam_bInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_winner_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  winning_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   man_of_the_match_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   ball_events?: Prisma.BallEventUncheckedUpdateManyWithoutMatchNestedInput
 }
@@ -1079,6 +1635,110 @@ export type MatchUncheckedUpdateManyWithoutTeam_bInput = {
   start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
   overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_winner_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  winning_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  man_of_the_match_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type MatchUpdateWithoutToss_winnerInput = {
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
+  overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ball_events?: Prisma.BallEventUpdateManyWithoutMatchNestedInput
+  man_of_the_match?: Prisma.UserUpdateOneWithoutMatches_won_motmNestedInput
+  team_a?: Prisma.TeamUpdateOneRequiredWithoutMatches_as_aNestedInput
+  team_b?: Prisma.TeamUpdateOneRequiredWithoutMatches_as_bNestedInput
+  winning_team?: Prisma.TeamUpdateOneWithoutMatches_wonNestedInput
+  tournament?: Prisma.TournamentUpdateOneRequiredWithoutMatchesNestedInput
+}
+
+export type MatchUncheckedUpdateWithoutToss_winnerInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  tournament_id?: Prisma.IntFieldUpdateOperationsInput | number
+  team_a_id?: Prisma.IntFieldUpdateOperationsInput | number
+  team_b_id?: Prisma.IntFieldUpdateOperationsInput | number
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
+  overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  winning_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  man_of_the_match_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ball_events?: Prisma.BallEventUncheckedUpdateManyWithoutMatchNestedInput
+}
+
+export type MatchUncheckedUpdateManyWithoutToss_winnerInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  tournament_id?: Prisma.IntFieldUpdateOperationsInput | number
+  team_a_id?: Prisma.IntFieldUpdateOperationsInput | number
+  team_b_id?: Prisma.IntFieldUpdateOperationsInput | number
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
+  overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  winning_team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  man_of_the_match_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type MatchUpdateWithoutWinning_teamInput = {
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
+  overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ball_events?: Prisma.BallEventUpdateManyWithoutMatchNestedInput
+  man_of_the_match?: Prisma.UserUpdateOneWithoutMatches_won_motmNestedInput
+  team_a?: Prisma.TeamUpdateOneRequiredWithoutMatches_as_aNestedInput
+  team_b?: Prisma.TeamUpdateOneRequiredWithoutMatches_as_bNestedInput
+  toss_winner?: Prisma.TeamUpdateOneWithoutToss_wonNestedInput
+  tournament?: Prisma.TournamentUpdateOneRequiredWithoutMatchesNestedInput
+}
+
+export type MatchUncheckedUpdateWithoutWinning_teamInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  tournament_id?: Prisma.IntFieldUpdateOperationsInput | number
+  team_a_id?: Prisma.IntFieldUpdateOperationsInput | number
+  team_b_id?: Prisma.IntFieldUpdateOperationsInput | number
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
+  overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_winner_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  man_of_the_match_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  ball_events?: Prisma.BallEventUncheckedUpdateManyWithoutMatchNestedInput
+}
+
+export type MatchUncheckedUpdateManyWithoutWinning_teamInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  tournament_id?: Prisma.IntFieldUpdateOperationsInput | number
+  team_a_id?: Prisma.IntFieldUpdateOperationsInput | number
+  team_b_id?: Prisma.IntFieldUpdateOperationsInput | number
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
+  overs?: Prisma.IntFieldUpdateOperationsInput | number
+  current_innings?: Prisma.IntFieldUpdateOperationsInput | number
+  is_completed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  toss_winner_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  toss_decision?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  result_description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   man_of_the_match_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
@@ -1121,11 +1781,19 @@ export type MatchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   start_time?: boolean
   status?: boolean
   overs?: boolean
+  current_innings?: boolean
+  is_completed?: boolean
+  toss_winner_id?: boolean
+  toss_decision?: boolean
+  winning_team_id?: boolean
+  result_description?: boolean
   man_of_the_match_id?: boolean
   ball_events?: boolean | Prisma.Match$ball_eventsArgs<ExtArgs>
   man_of_the_match?: boolean | Prisma.Match$man_of_the_matchArgs<ExtArgs>
   team_a?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
   team_b?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
+  toss_winner?: boolean | Prisma.Match$toss_winnerArgs<ExtArgs>
+  winning_team?: boolean | Prisma.Match$winning_teamArgs<ExtArgs>
   tournament?: boolean | Prisma.TournamentDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.MatchCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["match"]>
@@ -1138,10 +1806,18 @@ export type MatchSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   start_time?: boolean
   status?: boolean
   overs?: boolean
+  current_innings?: boolean
+  is_completed?: boolean
+  toss_winner_id?: boolean
+  toss_decision?: boolean
+  winning_team_id?: boolean
+  result_description?: boolean
   man_of_the_match_id?: boolean
   man_of_the_match?: boolean | Prisma.Match$man_of_the_matchArgs<ExtArgs>
   team_a?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
   team_b?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
+  toss_winner?: boolean | Prisma.Match$toss_winnerArgs<ExtArgs>
+  winning_team?: boolean | Prisma.Match$winning_teamArgs<ExtArgs>
   tournament?: boolean | Prisma.TournamentDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["match"]>
 
@@ -1153,10 +1829,18 @@ export type MatchSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   start_time?: boolean
   status?: boolean
   overs?: boolean
+  current_innings?: boolean
+  is_completed?: boolean
+  toss_winner_id?: boolean
+  toss_decision?: boolean
+  winning_team_id?: boolean
+  result_description?: boolean
   man_of_the_match_id?: boolean
   man_of_the_match?: boolean | Prisma.Match$man_of_the_matchArgs<ExtArgs>
   team_a?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
   team_b?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
+  toss_winner?: boolean | Prisma.Match$toss_winnerArgs<ExtArgs>
+  winning_team?: boolean | Prisma.Match$winning_teamArgs<ExtArgs>
   tournament?: boolean | Prisma.TournamentDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["match"]>
 
@@ -1168,15 +1852,23 @@ export type MatchSelectScalar = {
   start_time?: boolean
   status?: boolean
   overs?: boolean
+  current_innings?: boolean
+  is_completed?: boolean
+  toss_winner_id?: boolean
+  toss_decision?: boolean
+  winning_team_id?: boolean
+  result_description?: boolean
   man_of_the_match_id?: boolean
 }
 
-export type MatchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tournament_id" | "team_a_id" | "team_b_id" | "start_time" | "status" | "overs" | "man_of_the_match_id", ExtArgs["result"]["match"]>
+export type MatchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tournament_id" | "team_a_id" | "team_b_id" | "start_time" | "status" | "overs" | "current_innings" | "is_completed" | "toss_winner_id" | "toss_decision" | "winning_team_id" | "result_description" | "man_of_the_match_id", ExtArgs["result"]["match"]>
 export type MatchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ball_events?: boolean | Prisma.Match$ball_eventsArgs<ExtArgs>
   man_of_the_match?: boolean | Prisma.Match$man_of_the_matchArgs<ExtArgs>
   team_a?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
   team_b?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
+  toss_winner?: boolean | Prisma.Match$toss_winnerArgs<ExtArgs>
+  winning_team?: boolean | Prisma.Match$winning_teamArgs<ExtArgs>
   tournament?: boolean | Prisma.TournamentDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.MatchCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1184,12 +1876,16 @@ export type MatchIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   man_of_the_match?: boolean | Prisma.Match$man_of_the_matchArgs<ExtArgs>
   team_a?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
   team_b?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
+  toss_winner?: boolean | Prisma.Match$toss_winnerArgs<ExtArgs>
+  winning_team?: boolean | Prisma.Match$winning_teamArgs<ExtArgs>
   tournament?: boolean | Prisma.TournamentDefaultArgs<ExtArgs>
 }
 export type MatchIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   man_of_the_match?: boolean | Prisma.Match$man_of_the_matchArgs<ExtArgs>
   team_a?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
   team_b?: boolean | Prisma.TeamDefaultArgs<ExtArgs>
+  toss_winner?: boolean | Prisma.Match$toss_winnerArgs<ExtArgs>
+  winning_team?: boolean | Prisma.Match$winning_teamArgs<ExtArgs>
   tournament?: boolean | Prisma.TournamentDefaultArgs<ExtArgs>
 }
 
@@ -1200,6 +1896,8 @@ export type $MatchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     man_of_the_match: Prisma.$UserPayload<ExtArgs> | null
     team_a: Prisma.$TeamPayload<ExtArgs>
     team_b: Prisma.$TeamPayload<ExtArgs>
+    toss_winner: Prisma.$TeamPayload<ExtArgs> | null
+    winning_team: Prisma.$TeamPayload<ExtArgs> | null
     tournament: Prisma.$TournamentPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1210,6 +1908,12 @@ export type $MatchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     start_time: Date
     status: $Enums.MatchStatus
     overs: number
+    current_innings: number
+    is_completed: boolean
+    toss_winner_id: number | null
+    toss_decision: string | null
+    winning_team_id: number | null
+    result_description: string | null
     man_of_the_match_id: number | null
   }, ExtArgs["result"]["match"]>
   composites: {}
@@ -1609,6 +2313,8 @@ export interface Prisma__MatchClient<T, Null = never, ExtArgs extends runtime.Ty
   man_of_the_match<T extends Prisma.Match$man_of_the_matchArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Match$man_of_the_matchArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   team_a<T extends Prisma.TeamDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeamDefaultArgs<ExtArgs>>): Prisma.Prisma__TeamClient<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   team_b<T extends Prisma.TeamDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeamDefaultArgs<ExtArgs>>): Prisma.Prisma__TeamClient<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  toss_winner<T extends Prisma.Match$toss_winnerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Match$toss_winnerArgs<ExtArgs>>): Prisma.Prisma__TeamClient<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  winning_team<T extends Prisma.Match$winning_teamArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Match$winning_teamArgs<ExtArgs>>): Prisma.Prisma__TeamClient<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   tournament<T extends Prisma.TournamentDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TournamentDefaultArgs<ExtArgs>>): Prisma.Prisma__TournamentClient<runtime.Types.Result.GetResult<Prisma.$TournamentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1646,6 +2352,12 @@ export interface MatchFieldRefs {
   readonly start_time: Prisma.FieldRef<"Match", 'DateTime'>
   readonly status: Prisma.FieldRef<"Match", 'MatchStatus'>
   readonly overs: Prisma.FieldRef<"Match", 'Int'>
+  readonly current_innings: Prisma.FieldRef<"Match", 'Int'>
+  readonly is_completed: Prisma.FieldRef<"Match", 'Boolean'>
+  readonly toss_winner_id: Prisma.FieldRef<"Match", 'Int'>
+  readonly toss_decision: Prisma.FieldRef<"Match", 'String'>
+  readonly winning_team_id: Prisma.FieldRef<"Match", 'Int'>
+  readonly result_description: Prisma.FieldRef<"Match", 'String'>
   readonly man_of_the_match_id: Prisma.FieldRef<"Match", 'Int'>
 }
     
@@ -2083,6 +2795,44 @@ export type Match$man_of_the_matchArgs<ExtArgs extends runtime.Types.Extensions.
    */
   include?: Prisma.UserInclude<ExtArgs> | null
   where?: Prisma.UserWhereInput
+}
+
+/**
+ * Match.toss_winner
+ */
+export type Match$toss_winnerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Team
+   */
+  select?: Prisma.TeamSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Team
+   */
+  omit?: Prisma.TeamOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TeamInclude<ExtArgs> | null
+  where?: Prisma.TeamWhereInput
+}
+
+/**
+ * Match.winning_team
+ */
+export type Match$winning_teamArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Team
+   */
+  select?: Prisma.TeamSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Team
+   */
+  omit?: Prisma.TeamOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TeamInclude<ExtArgs> | null
+  where?: Prisma.TeamWhereInput
 }
 
 /**

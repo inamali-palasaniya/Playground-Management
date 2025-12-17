@@ -112,9 +112,19 @@ export const getAttendanceStats = async (req: Request, res: Response) => {
       : 0;
 
     // --- Live Counters ---
-    // 1. Total Active Users (Normal users)
-    const totalActiveUsers = await prisma.user.count({
+    // 1. Total Users (Normal users)
+    const totalNormalUsers = await prisma.user.count({
       where: { role: 'NORMAL' }
+    });
+
+    // Active Users (Enabled)
+    const activeUsersCount = await prisma.user.count({
+      where: { role: 'NORMAL', is_active: true }
+    });
+
+    // Inactive Users (Disabled)
+    const inactiveUsersCount = await prisma.user.count({
+      where: { role: 'NORMAL', is_active: false }
     });
 
     // 2. Today's formatted date string (YYYY-MM-DD) for strict day matching or use date range
@@ -135,8 +145,50 @@ export const getAttendanceStats = async (req: Request, res: Response) => {
       }
     });
 
-    // 4. Today Out (Total - In)
-    const todayOutCount = Math.max(0, totalActiveUsers - todayInCount);
+    // 4. Today Out (Active Total - In) - Assuming inactive users don't punch in
+    const todayOutCount = Math.max(0, activeUsersCount - todayInCount);
+
+    // --- Aggregated Stats by User Type ---
+    // Total users by type
+    const usersByType = await prisma.user.groupBy({
+      by: ['user_type'],
+      where: { role: 'NORMAL' },
+      _count: true
+    });
+
+    // Present users by type
+    const presentUsersByType = await prisma.attendance.findMany({
+      where: {
+        date: { gte: startOfToday, lte: endOfToday },
+        is_present: true,
+        user: { role: 'NORMAL' }
+      },
+      include: { user: { select: { user_type: true } } }
+    });
+
+    const breakdown = usersByType.map(group => {
+      const type = group.user_type;
+      const total = group._count;
+      const inCount = presentUsersByType.filter(a => a.user.user_type === type).length;
+      return {
+        type,
+        total,
+        in: inCount,
+        out: Math.max(0, total - inCount)
+      };
+    });
+
+    // --- Expired Monthly Plans ---
+    // Users whose latest subscription is EXPIRED and plan name contains 'Monthly'
+    // This is an approximation. Ideally check specific sub ID.
+    const expiredMonthlyCount = await prisma.subscription.count({
+      where: {
+        status: 'EXPIRED',
+        plan: {
+          name: { contains: 'Monthly', mode: 'insensitive' }
+        }
+      }
+    });
 
     res.json({
       total_attendance: totalAttendance,
@@ -146,9 +198,13 @@ export const getAttendanceStats = async (req: Request, res: Response) => {
       avg_daily_attendance: Math.round(avgDailyAttendance * 10) / 10,
       attendance_rate: totalAttendance > 0 ? (presentCount / totalAttendance) * 100 : 0,
       // New Live Stats
-      total_active_users: totalActiveUsers,
+      total_users: totalNormalUsers,
+      active_users: activeUsersCount,
+      inactive_users: inactiveUsersCount,
       today_in: todayInCount,
-      today_out: todayOutCount
+      today_out: todayOutCount,
+      breakdown_by_type: breakdown,
+      expired_monthly_count: expiredMonthlyCount
     });
   } catch (error) {
     console.error('Error fetching attendance stats:', error);

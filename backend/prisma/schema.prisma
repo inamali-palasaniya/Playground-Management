@@ -34,6 +34,7 @@ model User {
   attendances      Attendance[]
   bowled_balls     BallEvent[]    @relation("Bowler")
   faced_balls      BallEvent[]    @relation("Striker")
+  non_striker_balls BallEvent[]   @relation("NonStriker")
   fee_ledger       FeeLedger[]
   matches_won_motm Match[]        @relation("ManOfTheMatch")
   subscriptions    Subscription[]
@@ -170,6 +171,8 @@ model Team {
   tournament_id Int
   matches_as_a  Match[]      @relation("TeamA")
   matches_as_b  Match[]      @relation("TeamB")
+  toss_won      Match[]      @relation("TossWinner")
+  matches_won   Match[]      @relation("MatchWinner")
   tournament    Tournament   @relation(fields: [tournament_id], references: [id])
   players       TeamPlayer[]
 }
@@ -190,30 +193,50 @@ model Match {
   start_time          DateTime
   status              MatchStatus @default(SCHEDULED)
   overs               Int         @default(20)
+  current_innings     Int         @default(1)
+  is_completed        Boolean     @default(false)
+  
+  // Toss & Result
+  toss_winner_id      Int?
+  toss_decision       String?     // "BAT" or "BOWL"
+  winning_team_id     Int?
+  result_description  String?     // e.g. "Won by 20 runs"
+
   man_of_the_match_id Int?
+
   ball_events         BallEvent[]
+  
   man_of_the_match    User?       @relation("ManOfTheMatch", fields: [man_of_the_match_id], references: [id])
   team_a              Team        @relation("TeamA", fields: [team_a_id], references: [id])
   team_b              Team        @relation("TeamB", fields: [team_b_id], references: [id])
+  toss_winner         Team?       @relation("TossWinner", fields: [toss_winner_id], references: [id])
+  winning_team        Team?       @relation("MatchWinner", fields: [winning_team_id], references: [id])
   tournament          Tournament  @relation(fields: [tournament_id], references: [id])
 }
 
 model BallEvent {
-  id          Int      @id @default(autoincrement())
-  match_id    Int
-  over_number Int
-  ball_number Int
-  bowler_id   Int
-  striker_id  Int
-  runs_scored Int      @default(0)
-  is_wicket   Boolean  @default(false)
-  wicket_type String?
-  extras      Int      @default(0)
-  extra_type  String?
-  timestamp   DateTime @default(now())
-  bowler      User     @relation("Bowler", fields: [bowler_id], references: [id])
-  match       Match    @relation(fields: [match_id], references: [id])
-  striker     User     @relation("Striker", fields: [striker_id], references: [id])
+  id              Int      @id @default(autoincrement())
+  match_id        Int
+  innings         Int      @default(1)
+  over_number     Int
+  ball_number     Int
+  bowler_id       Int
+  striker_id      Int
+  non_striker_id  Int?     // Nullable for now to support legacy data if any
+  batting_team_id Int?     // Nullable for legacy
+  
+  runs_scored     Int      @default(0)
+  is_wicket       Boolean  @default(false)
+  wicket_type     String?
+  extras          Int      @default(0)
+  extra_type      String?
+  is_valid_ball   Boolean  @default(true)
+  timestamp       DateTime @default(now())
+
+  bowler          User     @relation("Bowler", fields: [bowler_id], references: [id])
+  match           Match    @relation(fields: [match_id], references: [id])
+  striker         User     @relation("Striker", fields: [striker_id], references: [id])
+  non_striker     User?    @relation("NonStriker", fields: [non_striker_id], references: [id])
 }
 
 model Permission {

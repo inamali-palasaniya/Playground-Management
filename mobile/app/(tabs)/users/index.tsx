@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl, Alert } from 'react-native';
+import { View, StyleSheet, FlatList, RefreshControl, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button } from 'react-native-paper';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import apiService from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -26,18 +26,43 @@ interface Group {
     name: string;
 }
 
+interface SubscriptionPlan {
+    id: number;
+    name: string;
+}
+
 export default function UsersScreen() {
     const router = useRouter();
     const theme = useTheme();
     const [users, setUsers] = useState<User[]>([]);
     const [groups, setGroups] = useState<Group[]>([]);
+    const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [fabOpen, setFabOpen] = useState(false);
+
+    // Filters State
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
-    const [menuVisible, setMenuVisible] = useState(false);
+    const [selectedRole, setSelectedRole] = useState<string | null>(null);
+    const [selectedStatus, setSelectedStatus] = useState<string | null>(null); // 'ACTIVE', 'INACTIVE'
+    const [selectedPunch, setSelectedPunch] = useState<string | null>(null); // 'IN', 'OUT'
+    const [selectedType, setSelectedType] = useState<string | null>(null);
+    const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+
+    // Menus Visibility
+    const [menuGroup, setMenuGroup] = useState(false);
+    const [menuRole, setMenuRole] = useState(false);
+    const [menuStatus, setMenuStatus] = useState(false);
+    const [menuPunch, setMenuPunch] = useState(false);
+    const [menuType, setMenuType] = useState(false);
+    const [menuPlan, setMenuPlan] = useState(false);
+
     const [currentUser, setCurrentUser] = useState<any>(null);
+
+    // Params from dashboard
+    const params = useLocalSearchParams();
+    const [activeFilter, setActiveFilter] = useState<string | null>(null); // 'EXPIRED' (Legacy Dashboard Parm)
 
     // Audit Dialog State
     const [auditVisible, setAuditVisible] = useState(false);
@@ -57,13 +82,28 @@ export default function UsersScreen() {
                 setUsers([selfDetails as User]);
             } else {
                 // Management: Fetch all
-                const usersPromise = apiService.request(`/api/users${selectedGroup ? `?group_id=${selectedGroup.id}` : ''}`);
-                const groupsPromise = apiService.request('/api/groups');
+                let queryString = `?dummy=1`;
 
-                const [usersData, groupsData] = await Promise.all([usersPromise, groupsPromise]);
+                // Dashboard Helpers (Legacy & Deep Links)
+                if (activeFilter === 'EXPIRED') queryString += `&filter=EXPIRED`;
+
+                // Main Filters
+                if (selectedGroup) queryString += `&group_id=${selectedGroup.id}`;
+                if (selectedRole) queryString += `&role=${selectedRole}`;
+                if (selectedStatus) queryString += `&status=${selectedStatus}`; // 'ACTIVE' | 'INACTIVE'
+                if (selectedPunch) queryString += `&punch_status=${selectedPunch}`; // 'IN' | 'OUT'
+                if (selectedType) queryString += `&user_type=${selectedType}`;
+                if (selectedPlan) queryString += `&plan_id=${selectedPlan.id}`;
+
+                const usersPromise = apiService.request(`/api/users${queryString}`);
+                const groupsPromise = apiService.request('/api/groups');
+                const plansPromise = apiService.request('/api/subscription-plans');
+
+                const [usersData, groupsData, plansData] = await Promise.all([usersPromise, groupsPromise, plansPromise]);
 
                 setUsers(usersData as User[]);
                 setGroups(groupsData as Group[]);
+                setPlans(plansData as SubscriptionPlan[]);
             }
         } catch (error) {
             console.error('Failed to load data:', error);
@@ -76,8 +116,19 @@ export default function UsersScreen() {
     // Reload when screen focuses or group filter changes
     useFocusEffect(
         useCallback(() => {
+            // Sync Params to State if provided (Deep Linking)
+            if (params.filter && params.filter !== activeFilter) setActiveFilter(params.filter as string);
+
+            // Map legacy params to new state
+            if (params.status && params.status !== selectedStatus) setSelectedStatus(params.status as string);
+            if (params.punch_status && params.punch_status !== selectedPunch) setSelectedPunch(params.punch_status as string);
+            if (params.user_type && params.user_type !== selectedType) setSelectedType(params.user_type as string);
+
             loadData();
-        }, [selectedGroup])
+        }, [
+            selectedGroup, selectedRole, selectedStatus, selectedPunch, selectedType, selectedPlan, activeFilter,
+            params.filter, params.status, params.punch_status, params.user_type
+        ])
     );
 
     const onRefresh = () => {
@@ -218,6 +269,7 @@ export default function UsersScreen() {
                                     iconColor="#4CAF50" // Green
                                     onPress={(e) => {
                                         e.stopPropagation();
+                                        router.push({ pathname: '/management/edit-user', params: { id: item.id } });
                                     }}
                                 />
                                 {/* 3. Delete Icon (Red) */}
@@ -273,26 +325,158 @@ export default function UsersScreen() {
                         value={searchQuery}
                         style={styles.searchBar}
                     />
-                    <View style={styles.filterRow}>
-                        <Menu
-                            visible={menuVisible}
-                            onDismiss={() => setMenuVisible(false)}
-                            anchor={
-                                <Chip
-                                    icon="filter-variant"
-                                    onPress={() => setMenuVisible(true)}
-                                    selected={!!selectedGroup}
-                                    style={styles.filterChip}
-                                >
-                                    {selectedGroup?.name || "All Groups"}
-                                </Chip>
-                            }
+
+                    {/* Horizontal Filter Bar */}
+                    <View style={{ marginTop: 12 }}>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.filterScroll}
+                            keyboardShouldPersistTaps="always"
                         >
-                            <Menu.Item onPress={() => { setSelectedGroup(null); setMenuVisible(false); }} title="All Groups" />
-                            {groups.map(g => (
-                                <Menu.Item key={g.id} onPress={() => { setSelectedGroup(g); setMenuVisible(false); }} title={g.name} />
-                            ))}
-                        </Menu>
+
+                            {/* Group Filter */}
+                            <Menu
+                                visible={menuGroup}
+                                onDismiss={() => setMenuGroup(false)}
+                                anchor={
+                                    <Chip
+                                        mode="outlined"
+                                        icon="account-group"
+                                        onPress={() => setMenuGroup(true)}
+                                        selected={!!selectedGroup}
+                                        style={styles.filterChip}
+                                        showSelectedOverlay
+                                    >
+                                        {selectedGroup?.name || "Group"}
+                                    </Chip>
+                                }
+                            >
+                                <Menu.Item onPress={() => { setSelectedGroup(null); setMenuGroup(false); }} title="All Groups" />
+                                {groups.map(g => (
+                                    <Menu.Item key={g.id} onPress={() => { setSelectedGroup(g); setMenuGroup(false); }} title={g.name} />
+                                ))}
+                            </Menu>
+
+                            {/* Role Filter */}
+                            <Menu
+                                visible={menuRole}
+                                onDismiss={() => setMenuRole(false)}
+                                anchor={
+                                    <Chip
+                                        mode="outlined"
+                                        icon="shield-account"
+                                        onPress={() => setMenuRole(true)}
+                                        selected={!!selectedRole}
+                                        style={styles.filterChip}
+                                        showSelectedOverlay
+                                    >
+                                        {selectedRole ? selectedRole.replace('_', ' ') : "Role"}
+                                    </Chip>
+                                }
+                            >
+                                <Menu.Item onPress={() => { setSelectedRole(null); setMenuRole(false); }} title="All Roles" />
+                                {['MANAGEMENT', 'NORMAL', 'SUPER_ADMIN'].map(r => (
+                                    <Menu.Item key={r} onPress={() => { setSelectedRole(r); setMenuRole(false); }} title={r.replace('_', ' ')} />
+                                ))}
+                            </Menu>
+
+                            {/* Status Filter */}
+                            <Menu
+                                visible={menuStatus}
+                                onDismiss={() => setMenuStatus(false)}
+                                anchor={
+                                    <Chip
+                                        mode="outlined"
+                                        icon="check-circle-outline"
+                                        onPress={() => setMenuStatus(true)}
+                                        selected={!!selectedStatus}
+                                        style={styles.filterChip}
+                                        showSelectedOverlay
+                                    >
+                                        {selectedStatus ? selectedStatus : "Status"}
+                                    </Chip>
+                                }
+                            >
+                                <Menu.Item onPress={() => { setSelectedStatus(null); setMenuStatus(false); }} title="All Status" />
+                                <Menu.Item onPress={() => { setSelectedStatus('ACTIVE'); setMenuStatus(false); }} title="Active" />
+                                <Menu.Item onPress={() => { setSelectedStatus('INACTIVE'); setMenuStatus(false); }} title="Inactive" />
+                            </Menu>
+
+                            {/* Punch Filter */}
+                            <Menu
+                                visible={menuPunch}
+                                onDismiss={() => setMenuPunch(false)}
+                                anchor={
+                                    <Chip
+                                        mode="outlined"
+                                        icon="clock-outline"
+                                        onPress={() => setMenuPunch(true)}
+                                        selected={!!selectedPunch}
+                                        style={styles.filterChip}
+                                        showSelectedOverlay
+                                    >
+                                        {selectedPunch ? `Punch: ${selectedPunch}` : "Attendance"}
+                                    </Chip>
+                                }
+                            >
+                                <Menu.Item onPress={() => { setSelectedPunch(null); setMenuPunch(false); }} title="All" />
+                                <Menu.Item onPress={() => { setSelectedPunch('IN'); setMenuPunch(false); }} title="IN" />
+                                <Menu.Item onPress={() => { setSelectedPunch('OUT'); setMenuPunch(false); }} title="OUT" />
+                            </Menu>
+
+                            {/* Type Filter */}
+                            <Menu
+                                visible={menuType}
+                                onDismiss={() => setMenuType(false)}
+                                anchor={
+                                    <Chip
+                                        mode="outlined"
+                                        icon="briefcase-outline"
+                                        onPress={() => setMenuType(true)}
+                                        selected={!!selectedType}
+                                        style={styles.filterChip}
+                                        showSelectedOverlay
+                                    >
+                                        {selectedType?.replace('_', ' ') || "Type"}
+                                    </Chip>
+                                }
+                            >
+                                <Menu.Item onPress={() => { setSelectedType(null); setMenuType(false); }} title="All Types" />
+                                {['NORMAL', 'STUDENT', 'SALARIED', 'NON_EARNING'].map(t => (
+                                    <Menu.Item key={t} onPress={() => { setSelectedType(t); setMenuType(false); }} title={t.replace('_', ' ')} />
+                                ))}
+                            </Menu>
+
+                            {/* Plan Filter */}
+                            <Menu
+                                visible={menuPlan}
+                                onDismiss={() => setMenuPlan(false)}
+                                anchor={
+                                    <Chip
+                                        mode="outlined"
+                                        icon="tag-outline"
+                                        onPress={() => setMenuPlan(true)}
+                                        selected={!!selectedPlan}
+                                        style={styles.filterChip}
+                                        showSelectedOverlay
+                                    >
+                                        {selectedPlan?.name || "Plan"}
+                                    </Chip>
+                                }
+                            >
+                                <Menu.Item onPress={() => { setSelectedPlan(null); setMenuPlan(false); }} title="All Plans" />
+                                {plans.map(p => (
+                                    <Menu.Item key={p.id} onPress={() => { setSelectedPlan(p); setMenuPlan(false); }} title={p.name} />
+                                ))}
+                            </Menu>
+
+                            {/* Legacy "Expired" Chip (if triggered from Dashboard) */}
+                            {activeFilter === 'EXPIRED' && (
+                                <Chip icon="close" onPress={() => setActiveFilter(null)} style={{ backgroundColor: '#ffcdd2', marginRight: 8 }}>Expired Only</Chip>
+                            )}
+
+                        </ScrollView>
                     </View>
                 </View>
             ) : (
@@ -343,8 +527,8 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f5f5f5' },
     headerContainer: { padding: 16, backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: '#e0e0e0' },
     searchBar: { elevation: 0, backgroundColor: '#f5f5f5', borderRadius: 8 },
-    filterRow: { flexDirection: 'row', marginTop: 12 },
-    filterChip: { marginRight: 8 },
+    filterScroll: { paddingRight: 16 },
+    filterChip: { marginRight: 8, height: 32 },
     list: { paddingHorizontal: 16, paddingBottom: 80, paddingTop: 10 },
     card: { marginBottom: 10, backgroundColor: 'white' },
 });

@@ -32,6 +32,33 @@ export default function LiveMatchScreen() {
         }
     };
 
+
+    const submitBall = async (runs: number, isWicket: boolean) => {
+        try {
+            // For MVP: picking first available players if context not set
+            // In full app, use selected bowler/striker
+            const bowlerId = match.team_b?.players?.[0]?.user?.id || 1;
+            const strikerId = match.team_a?.players?.[0]?.user?.id || 2;
+
+            await apiService.request(`/api/matches/${id}/ball-event`, {
+                method: 'POST',
+                body: {
+                    match_id: Number(id),
+                    runs_scored: runs,
+                    is_wicket: isWicket,
+                    bowler_id: bowlerId,
+                    striker_id: strikerId,
+                    over_number: 0,
+                    ball_number: 0,
+                    extras: 0
+                }
+            });
+        } catch (error: any) {
+            console.error('Scoring failed', error);
+            Alert.alert('Error', 'Failed to record score.');
+        }
+    };
+
     useFocusEffect(
         useCallback(() => {
             console.log('Focus: Connecting Socket');
@@ -149,9 +176,34 @@ export default function LiveMatchScreen() {
                 </Card>
 
                 {/* Admin/Scorer Controls (if user is admin, check role) */}
-                <Button mode="contained" onPress={() => Alert.alert('Info', 'Scoring Controls available in Management Tab')} style={styles.scoreButton}>
-                    Go to Management
-                </Button>
+                {/* Scoring Controls */}
+                {match.status === 'LIVE' && (
+                    <Card style={[styles.card, { marginTop: 10, backgroundColor: '#fff' }]}>
+                        <Card.Title title="Scoring Console" subtitle="Quick Score" />
+                        <Card.Content>
+                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+                                {[0, 1, 2, 3, 4, 6].map((run) => (
+                                    <Button
+                                        key={run}
+                                        mode="contained"
+                                        onPress={() => submitBall(run, false)}
+                                        style={{ minWidth: 50, margin: 4 }}
+                                    >
+                                        {run}
+                                    </Button>
+                                ))}
+                                <Button
+                                    mode="contained"
+                                    buttonColor="#F44336"
+                                    onPress={() => submitBall(0, true)}
+                                    style={{ minWidth: 60, margin: 4 }}
+                                >
+                                    OUT
+                                </Button>
+                            </View>
+                        </Card.Content>
+                    </Card>
+                )}
             </ScrollView>
         </View>
     );

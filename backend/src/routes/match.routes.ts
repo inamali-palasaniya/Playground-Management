@@ -3,10 +3,12 @@ import {
     createMatch,
     getMatches,
     getMatchById,
-    updateMatchStatus,
+    updateMatch,
     recordBallEvent,
     getLiveScore,
+    undoLastBall
 } from '../controllers/match.controller.js';
+
 import {
     setManOfTheMatch,
     getMatchStats
@@ -17,9 +19,11 @@ const router = Router();
 router.post('/', createMatch);
 router.get('/', getMatches);
 router.get('/:id', getMatchById);
-router.put('/:id/status', updateMatchStatus);
+router.put('/:id', updateMatch); // Generic update
+router.put('/:id/status', updateMatch); // Legacy support
 router.post('/:id/ball-event', recordBallEvent);
 router.get('/:id/live-score', getLiveScore);
+router.delete('/:id/undo', undoLastBall);
 
 // Analytics
 router.put('/:id/awards', setManOfTheMatch);

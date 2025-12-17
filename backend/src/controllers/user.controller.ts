@@ -114,21 +114,77 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const getUsers = async (req: Request, res: Response) => {
     try {
-        const { group_id } = req.query;
+        const { group_id, user_type, filter, status, punch_status, role, plan_id } = req.query;
         const where: any = {};
 
         if (group_id) {
             where.group_id = parseInt(group_id as string);
         }
 
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        if (role) {
+            where.role = role;
+        }
 
-        // Today's range for attendance check
+        if (user_type) {
+            where.user_type = user_type;
+        }
+
+        // Filter by specific plan (via plan_id)
+        if (plan_id) {
+            // Ensure we are filtering by a plan that is currently ACTIVE or EXPIRED for the user
+            // Actually, usually filters imply "Users who HAVE this plan"
+            where.subscriptions = {
+                some: {
+                    plan_id: parseInt(plan_id as string)
+                    // We might want to filter only active? or any status? 
+                    // Let's assume generally users currently associated with this plan.
+                }
+            };
+        }
+
+        // Special EXPIRED filter override or combination
+        if (filter === 'EXPIRED') {
+            where.subscriptions = {
+                some: {
+                    status: 'EXPIRED',
+                    plan: {
+                        name: { contains: 'Monthly', mode: 'insensitive' }
+                    }
+                }
+            };
+        }
+
+        if (status) {
+            where.is_active = status === 'ACTIVE';
+        }
+
+        const now = new Date();
         const startOfToday = new Date();
         startOfToday.setHours(0, 0, 0, 0);
         const endOfToday = new Date();
         endOfToday.setHours(23, 59, 59, 999);
+
+        // Punch Status Filter
+        if (punch_status === 'IN') {
+            where.attendances = {
+                some: {
+                    date: { gte: startOfToday, lte: endOfToday },
+                    out_time: null,
+                    is_present: true
+                }
+            };
+        } else if (punch_status === 'OUT') {
+            // Not Currently IN (so either never punched in today, or punched out)
+            where.NOT = {
+                attendances: {
+                    some: {
+                        date: { gte: startOfToday, lte: endOfToday },
+                        out_time: null,
+                        is_present: true
+                    }
+                }
+            };
+        }
 
         const users = await prisma.user.findMany({
             where,

@@ -279,6 +279,7 @@ export type UserWhereInput = {
   attendances?: Prisma.AttendanceListRelationFilter
   bowled_balls?: Prisma.BallEventListRelationFilter
   faced_balls?: Prisma.BallEventListRelationFilter
+  non_striker_balls?: Prisma.BallEventListRelationFilter
   fee_ledger?: Prisma.FeeLedgerListRelationFilter
   matches_won_motm?: Prisma.MatchListRelationFilter
   subscriptions?: Prisma.SubscriptionListRelationFilter
@@ -305,6 +306,7 @@ export type UserOrderByWithRelationInput = {
   attendances?: Prisma.AttendanceOrderByRelationAggregateInput
   bowled_balls?: Prisma.BallEventOrderByRelationAggregateInput
   faced_balls?: Prisma.BallEventOrderByRelationAggregateInput
+  non_striker_balls?: Prisma.BallEventOrderByRelationAggregateInput
   fee_ledger?: Prisma.FeeLedgerOrderByRelationAggregateInput
   matches_won_motm?: Prisma.MatchOrderByRelationAggregateInput
   subscriptions?: Prisma.SubscriptionOrderByRelationAggregateInput
@@ -334,6 +336,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   attendances?: Prisma.AttendanceListRelationFilter
   bowled_balls?: Prisma.BallEventListRelationFilter
   faced_balls?: Prisma.BallEventListRelationFilter
+  non_striker_balls?: Prisma.BallEventListRelationFilter
   fee_ledger?: Prisma.FeeLedgerListRelationFilter
   matches_won_motm?: Prisma.MatchListRelationFilter
   subscriptions?: Prisma.SubscriptionListRelationFilter
@@ -394,6 +397,7 @@ export type UserCreateInput = {
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
@@ -420,6 +424,7 @@ export type UserUncheckedCreateInput = {
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
@@ -443,6 +448,7 @@ export type UserUpdateInput = {
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
@@ -469,6 +475,7 @@ export type UserUncheckedUpdateInput = {
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUncheckedUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
@@ -783,6 +790,12 @@ export type UserCreateNestedOneWithoutFaced_ballsInput = {
   connect?: Prisma.UserWhereUniqueInput
 }
 
+export type UserCreateNestedOneWithoutNon_striker_ballsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNon_striker_ballsInput, Prisma.UserUncheckedCreateWithoutNon_striker_ballsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNon_striker_ballsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
 export type UserUpdateOneRequiredWithoutBowled_ballsNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutBowled_ballsInput, Prisma.UserUncheckedCreateWithoutBowled_ballsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutBowled_ballsInput
@@ -797,6 +810,16 @@ export type UserUpdateOneRequiredWithoutFaced_ballsNestedInput = {
   upsert?: Prisma.UserUpsertWithoutFaced_ballsInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutFaced_ballsInput, Prisma.UserUpdateWithoutFaced_ballsInput>, Prisma.UserUncheckedUpdateWithoutFaced_ballsInput>
+}
+
+export type UserUpdateOneWithoutNon_striker_ballsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNon_striker_ballsInput, Prisma.UserUncheckedCreateWithoutNon_striker_ballsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNon_striker_ballsInput
+  upsert?: Prisma.UserUpsertWithoutNon_striker_ballsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNon_striker_ballsInput, Prisma.UserUpdateWithoutNon_striker_ballsInput>, Prisma.UserUncheckedUpdateWithoutNon_striker_ballsInput>
 }
 
 export type UserCreateNestedOneWithoutPermissionsInput = {
@@ -840,6 +863,7 @@ export type UserCreateWithoutGroupInput = {
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
@@ -864,6 +888,7 @@ export type UserUncheckedCreateWithoutGroupInput = {
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
@@ -930,6 +955,7 @@ export type UserCreateWithoutSubscriptionsInput = {
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
   player_teams?: Prisma.TeamPlayerCreateNestedManyWithoutUserInput
@@ -955,6 +981,7 @@ export type UserUncheckedCreateWithoutSubscriptionsInput = {
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
@@ -993,6 +1020,7 @@ export type UserUpdateWithoutSubscriptionsInput = {
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
   player_teams?: Prisma.TeamPlayerUpdateManyWithoutUserNestedInput
@@ -1018,6 +1046,7 @@ export type UserUncheckedUpdateWithoutSubscriptionsInput = {
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUncheckedUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
@@ -1039,6 +1068,7 @@ export type UserCreateWithoutAttendancesInput = {
   is_active?: boolean
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
@@ -1064,6 +1094,7 @@ export type UserUncheckedCreateWithoutAttendancesInput = {
   is_active?: boolean
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
@@ -1102,6 +1133,7 @@ export type UserUpdateWithoutAttendancesInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
@@ -1127,6 +1159,7 @@ export type UserUncheckedUpdateWithoutAttendancesInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUncheckedUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
@@ -1150,6 +1183,7 @@ export type UserCreateWithoutFee_ledgerInput = {
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventCreateNestedManyWithoutNon_strikerInput
   matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   player_teams?: Prisma.TeamPlayerCreateNestedManyWithoutUserInput
@@ -1175,6 +1209,7 @@ export type UserUncheckedCreateWithoutFee_ledgerInput = {
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutNon_strikerInput
   matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
@@ -1213,6 +1248,7 @@ export type UserUpdateWithoutFee_ledgerInput = {
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUpdateManyWithoutNon_strikerNestedInput
   matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   player_teams?: Prisma.TeamPlayerUpdateManyWithoutUserNestedInput
@@ -1238,6 +1274,7 @@ export type UserUncheckedUpdateWithoutFee_ledgerInput = {
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUncheckedUpdateManyWithoutNon_strikerNestedInput
   matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
@@ -1260,6 +1297,7 @@ export type UserCreateWithoutFinesInput = {
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
@@ -1285,6 +1323,7 @@ export type UserUncheckedCreateWithoutFinesInput = {
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
@@ -1323,6 +1362,7 @@ export type UserUpdateWithoutFinesInput = {
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
@@ -1348,6 +1388,7 @@ export type UserUncheckedUpdateWithoutFinesInput = {
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUncheckedUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
@@ -1370,6 +1411,7 @@ export type UserCreateWithoutSeries_won_motsInput = {
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
@@ -1395,6 +1437,7 @@ export type UserUncheckedCreateWithoutSeries_won_motsInput = {
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
@@ -1433,6 +1476,7 @@ export type UserUpdateWithoutSeries_won_motsInput = {
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
@@ -1458,6 +1502,7 @@ export type UserUncheckedUpdateWithoutSeries_won_motsInput = {
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUncheckedUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
@@ -1480,6 +1525,7 @@ export type UserCreateWithoutPlayer_teamsInput = {
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
@@ -1505,6 +1551,7 @@ export type UserUncheckedCreateWithoutPlayer_teamsInput = {
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
@@ -1543,6 +1590,7 @@ export type UserUpdateWithoutPlayer_teamsInput = {
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
@@ -1568,6 +1616,7 @@ export type UserUncheckedUpdateWithoutPlayer_teamsInput = {
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUncheckedUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
@@ -1590,6 +1639,7 @@ export type UserCreateWithoutMatches_won_motmInput = {
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
   player_teams?: Prisma.TeamPlayerCreateNestedManyWithoutUserInput
@@ -1615,6 +1665,7 @@ export type UserUncheckedCreateWithoutMatches_won_motmInput = {
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
@@ -1653,6 +1704,7 @@ export type UserUpdateWithoutMatches_won_motmInput = {
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
   player_teams?: Prisma.TeamPlayerUpdateManyWithoutUserNestedInput
@@ -1678,6 +1730,7 @@ export type UserUncheckedUpdateWithoutMatches_won_motmInput = {
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUncheckedUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
@@ -1699,6 +1752,7 @@ export type UserCreateWithoutBowled_ballsInput = {
   is_active?: boolean
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
@@ -1724,6 +1778,7 @@ export type UserUncheckedCreateWithoutBowled_ballsInput = {
   is_active?: boolean
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
@@ -1751,6 +1806,7 @@ export type UserCreateWithoutFaced_ballsInput = {
   is_active?: boolean
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
+  non_striker_balls?: Prisma.BallEventCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
@@ -1776,6 +1832,7 @@ export type UserUncheckedCreateWithoutFaced_ballsInput = {
   is_active?: boolean
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
+  non_striker_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
@@ -1789,6 +1846,60 @@ export type UserUncheckedCreateWithoutFaced_ballsInput = {
 export type UserCreateOrConnectWithoutFaced_ballsInput = {
   where: Prisma.UserWhereUniqueInput
   create: Prisma.XOR<Prisma.UserCreateWithoutFaced_ballsInput, Prisma.UserUncheckedCreateWithoutFaced_ballsInput>
+}
+
+export type UserCreateWithoutNon_striker_ballsInput = {
+  name: string
+  phone: string
+  email?: string | null
+  role?: $Enums.UserRole
+  deposit_amount?: number
+  password?: string | null
+  age?: number | null
+  user_type?: $Enums.UserType
+  is_active?: boolean
+  attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
+  faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
+  matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
+  subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
+  player_teams?: Prisma.TeamPlayerCreateNestedManyWithoutUserInput
+  series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
+  group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
+  fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutPerformed_byInput
+}
+
+export type UserUncheckedCreateWithoutNon_striker_ballsInput = {
+  id?: number
+  name: string
+  phone: string
+  email?: string | null
+  role?: $Enums.UserRole
+  deposit_amount?: number
+  group_id?: number | null
+  password?: string | null
+  age?: number | null
+  user_type?: $Enums.UserType
+  is_active?: boolean
+  attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
+  faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
+  matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
+  subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
+  player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
+  series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
+  fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutPerformed_byInput
+}
+
+export type UserCreateOrConnectWithoutNon_striker_ballsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutNon_striker_ballsInput, Prisma.UserUncheckedCreateWithoutNon_striker_ballsInput>
 }
 
 export type UserUpsertWithoutBowled_ballsInput = {
@@ -1814,6 +1925,7 @@ export type UserUpdateWithoutBowled_ballsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
@@ -1839,6 +1951,7 @@ export type UserUncheckedUpdateWithoutBowled_ballsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUncheckedUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
@@ -1872,6 +1985,7 @@ export type UserUpdateWithoutFaced_ballsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
+  non_striker_balls?: Prisma.BallEventUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
@@ -1897,6 +2011,67 @@ export type UserUncheckedUpdateWithoutFaced_ballsInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
+  non_striker_balls?: Prisma.BallEventUncheckedUpdateManyWithoutNon_strikerNestedInput
+  fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
+  matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
+  subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
+  series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
+  fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutPerformed_byNestedInput
+}
+
+export type UserUpsertWithoutNon_striker_ballsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutNon_striker_ballsInput, Prisma.UserUncheckedUpdateWithoutNon_striker_ballsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutNon_striker_ballsInput, Prisma.UserUncheckedCreateWithoutNon_striker_ballsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutNon_striker_ballsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutNon_striker_ballsInput, Prisma.UserUncheckedUpdateWithoutNon_striker_ballsInput>
+}
+
+export type UserUpdateWithoutNon_striker_ballsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
+  faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
+  matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
+  subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
+  player_teams?: Prisma.TeamPlayerUpdateManyWithoutUserNestedInput
+  series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
+  group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
+  fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutPerformed_byNestedInput
+}
+
+export type UserUncheckedUpdateWithoutNon_striker_ballsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
+  faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
@@ -1920,6 +2095,7 @@ export type UserCreateWithoutPermissionsInput = {
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
@@ -1945,6 +2121,7 @@ export type UserUncheckedCreateWithoutPermissionsInput = {
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
@@ -1983,6 +2160,7 @@ export type UserUpdateWithoutPermissionsInput = {
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
@@ -2008,6 +2186,7 @@ export type UserUncheckedUpdateWithoutPermissionsInput = {
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUncheckedUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
@@ -2030,6 +2209,7 @@ export type UserCreateWithoutAudit_logsInput = {
   attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
@@ -2055,6 +2235,7 @@ export type UserUncheckedCreateWithoutAudit_logsInput = {
   attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
   bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
   faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  non_striker_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutNon_strikerInput
   fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
   matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
   subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
@@ -2093,6 +2274,7 @@ export type UserUpdateWithoutAudit_logsInput = {
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
@@ -2118,6 +2300,7 @@ export type UserUncheckedUpdateWithoutAudit_logsInput = {
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUncheckedUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
@@ -2153,6 +2336,7 @@ export type UserUpdateWithoutGroupInput = {
   attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
@@ -2177,6 +2361,7 @@ export type UserUncheckedUpdateWithoutGroupInput = {
   attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
   bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
   faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
+  non_striker_balls?: Prisma.BallEventUncheckedUpdateManyWithoutNon_strikerNestedInput
   fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
   matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
   subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
@@ -2209,6 +2394,7 @@ export type UserCountOutputType = {
   attendances: number
   bowled_balls: number
   faced_balls: number
+  non_striker_balls: number
   fee_ledger: number
   matches_won_motm: number
   subscriptions: number
@@ -2223,6 +2409,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   attendances?: boolean | UserCountOutputTypeCountAttendancesArgs
   bowled_balls?: boolean | UserCountOutputTypeCountBowled_ballsArgs
   faced_balls?: boolean | UserCountOutputTypeCountFaced_ballsArgs
+  non_striker_balls?: boolean | UserCountOutputTypeCountNon_striker_ballsArgs
   fee_ledger?: boolean | UserCountOutputTypeCountFee_ledgerArgs
   matches_won_motm?: boolean | UserCountOutputTypeCountMatches_won_motmArgs
   subscriptions?: boolean | UserCountOutputTypeCountSubscriptionsArgs
@@ -2261,6 +2448,13 @@ export type UserCountOutputTypeCountBowled_ballsArgs<ExtArgs extends runtime.Typ
  * UserCountOutputType without action
  */
 export type UserCountOutputTypeCountFaced_ballsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BallEventWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountNon_striker_ballsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.BallEventWhereInput
 }
 
@@ -2336,6 +2530,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   attendances?: boolean | Prisma.User$attendancesArgs<ExtArgs>
   bowled_balls?: boolean | Prisma.User$bowled_ballsArgs<ExtArgs>
   faced_balls?: boolean | Prisma.User$faced_ballsArgs<ExtArgs>
+  non_striker_balls?: boolean | Prisma.User$non_striker_ballsArgs<ExtArgs>
   fee_ledger?: boolean | Prisma.User$fee_ledgerArgs<ExtArgs>
   matches_won_motm?: boolean | Prisma.User$matches_won_motmArgs<ExtArgs>
   subscriptions?: boolean | Prisma.User$subscriptionsArgs<ExtArgs>
@@ -2397,6 +2592,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   attendances?: boolean | Prisma.User$attendancesArgs<ExtArgs>
   bowled_balls?: boolean | Prisma.User$bowled_ballsArgs<ExtArgs>
   faced_balls?: boolean | Prisma.User$faced_ballsArgs<ExtArgs>
+  non_striker_balls?: boolean | Prisma.User$non_striker_ballsArgs<ExtArgs>
   fee_ledger?: boolean | Prisma.User$fee_ledgerArgs<ExtArgs>
   matches_won_motm?: boolean | Prisma.User$matches_won_motmArgs<ExtArgs>
   subscriptions?: boolean | Prisma.User$subscriptionsArgs<ExtArgs>
@@ -2421,6 +2617,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     attendances: Prisma.$AttendancePayload<ExtArgs>[]
     bowled_balls: Prisma.$BallEventPayload<ExtArgs>[]
     faced_balls: Prisma.$BallEventPayload<ExtArgs>[]
+    non_striker_balls: Prisma.$BallEventPayload<ExtArgs>[]
     fee_ledger: Prisma.$FeeLedgerPayload<ExtArgs>[]
     matches_won_motm: Prisma.$MatchPayload<ExtArgs>[]
     subscriptions: Prisma.$SubscriptionPayload<ExtArgs>[]
@@ -2840,6 +3037,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   attendances<T extends Prisma.User$attendancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$attendancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   bowled_balls<T extends Prisma.User$bowled_ballsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$bowled_ballsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BallEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   faced_balls<T extends Prisma.User$faced_ballsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$faced_ballsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BallEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  non_striker_balls<T extends Prisma.User$non_striker_ballsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$non_striker_ballsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BallEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   fee_ledger<T extends Prisma.User$fee_ledgerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$fee_ledgerArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FeeLedgerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   matches_won_motm<T extends Prisma.User$matches_won_motmArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$matches_won_motmArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   subscriptions<T extends Prisma.User$subscriptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$subscriptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3336,6 +3534,30 @@ export type User$bowled_ballsArgs<ExtArgs extends runtime.Types.Extensions.Inter
  * User.faced_balls
  */
 export type User$faced_ballsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BallEvent
+   */
+  select?: Prisma.BallEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BallEvent
+   */
+  omit?: Prisma.BallEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BallEventInclude<ExtArgs> | null
+  where?: Prisma.BallEventWhereInput
+  orderBy?: Prisma.BallEventOrderByWithRelationInput | Prisma.BallEventOrderByWithRelationInput[]
+  cursor?: Prisma.BallEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BallEventScalarFieldEnum | Prisma.BallEventScalarFieldEnum[]
+}
+
+/**
+ * User.non_striker_balls
+ */
+export type User$non_striker_ballsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the BallEvent
    */

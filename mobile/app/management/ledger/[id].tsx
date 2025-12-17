@@ -5,6 +5,7 @@ import { Text, Card, Button, ActivityIndicator, IconButton, useTheme, DataTable,
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { format } from 'date-fns';
 import apiService from '../../../services/api.service';
+import AuditLogDialog from '../../components/AuditLogDialog';
 
 export default function LedgerDetailScreen() {
     const { id, userId } = useLocalSearchParams(); // ledger id
@@ -12,6 +13,7 @@ export default function LedgerDetailScreen() {
     const [children, setChildren] = useState<any[]>([]);
     const [parent, setParent] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [auditVisible, setAuditVisible] = useState(false);
 
 
 
@@ -116,6 +118,7 @@ export default function LedgerDetailScreen() {
                 <Text variant="headlineSmall">Transaction Details #{entry.id}</Text>
                 <View style={{ flex: 1 }} />
                 {/* Main Entry Actions possible here too */}
+                <IconButton icon="history" iconColor="#607D8B" onPress={() => setAuditVisible(true)} />
                 <IconButton icon="pencil" onPress={() => handleEdit(entry)} />
                 <IconButton icon="delete" iconColor="red" onPress={() => handleDelete(entry.id, true)} />
             </View>
@@ -197,7 +200,11 @@ export default function LedgerDetailScreen() {
                         <View style={{ marginTop: 10 }}>
                             <Text variant="titleMedium" style={styles.sectionTitle}>Transactions</Text>
                             {children.map(child => (
-                                <Card key={child.id} style={[styles.card, { marginTop: 5 }]}>
+                                <Card
+                                    key={child.id}
+                                    style={[styles.card, { marginTop: 5 }]}
+                                    onPress={() => router.push({ pathname: '/management/ledger/[id]', params: { id: child.id, userId } })}
+                                >
                                     <Card.Content style={styles.row}>
                                         <View style={{ flex: 1 }}>
                                             <Text variant="bodyMedium">Payment #{child.id}</Text>
@@ -230,6 +237,12 @@ export default function LedgerDetailScreen() {
                 </>
             )}
 
+            <AuditLogDialog
+                visible={auditVisible}
+                onDismiss={() => setAuditVisible(false)}
+                entityType="LEDGER"
+                entityId={entry?.id} // Use entry.id directly
+            />
         </ScrollView>
     );
 }

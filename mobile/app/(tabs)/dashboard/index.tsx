@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
-import { Text, Card, useTheme, ActivityIndicator, Button } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import apiService from '../../../services/api.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -81,28 +82,115 @@ export default function DashboardScreen() {
             ) : (
                 <>
                     {/* Live Status Card - Only for Management */}
+                        {/* Live Studio Status - Detailed Breakdown */}
                     {userRole !== 'NORMAL' && attendance && (
                         <Card style={[styles.card, { backgroundColor: '#e3f2fd', marginBottom: 16 }]}>
                             <Card.Content>
-                                <Text variant="titleMedium" style={{ marginBottom: 10, fontWeight: 'bold', color: '#1565c0' }}>
+                                    <Text variant="titleMedium" style={{ marginBottom: 12, fontWeight: 'bold', color: '#1565c0' }}>
                                     <MaterialCommunityIcons name="broadcast" size={20} /> Live Studio Status
                                 </Text>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <View style={{ alignItems: 'center' }}>
-                                        <Text variant="displaySmall" style={{ fontWeight: 'bold' }}>{attendance.total_active_users || 0}</Text>
-                                        <Text variant="bodySmall">Total Users</Text>
+
+                                    {/* Overall Total - Clickable */}
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#bbdefb' }}>
+                                        <TouchableOpacity
+                                            style={{ alignItems: 'center', flex: 1 }}
+                                            onPress={() => router.push('/users')}
+                                        >
+                                            <Text variant="displaySmall" style={{ fontWeight: 'bold' }}>{attendance.total_users || 0}</Text>
+                                            <Text variant="bodySmall">All Users</Text>
+                                            <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+                                                <TouchableOpacity onPress={() => router.push('/users?status=ACTIVE')}>
+                                                    <Text style={{ fontSize: 10, color: 'green' }}>Active: {attendance.active_users || 0}</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity onPress={() => router.push('/users?status=INACTIVE')}>
+                                                    <Text style={{ fontSize: 10, color: 'grey' }}>Inactive: {attendance.inactive_users || 0}</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </TouchableOpacity>
+
+                                        <View style={{ width: 1, height: 40, backgroundColor: '#bbdefb' }} />
+
+                                        <TouchableOpacity
+                                            style={{ alignItems: 'center', flex: 1 }}
+                                            onPress={() => router.push('/users?punch_status=IN')}
+                                        >
+                                            <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: '#2e7d32' }}>{attendance.today_in || 0}</Text>
+                                            <Text variant="bodySmall" style={{ color: '#2e7d32', fontWeight: 'bold' }}>Total IN</Text>
+                                        </TouchableOpacity>
+
+                                        <View style={{ width: 1, height: 40, backgroundColor: '#bbdefb' }} />
+
+                                        <TouchableOpacity
+                                            style={{ alignItems: 'center', flex: 1 }}
+                                            onPress={() => router.push('/users?punch_status=OUT')}
+                                        >
+                                            <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: '#c62828' }}>{attendance.today_out || 0}</Text>
+                                            <Text variant="bodySmall" style={{ color: '#c62828', fontWeight: 'bold' }}>Total OUT</Text>
+                                        </TouchableOpacity>
                                     </View>
-                                    <View style={{ width: 1, height: 40, backgroundColor: '#bbdefb' }} />
-                                    <View style={{ alignItems: 'center' }}>
-                                        <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: '#2e7d32' }}>{attendance.today_in || 0}</Text>
-                                        <Text variant="bodySmall" style={{ color: '#2e7d32', fontWeight: 'bold' }}>IN</Text>
-                                    </View>
-                                    <View style={{ width: 1, height: 40, backgroundColor: '#bbdefb' }} />
-                                    <View style={{ alignItems: 'center' }}>
-                                        <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: '#c62828' }}>{attendance.today_out || 0}</Text>
-                                        <Text variant="bodySmall" style={{ color: '#c62828', fontWeight: 'bold' }}>OUT</Text>
-                                    </View>
-                                </View>
+
+                                    {/* Breakdown by User Type - Clickable */}
+                                    {attendance.breakdown_by_type?.map((item: any, index: number) => (
+                                        <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center' }}>
+                                            <TouchableOpacity
+                                                onPress={() => router.push(`/ users ? user_type = ${item.type} `)}
+                                                style={{ flex: 1 }}
+                                            >
+                                                <Text style={{ fontWeight: '500', textTransform: 'capitalize' }}>{item.type || 'Unknown'}</Text>
+                                            </TouchableOpacity>
+                                            <View style={{ flexDirection: 'row', gap: 15 }}>
+                                                <TouchableOpacity onPress={() => router.push(`/ users ? user_type = ${item.type}& punch_status=IN`)}>
+                                                    <Text style={{ color: '#2e7d32', fontWeight: 'bold' }}>IN: {item.in}</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity onPress={() => router.push(`/ users ? user_type = ${item.type}& punch_status=OUT`)}>
+                                                    <Text style={{ color: '#c62828', fontWeight: 'bold' }}>OUT: {item.out}</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                    ))}
+                                </Card.Content>
+                            </Card>
+                        )}
+
+                        {/* Alerts & Actions Widget */}
+                        {userRole !== 'NORMAL' && (
+                            <Card style={[styles.card, { marginBottom: 16 }]}>
+                                <Card.Title title="Alerts & Actions" left={(props) => <MaterialCommunityIcons {...props} name="bell-ring" color="#f57c00" />} />
+                                <Card.Content style={{ gap: 10 }}>
+                                    {attendance?.expired_monthly_count > 0 ? (
+                                        <Button
+                                            mode="contained-tonal"
+                                            icon="account-clock"
+                                            buttonColor="#ffe0b2"
+                                            textColor="#e65100"
+                                            onPress={() => router.push('/users?filter=EXPIRED')}
+                                        >
+                                            {attendance.expired_monthly_count} Users Expired (Monthly)
+                                        </Button>
+                                    ) : (
+                                        <Text style={{ color: 'gray', fontStyle: 'italic' }}>No active alerts.</Text>
+                                    )}
+                                </Card.Content>
+                            </Card>
+                        )}
+
+                        {/* Cricket Module Entry */}
+                        {userRole !== 'NORMAL' && (
+                            <Card style={[styles.card, { marginBottom: 16 }]}>
+                                <Card.Title
+                                    title="Cricket Turf Manager"
+                                    left={(props) => <MaterialCommunityIcons {...props} name="cricket" color={theme.colors.primary} />}
+                                    right={(props) => <IconButton {...props} icon="chevron-right" onPress={() => router.push('/management/cricket')} />}
+                                />
+                                <Card.Content>
+                                    <Text variant="bodyMedium" style={{ color: 'gray', marginBottom: 10 }}>Manage tournaments, teams, and live scoring.</Text>
+                                    <Button
+                                        mode="contained"
+                                        onPress={() => router.push('/management/cricket')}
+                                        icon="arrow-right"
+                                    >
+                                        Go to Cricket Dashboard
+                                    </Button>
                             </Card.Content>
                         </Card>
                     )}

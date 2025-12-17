@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
 import { List, FAB, Portal, Dialog, TextInput, Button, Checkbox, Text, ActivityIndicator, IconButton } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import apiService from '../../../services/api.service';
+import AuditLogDialog from '../../components/AuditLogDialog';
 
 export default function PlansScreen() {
     const insets = useSafeAreaInsets();
@@ -12,6 +13,8 @@ export default function PlansScreen() {
 
     // Form State
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [auditVisible, setAuditVisible] = useState(false);
+    const [auditEntityId, setAuditEntityId] = useState<number | null>(null);
     const [name, setName] = useState('');
     const [rateDaily, setRateDaily] = useState('');
     const [rateMonthly, setRateMonthly] = useState('');
@@ -105,6 +108,7 @@ export default function PlansScreen() {
                             left={props => <List.Icon {...props} icon="file-document-outline" />}
                             right={props => (
                                 <View style={{ flexDirection: 'row' }}>
+                                    <IconButton icon="history" size={20} iconColor="#607D8B" onPress={() => { setAuditEntityId(plan.id); setAuditVisible(true); }} />
                                     <IconButton icon="pencil" onPress={() => handleOpenEdit(plan)} />
                                     <IconButton icon="delete" iconColor="red" onPress={() => handleDelete(plan.id)} />
                                 </View>
@@ -133,6 +137,13 @@ export default function PlansScreen() {
                     </Dialog.Actions>
                 </Dialog>
             </Portal>
+
+            <AuditLogDialog
+                visible={auditVisible}
+                onDismiss={() => setAuditVisible(false)}
+                entityType="PLAN"
+                entityId={auditEntityId}
+            />
         </View>
     );
 }

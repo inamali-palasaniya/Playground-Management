@@ -1885,6 +1885,12 @@ export const MatchScalarFieldEnum = {
   start_time: 'start_time',
   status: 'status',
   overs: 'overs',
+  current_innings: 'current_innings',
+  is_completed: 'is_completed',
+  toss_winner_id: 'toss_winner_id',
+  toss_decision: 'toss_decision',
+  winning_team_id: 'winning_team_id',
+  result_description: 'result_description',
   man_of_the_match_id: 'man_of_the_match_id'
 } as const
 
@@ -1894,15 +1900,19 @@ export type MatchScalarFieldEnum = (typeof MatchScalarFieldEnum)[keyof typeof Ma
 export const BallEventScalarFieldEnum = {
   id: 'id',
   match_id: 'match_id',
+  innings: 'innings',
   over_number: 'over_number',
   ball_number: 'ball_number',
   bowler_id: 'bowler_id',
   striker_id: 'striker_id',
+  non_striker_id: 'non_striker_id',
+  batting_team_id: 'batting_team_id',
   runs_scored: 'runs_scored',
   is_wicket: 'is_wicket',
   wicket_type: 'wicket_type',
   extras: 'extras',
   extra_type: 'extra_type',
+  is_valid_ball: 'is_valid_ball',
   timestamp: 'timestamp'
 } as const
 

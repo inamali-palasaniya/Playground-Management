@@ -28,7 +28,13 @@ export const createMatch = async (req: Request, res: Response) => {
         if (finalTournamentId) {
             const tournamentExists = await prisma.tournament.findUnique({ where: { id: finalTournamentId } });
             if (!tournamentExists) {
-                finalTournamentId = null; // Invalid ID, fallback to default
+                return res.status(404).json({ error: 'Tournament not found' });
+            }
+
+            // Validate Teams belong to this tournament (optional but good practice)
+            if (teamA.tournament_id !== finalTournamentId || teamB.tournament_id !== finalTournamentId) {
+            // Warn or Block? For now, we allow cross-tournament games or just warn. 
+            // Stricter: return res.status(400).json({ error: 'Teams must belong to the selected tournament' });
             }
         }
 
@@ -67,24 +73,8 @@ export const createMatch = async (req: Request, res: Response) => {
         },
         include: {
             tournament: true,
-            team_a: {
-                include: {
-                    players: {
-                        include: {
-                            user: { select: { id: true, name: true } },
-                        },
-                    },
-                },
-            },
-            team_b: {
-                include: {
-                    players: {
-                        include: {
-                            user: { select: { id: true, name: true } },
-                        },
-                    },
-                },
-            },
+            team_a: { select: { id: true, name: true } },
+            team_b: { select: { id: true, name: true } },
         },
     });
 
@@ -167,20 +157,38 @@ export const getMatchById = async (req: Request, res: Response) => {
   }
 };
 
-export const updateMatchStatus = async (req: Request, res: Response) => {
+// Generic Match Update (Status, Toss, Result)
+export const updateMatch = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const {
+            status,
+            toss_winner_id,
+            toss_decision,
+            winning_team_id,
+            result_description,
+            current_innings,
+            is_completed
+        } = req.body;
+
+        const data: any = {};
+        if (status) data.status = status;
+        if (toss_winner_id) data.toss_winner_id = parseInt(toss_winner_id);
+        if (toss_decision) data.toss_decision = toss_decision;
+        if (winning_team_id) data.winning_team_id = parseInt(winning_team_id);
+        if (result_description) data.result_description = result_description;
+        if (current_innings) data.current_innings = parseInt(current_innings);
+        if (is_completed !== undefined) data.is_completed = is_completed;
 
         const match = await prisma.match.update({
             where: { id: parseInt(id) },
-            data: { status },
+            data,
         });
 
         res.json(match);
     } catch (error) {
-        console.error('Error updating match status:', error);
-        res.status(500).json({ error: 'Failed to update match status' });
+        console.error('Error updating match:', error);
+        res.status(500).json({ error: 'Failed to update match' });
     }
 };
 
@@ -189,38 +197,74 @@ export const recordBallEvent = async (req: Request, res: Response) => {
     try {
         const {
             match_id,
+            innings,
             over_number,
             ball_number,
             bowler_id,
             striker_id,
+            non_striker_id,
+            batting_team_id,
             runs_scored,
             is_wicket,
             wicket_type,
             extras,
             extra_type,
+            is_valid_ball
         } = req.body;
 
-        if (!match_id || over_number === undefined || ball_number === undefined || !bowler_id || !striker_id) {
+        if (!match_id || over_number === undefined || ball_number === undefined || !bowler_id || !striker_id || !batting_team_id) {
             return res.status(400).json({ error: 'Required fields missing' });
         }
 
         const ballEvent = await processBallEvent({
             matchId: parseInt(match_id),
+            innings: innings ? parseInt(innings) : 1,
             overNumber: parseInt(over_number),
             ballNumber: parseInt(ball_number),
             bowlerId: parseInt(bowler_id),
             strikerId: parseInt(striker_id),
+            nonStrikerId: non_striker_id ? parseInt(non_striker_id) : 0, // 0 or handle null if optional
+            battingTeamId: parseInt(batting_team_id),
             runsScored: runs_scored ? parseInt(runs_scored) : 0,
             isWicket: is_wicket || false,
             wicketType: wicket_type || undefined,
             extras: extras ? parseInt(extras) : 0,
             extraType: extra_type || undefined,
+            isValidBall: is_valid_ball !== undefined ? is_valid_ball : true
         });
 
         res.status(201).json(ballEvent);
     } catch (error) {
         console.error('Error recording ball event:', error);
         res.status(500).json({ error: 'Failed to record ball event' });
+    }
+};
+
+// Undo Last Ball
+export const undoLastBall = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        // Find the last event
+        const lastBall = await prisma.ballEvent.findFirst({
+            where: { match_id: parseInt(id) },
+            orderBy: { id: 'desc' }
+        });
+
+        if (!lastBall) {
+            return res.status(404).json({ error: 'No balls to undo' });
+        }
+
+        // Delete it
+        await prisma.ballEvent.delete({
+            where: { id: lastBall.id }
+        });
+
+        res.json({ message: 'Last ball undone successfully' });
+
+    } catch (error) {
+        console.error('Error undoing last ball:', error);
+        res.status(500).json({ error: 'Failed to undo last ball' });
     }
 };
 
@@ -240,19 +284,26 @@ export const getLiveScore = async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Match not found' });
         }
 
-        // Calculate score
-        const totalRuns = match.ball_events.reduce((sum: number, ball: any) => sum + ball.runs_scored + ball.extras, 0);
-        const totalWickets = match.ball_events.filter((ball: any) => ball.is_wicket).length;
-        const totalBalls = match.ball_events.length;
-        const overs = Math.floor(totalBalls / 6) + (totalBalls % 6) / 10;
+        // Calculate score per innings
+        const calculateInningsScore = (events: any[]) => {
+            const runs = events.reduce((sum: number, ball: any) => sum + ball.runs_scored + ball.extras, 0);
+            const wickets = events.filter((ball: any) => ball.is_wicket).length;
+            const validBalls = events.filter((ball: any) => ball.extra_type !== 'WD' && ball.extra_type !== 'NB').length;
+            const overs = Math.floor(validBalls / 6) + (validBalls % 6) / 10;
+            return { runs, wickets, overs, balls: validBalls };
+        };
+
+        const innings1Events = match.ball_events.filter((b: any) => b.innings === 1);
+        const innings2Events = match.ball_events.filter((b: any) => b.innings === 2);
 
         res.json({
             match_id: match.id,
             status: match.status,
-            runs: totalRuns,
-            wickets: totalWickets,
-            overs: overs.toFixed(1),
-            balls: totalBalls,
+            current_innings: match.current_innings || 1,
+            score: {
+                innings1: calculateInningsScore(innings1Events),
+                innings2: calculateInningsScore(innings2Events)
+            }
         });
     } catch (error) {
         console.error('Error getting live score:', error);

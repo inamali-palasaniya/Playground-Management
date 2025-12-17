@@ -489,34 +489,38 @@ class ApiService {
     }
 
     async createTeam(tournamentId: number, name: string): Promise<any> {
-        return this.request<any>(`/api/tournaments/${tournamentId}/teams`, {
+        return this.request<any>('/api/teams', {
             method: 'POST',
-            body: JSON.stringify({ name }),
+            body: JSON.stringify({ name, tournament_id: tournamentId }),
         });
     }
 
+    async getTeamById(id: number): Promise<any> {
+        return this.request<any>(`/api/teams/${id}`);
+    }
+
     async updateTeam(teamId: number, name: string): Promise<any> {
-        return this.request<any>(`/api/tournaments/teams/${teamId}`, {
+        return this.request<any>(`/api/teams/${teamId}`, {
             method: 'PUT',
             body: JSON.stringify({ name }),
         });
     }
 
     async deleteTeam(teamId: number): Promise<any> {
-        return this.request<any>(`/api/tournaments/teams/${teamId}`, {
+        return this.request<any>(`/api/teams/${teamId}`, {
             method: 'DELETE',
         });
     }
 
     async addPlayerToTeam(teamId: number, userId: number): Promise<any> {
-        return this.request<any>(`/api/tournaments/teams/${teamId}/players`, {
+        return this.request<any>(`/api/teams/${teamId}/players`, {
             method: 'POST',
             body: JSON.stringify({ user_id: userId }),
         });
     }
 
     async removePlayerFromTeam(teamId: number, playerId: number): Promise<any> {
-        return this.request<any>(`/api/tournaments/teams/${teamId}/players/${playerId}`, {
+        return this.request<any>(`/api/teams/${teamId}/players/${playerId}`, {
             method: 'DELETE',
         });
     }
@@ -541,11 +545,15 @@ class ApiService {
         return this.request<any>(`/api/matches/${id}`);
     }
 
-    async updateMatchStatus(id: number, status: string): Promise<any> {
-        return this.request<any>(`/api/matches/${id}/status`, {
+    async updateMatch(id: number, data: any): Promise<any> {
+        return this.request<any>(`/api/matches/${id}`, {
             method: 'PUT',
-            body: JSON.stringify({ status }),
+            body: JSON.stringify(data),
         });
+    }
+
+    async updateMatchStatus(id: number, status: string): Promise<any> {
+        return this.updateMatch(id, { status });
     }
 
     async recordBallEvent(matchId: number, data: any): Promise<any> {
@@ -557,6 +565,20 @@ class ApiService {
 
     async getLiveScore(matchId: number): Promise<any> {
         return this.request<any>(`/api/matches/${matchId}/live-score`);
+    }
+
+    async getPointsTable(tournamentId: number): Promise<any> {
+        return this.request<any>(`/api/tournaments/${tournamentId}/points-table`);
+    }
+
+    async getTournamentStats(tournamentId: number): Promise<any> {
+        return this.request<any>(`/api/tournaments/${tournamentId}/stats`);
+    }
+
+    async undoLastBall(matchId: number): Promise<any> {
+        return this.request<any>(`/api/matches/${matchId}/undo`, {
+            method: 'DELETE',
+        });
     }
 
     // Match Analytics endpoints

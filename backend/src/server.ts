@@ -40,6 +40,10 @@ app.use('/api/tournaments', tournamentRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/reports', reportRoutes);
+
+import teamRoutes from './routes/team.routes.js';
+app.use('/api/teams', teamRoutes);
+
 import groupRoutes from './routes/group.routes.js';
 app.use('/api/groups', groupRoutes);
 
