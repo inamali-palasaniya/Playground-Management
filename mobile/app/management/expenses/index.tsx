@@ -4,12 +4,15 @@ import { Appbar, useTheme, Card, Text, FAB, ActivityIndicator, IconButton } from
 import { useRouter, useFocusEffect } from 'expo-router';
 import apiService from '../../../services/api.service';
 import { format } from 'date-fns';
+import AuditLogDialog from '../../components/AuditLogDialog';
 
 export default function ExpenseListScreen() {
     const router = useRouter();
     const theme = useTheme();
     const [expenses, setExpenses] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [auditVisible, setAuditVisible] = useState(false);
+    const [auditEntityId, setAuditEntityId] = useState<number | null>(null);
 
     const loadExpenses = async () => {
         try {
@@ -58,6 +61,7 @@ export default function ExpenseListScreen() {
                 </View>
                 <View style={{ alignItems: 'flex-end', flexDirection: 'row', gap: 0 }}>
                     <Text variant="titleMedium" style={{ color: '#d32f2f', fontWeight: 'bold', marginRight: 10 }}>₹{item.amount}</Text>
+                    <IconButton icon="history" size={20} iconColor="#607D8B" onPress={() => { setAuditEntityId(item.id); setAuditVisible(true); }} />
                     <IconButton icon="pencil" size={20} iconColor="#1976d2" onPress={() => router.push({ pathname: '/management/expenses/add-expense', params: { id: item.id } })} />
                     <IconButton icon="delete" size={20} iconColor="red" onPress={() => handleDelete(item.id)} />
                 </View>
@@ -89,6 +93,13 @@ export default function ExpenseListScreen() {
                 style={styles.fab}
                 label="Add Expense"
                 onPress={() => router.push('/management/expenses/add-expense')}
+            />
+
+            <AuditLogDialog
+                visible={auditVisible}
+                onDismiss={() => setAuditVisible(false)}
+                entityType="EXPENSE"
+                entityId={auditEntityId}
             />
         </View>
     );

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma.js';
 import bcrypt from 'bcrypt';
+import { AuditService } from '../services/audit.service.js';
 
 export const createUser = async (req: Request, res: Response) => {
     try {
@@ -84,6 +85,15 @@ export const createUser = async (req: Request, res: Response) => {
             }
         }
 
+        // AUDIT LOG
+        const performedBy = (req as any).user?.userId || 1; // Default to 1 (Admin) if system/seed
+        await AuditService.logAction('USER', user.id, 'CREATE', performedBy, {
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            plan_id
+        });
+
         res.status(201).json(user);
     } catch (error: any) {
         console.error('Error creating user FULL DETIALS:', JSON.stringify(error, null, 2));
@@ -161,7 +171,7 @@ export const getUsers = async (req: Request, res: Response) => {
                     // Existing logic already checks this roughly. Let's refine.
                     // If plan is monthly, and sub status is ACTIVE, check if current month fee is paid?
                     // actually sub.status should reflect it.
-                    status = sub.status; 
+                    status = sub.status;
                 } else {
                     status = 'ACTIVE';
                 }
@@ -341,7 +351,7 @@ export const updateUser = async (req: Request, res: Response) => {
             if (permissions !== undefined) delete req.body.permissions;
         }
 
-        let hashedPassword = undefined; 
+        let hashedPassword = undefined;
         if (password && password.trim() !== '') {
             hashedPassword = await bcrypt.hash(password, 10);
         }
@@ -460,6 +470,14 @@ export const updateUser = async (req: Request, res: Response) => {
             );
         }
 
+        // AUDIT LOG
+        const performedBy = (req as any).user?.userId || 1;
+        // masked data for log
+        const logDetail = { ...updateData };
+        delete logDetail.password;
+
+        await AuditService.logAction('USER', user.id, 'UPDATE', performedBy, logDetail);
+
         res.json({ ...user, token: newToken });
     } catch (error: any) {
         console.error('Error updating user:', error);
@@ -507,6 +525,15 @@ export const deleteUser = async (req: Request, res: Response) => {
             await tx.user.delete({
                 where: { id: userId },
             });
+        });
+
+        // AUDIT LOG
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('USER', userId, 'DELETE', performedBy, {
+            name: targetUser.name,
+            email: targetUser.email,
+            phone: targetUser.phone,
+            role: targetUser.role
         });
 
         res.json({ message: 'User and related data deleted successfully' });

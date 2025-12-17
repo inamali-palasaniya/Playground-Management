@@ -5,6 +5,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import apiService from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AuditLogDialog from '../../components/AuditLogDialog';
 
 interface User {
     id: number;
@@ -37,6 +38,10 @@ export default function UsersScreen() {
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
     const [menuVisible, setMenuVisible] = useState(false);
     const [currentUser, setCurrentUser] = useState<any>(null);
+
+    // Audit Dialog State
+    const [auditVisible, setAuditVisible] = useState(false);
+    const [auditEntityId, setAuditEntityId] = useState<number | null>(null);
 
     const loadData = async () => {
         try {
@@ -213,7 +218,6 @@ export default function UsersScreen() {
                                     iconColor="#4CAF50" // Green
                                     onPress={(e) => {
                                         e.stopPropagation();
-                                        router.push({ pathname: '/management/edit-user', params: { id: item.id } });
                                     }}
                                 />
                                 {/* 3. Delete Icon (Red) */}
@@ -226,6 +230,17 @@ export default function UsersScreen() {
                                         confirmDelete(item.id, item.name);
                                     }}
                                 />
+                                {/* 4. History Icon (Blue-Grey) */}
+                                <IconButton
+                                    icon="history"
+                                    size={20}
+                                    iconColor="#607D8B"
+                                    onPress={(e) => {
+                                        e.stopPropagation();
+                                        setAuditEntityId(item.id);
+                                        setAuditVisible(true);
+                                    }}
+                                />
                             </View>
                         )}
                         {item.balance !== undefined && item.balance !== 0 && (
@@ -233,7 +248,7 @@ export default function UsersScreen() {
                                 backgroundColor: item.balance > 0 ? '#ffebee' : '#e8f5e9',
                                 paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12,
                                 borderWidth: 1, borderColor: item.balance > 0 ? '#ef9a9a' : '#a5d6a7',
-                                marginTop: 8, marginRight: 10, alignSelf: 'flex-end', marginBottom: 12 
+                                marginTop: 8, marginRight: 10, alignSelf: 'flex-end', marginBottom: 12
                             }}>
                                 <Text style={{ fontSize: 10, color: item.balance > 0 ? '#c62828' : '#2e7d32', fontWeight: 'bold' }}>
                                     {item.balance > 0 ? `Due: ₹${item.balance}` : `Adv: ₹${Math.abs(item.balance)}`}
@@ -290,11 +305,11 @@ export default function UsersScreen() {
                 <ActivityIndicator style={{ marginTop: 20 }} />
             ) : (
                 <FlatList
-                        data={isManagement ? filteredUsers : users} // If normal, users contains only self
+                    data={isManagement ? filteredUsers : users} // If normal, users contains only self
                     renderItem={renderItem}
                     keyExtractor={(item) => item.id.toString()}
                     contentContainerStyle={styles.list}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                 />
             )}
 
@@ -313,6 +328,13 @@ export default function UsersScreen() {
                     style={{ paddingBottom: 80 }} // Ensure it's above the tab bar
                 />
             )}
+
+            <AuditLogDialog
+                visible={auditVisible}
+                onDismiss={() => setAuditVisible(false)}
+                entityType="USER"
+                entityId={auditEntityId}
+            />
         </View>
     );
 }

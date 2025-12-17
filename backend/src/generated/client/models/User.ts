@@ -287,6 +287,7 @@ export type UserWhereInput = {
   group?: Prisma.XOR<Prisma.UserGroupNullableScalarRelationFilter, Prisma.UserGroupWhereInput> | null
   fines?: Prisma.UserFineListRelationFilter
   permissions?: Prisma.PermissionListRelationFilter
+  audit_logs?: Prisma.AuditLogListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -312,6 +313,7 @@ export type UserOrderByWithRelationInput = {
   group?: Prisma.UserGroupOrderByWithRelationInput
   fines?: Prisma.UserFineOrderByRelationAggregateInput
   permissions?: Prisma.PermissionOrderByRelationAggregateInput
+  audit_logs?: Prisma.AuditLogOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -340,6 +342,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   group?: Prisma.XOR<Prisma.UserGroupNullableScalarRelationFilter, Prisma.UserGroupWhereInput> | null
   fines?: Prisma.UserFineListRelationFilter
   permissions?: Prisma.PermissionListRelationFilter
+  audit_logs?: Prisma.AuditLogListRelationFilter
 }, "id" | "phone" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -399,6 +402,7 @@ export type UserCreateInput = {
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -423,6 +427,7 @@ export type UserUncheckedCreateInput = {
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserUpdateInput = {
@@ -446,6 +451,7 @@ export type UserUpdateInput = {
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -470,6 +476,7 @@ export type UserUncheckedUpdateInput = {
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -806,6 +813,20 @@ export type UserUpdateOneRequiredWithoutPermissionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPermissionsInput, Prisma.UserUpdateWithoutPermissionsInput>, Prisma.UserUncheckedUpdateWithoutPermissionsInput>
 }
 
+export type UserCreateNestedOneWithoutAudit_logsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAudit_logsInput, Prisma.UserUncheckedCreateWithoutAudit_logsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAudit_logsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutAudit_logsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAudit_logsInput, Prisma.UserUncheckedCreateWithoutAudit_logsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAudit_logsInput
+  upsert?: Prisma.UserUpsertWithoutAudit_logsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAudit_logsInput, Prisma.UserUpdateWithoutAudit_logsInput>, Prisma.UserUncheckedUpdateWithoutAudit_logsInput>
+}
+
 export type UserCreateWithoutGroupInput = {
   name: string
   phone: string
@@ -826,6 +847,7 @@ export type UserCreateWithoutGroupInput = {
   series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserUncheckedCreateWithoutGroupInput = {
@@ -849,6 +871,7 @@ export type UserUncheckedCreateWithoutGroupInput = {
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserCreateOrConnectWithoutGroupInput = {
@@ -914,6 +937,7 @@ export type UserCreateWithoutSubscriptionsInput = {
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserUncheckedCreateWithoutSubscriptionsInput = {
@@ -937,6 +961,7 @@ export type UserUncheckedCreateWithoutSubscriptionsInput = {
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserCreateOrConnectWithoutSubscriptionsInput = {
@@ -975,6 +1000,7 @@ export type UserUpdateWithoutSubscriptionsInput = {
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubscriptionsInput = {
@@ -998,6 +1024,7 @@ export type UserUncheckedUpdateWithoutSubscriptionsInput = {
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserCreateWithoutAttendancesInput = {
@@ -1020,6 +1047,7 @@ export type UserCreateWithoutAttendancesInput = {
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserUncheckedCreateWithoutAttendancesInput = {
@@ -1043,6 +1071,7 @@ export type UserUncheckedCreateWithoutAttendancesInput = {
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserCreateOrConnectWithoutAttendancesInput = {
@@ -1081,6 +1110,7 @@ export type UserUpdateWithoutAttendancesInput = {
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAttendancesInput = {
@@ -1104,6 +1134,7 @@ export type UserUncheckedUpdateWithoutAttendancesInput = {
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserCreateWithoutFee_ledgerInput = {
@@ -1126,6 +1157,7 @@ export type UserCreateWithoutFee_ledgerInput = {
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserUncheckedCreateWithoutFee_ledgerInput = {
@@ -1149,6 +1181,7 @@ export type UserUncheckedCreateWithoutFee_ledgerInput = {
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserCreateOrConnectWithoutFee_ledgerInput = {
@@ -1187,6 +1220,7 @@ export type UserUpdateWithoutFee_ledgerInput = {
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFee_ledgerInput = {
@@ -1210,6 +1244,7 @@ export type UserUncheckedUpdateWithoutFee_ledgerInput = {
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserCreateWithoutFinesInput = {
@@ -1232,6 +1267,7 @@ export type UserCreateWithoutFinesInput = {
   series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserUncheckedCreateWithoutFinesInput = {
@@ -1255,6 +1291,7 @@ export type UserUncheckedCreateWithoutFinesInput = {
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserCreateOrConnectWithoutFinesInput = {
@@ -1293,6 +1330,7 @@ export type UserUpdateWithoutFinesInput = {
   series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFinesInput = {
@@ -1316,6 +1354,7 @@ export type UserUncheckedUpdateWithoutFinesInput = {
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserCreateWithoutSeries_won_motsInput = {
@@ -1338,6 +1377,7 @@ export type UserCreateWithoutSeries_won_motsInput = {
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserUncheckedCreateWithoutSeries_won_motsInput = {
@@ -1361,6 +1401,7 @@ export type UserUncheckedCreateWithoutSeries_won_motsInput = {
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserCreateOrConnectWithoutSeries_won_motsInput = {
@@ -1399,6 +1440,7 @@ export type UserUpdateWithoutSeries_won_motsInput = {
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSeries_won_motsInput = {
@@ -1422,6 +1464,7 @@ export type UserUncheckedUpdateWithoutSeries_won_motsInput = {
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserCreateWithoutPlayer_teamsInput = {
@@ -1444,6 +1487,7 @@ export type UserCreateWithoutPlayer_teamsInput = {
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserUncheckedCreateWithoutPlayer_teamsInput = {
@@ -1467,6 +1511,7 @@ export type UserUncheckedCreateWithoutPlayer_teamsInput = {
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserCreateOrConnectWithoutPlayer_teamsInput = {
@@ -1505,6 +1550,7 @@ export type UserUpdateWithoutPlayer_teamsInput = {
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlayer_teamsInput = {
@@ -1528,6 +1574,7 @@ export type UserUncheckedUpdateWithoutPlayer_teamsInput = {
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserCreateWithoutMatches_won_motmInput = {
@@ -1550,6 +1597,7 @@ export type UserCreateWithoutMatches_won_motmInput = {
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserUncheckedCreateWithoutMatches_won_motmInput = {
@@ -1573,6 +1621,7 @@ export type UserUncheckedCreateWithoutMatches_won_motmInput = {
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserCreateOrConnectWithoutMatches_won_motmInput = {
@@ -1611,6 +1660,7 @@ export type UserUpdateWithoutMatches_won_motmInput = {
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMatches_won_motmInput = {
@@ -1634,6 +1684,7 @@ export type UserUncheckedUpdateWithoutMatches_won_motmInput = {
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserCreateWithoutBowled_ballsInput = {
@@ -1656,6 +1707,7 @@ export type UserCreateWithoutBowled_ballsInput = {
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserUncheckedCreateWithoutBowled_ballsInput = {
@@ -1679,6 +1731,7 @@ export type UserUncheckedCreateWithoutBowled_ballsInput = {
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserCreateOrConnectWithoutBowled_ballsInput = {
@@ -1706,6 +1759,7 @@ export type UserCreateWithoutFaced_ballsInput = {
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserUncheckedCreateWithoutFaced_ballsInput = {
@@ -1729,6 +1783,7 @@ export type UserUncheckedCreateWithoutFaced_ballsInput = {
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
   permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserCreateOrConnectWithoutFaced_ballsInput = {
@@ -1767,6 +1822,7 @@ export type UserUpdateWithoutBowled_ballsInput = {
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBowled_ballsInput = {
@@ -1790,6 +1846,7 @@ export type UserUncheckedUpdateWithoutBowled_ballsInput = {
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserUpsertWithoutFaced_ballsInput = {
@@ -1823,6 +1880,7 @@ export type UserUpdateWithoutFaced_ballsInput = {
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFaced_ballsInput = {
@@ -1846,6 +1904,7 @@ export type UserUncheckedUpdateWithoutFaced_ballsInput = {
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserCreateWithoutPermissionsInput = {
@@ -1868,6 +1927,7 @@ export type UserCreateWithoutPermissionsInput = {
   series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
   group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
   fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserUncheckedCreateWithoutPermissionsInput = {
@@ -1891,6 +1951,7 @@ export type UserUncheckedCreateWithoutPermissionsInput = {
   player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
   series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
   fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
+  audit_logs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutPerformed_byInput
 }
 
 export type UserCreateOrConnectWithoutPermissionsInput = {
@@ -1929,6 +1990,7 @@ export type UserUpdateWithoutPermissionsInput = {
   series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
   group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPermissionsInput = {
@@ -1952,6 +2014,117 @@ export type UserUncheckedUpdateWithoutPermissionsInput = {
   player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutPerformed_byNestedInput
+}
+
+export type UserCreateWithoutAudit_logsInput = {
+  name: string
+  phone: string
+  email?: string | null
+  role?: $Enums.UserRole
+  deposit_amount?: number
+  password?: string | null
+  age?: number | null
+  user_type?: $Enums.UserType
+  is_active?: boolean
+  attendances?: Prisma.AttendanceCreateNestedManyWithoutUserInput
+  bowled_balls?: Prisma.BallEventCreateNestedManyWithoutBowlerInput
+  faced_balls?: Prisma.BallEventCreateNestedManyWithoutStrikerInput
+  fee_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutUserInput
+  matches_won_motm?: Prisma.MatchCreateNestedManyWithoutMan_of_the_matchInput
+  subscriptions?: Prisma.SubscriptionCreateNestedManyWithoutUserInput
+  player_teams?: Prisma.TeamPlayerCreateNestedManyWithoutUserInput
+  series_won_mots?: Prisma.TournamentCreateNestedManyWithoutMan_of_the_seriesInput
+  group?: Prisma.UserGroupCreateNestedOneWithoutUsersInput
+  fines?: Prisma.UserFineCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutAudit_logsInput = {
+  id?: number
+  name: string
+  phone: string
+  email?: string | null
+  role?: $Enums.UserRole
+  deposit_amount?: number
+  group_id?: number | null
+  password?: string | null
+  age?: number | null
+  user_type?: $Enums.UserType
+  is_active?: boolean
+  attendances?: Prisma.AttendanceUncheckedCreateNestedManyWithoutUserInput
+  bowled_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutBowlerInput
+  faced_balls?: Prisma.BallEventUncheckedCreateNestedManyWithoutStrikerInput
+  fee_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutUserInput
+  matches_won_motm?: Prisma.MatchUncheckedCreateNestedManyWithoutMan_of_the_matchInput
+  subscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutUserInput
+  player_teams?: Prisma.TeamPlayerUncheckedCreateNestedManyWithoutUserInput
+  series_won_mots?: Prisma.TournamentUncheckedCreateNestedManyWithoutMan_of_the_seriesInput
+  fines?: Prisma.UserFineUncheckedCreateNestedManyWithoutUserInput
+  permissions?: Prisma.PermissionUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutAudit_logsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAudit_logsInput, Prisma.UserUncheckedCreateWithoutAudit_logsInput>
+}
+
+export type UserUpsertWithoutAudit_logsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAudit_logsInput, Prisma.UserUncheckedUpdateWithoutAudit_logsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAudit_logsInput, Prisma.UserUncheckedCreateWithoutAudit_logsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAudit_logsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAudit_logsInput, Prisma.UserUncheckedUpdateWithoutAudit_logsInput>
+}
+
+export type UserUpdateWithoutAudit_logsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  attendances?: Prisma.AttendanceUpdateManyWithoutUserNestedInput
+  bowled_balls?: Prisma.BallEventUpdateManyWithoutBowlerNestedInput
+  faced_balls?: Prisma.BallEventUpdateManyWithoutStrikerNestedInput
+  fee_ledger?: Prisma.FeeLedgerUpdateManyWithoutUserNestedInput
+  matches_won_motm?: Prisma.MatchUpdateManyWithoutMan_of_the_matchNestedInput
+  subscriptions?: Prisma.SubscriptionUpdateManyWithoutUserNestedInput
+  player_teams?: Prisma.TeamPlayerUpdateManyWithoutUserNestedInput
+  series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
+  group?: Prisma.UserGroupUpdateOneWithoutUsersNestedInput
+  fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAudit_logsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  attendances?: Prisma.AttendanceUncheckedUpdateManyWithoutUserNestedInput
+  bowled_balls?: Prisma.BallEventUncheckedUpdateManyWithoutBowlerNestedInput
+  faced_balls?: Prisma.BallEventUncheckedUpdateManyWithoutStrikerNestedInput
+  fee_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutUserNestedInput
+  matches_won_motm?: Prisma.MatchUncheckedUpdateManyWithoutMan_of_the_matchNestedInput
+  subscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  player_teams?: Prisma.TeamPlayerUncheckedUpdateManyWithoutUserNestedInput
+  series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
+  fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
+  permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyGroupInput = {
@@ -1987,6 +2160,7 @@ export type UserUpdateWithoutGroupInput = {
   series_won_mots?: Prisma.TournamentUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGroupInput = {
@@ -2010,6 +2184,7 @@ export type UserUncheckedUpdateWithoutGroupInput = {
   series_won_mots?: Prisma.TournamentUncheckedUpdateManyWithoutMan_of_the_seriesNestedInput
   fines?: Prisma.UserFineUncheckedUpdateManyWithoutUserNestedInput
   permissions?: Prisma.PermissionUncheckedUpdateManyWithoutUserNestedInput
+  audit_logs?: Prisma.AuditLogUncheckedUpdateManyWithoutPerformed_byNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutGroupInput = {
@@ -2041,6 +2216,7 @@ export type UserCountOutputType = {
   series_won_mots: number
   fines: number
   permissions: number
+  audit_logs: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2054,6 +2230,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   series_won_mots?: boolean | UserCountOutputTypeCountSeries_won_motsArgs
   fines?: boolean | UserCountOutputTypeCountFinesArgs
   permissions?: boolean | UserCountOutputTypeCountPermissionsArgs
+  audit_logs?: boolean | UserCountOutputTypeCountAudit_logsArgs
 }
 
 /**
@@ -2136,6 +2313,13 @@ export type UserCountOutputTypeCountPermissionsArgs<ExtArgs extends runtime.Type
   where?: Prisma.PermissionWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAudit_logsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AuditLogWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2160,6 +2344,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   group?: boolean | Prisma.User$groupArgs<ExtArgs>
   fines?: boolean | Prisma.User$finesArgs<ExtArgs>
   permissions?: boolean | Prisma.User$permissionsArgs<ExtArgs>
+  audit_logs?: boolean | Prisma.User$audit_logsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -2220,6 +2405,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   group?: boolean | Prisma.User$groupArgs<ExtArgs>
   fines?: boolean | Prisma.User$finesArgs<ExtArgs>
   permissions?: boolean | Prisma.User$permissionsArgs<ExtArgs>
+  audit_logs?: boolean | Prisma.User$audit_logsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2243,6 +2429,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     group: Prisma.$UserGroupPayload<ExtArgs> | null
     fines: Prisma.$UserFinePayload<ExtArgs>[]
     permissions: Prisma.$PermissionPayload<ExtArgs>[]
+    audit_logs: Prisma.$AuditLogPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -2661,6 +2848,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   group<T extends Prisma.User$groupArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$groupArgs<ExtArgs>>): Prisma.Prisma__UserGroupClient<runtime.Types.Result.GetResult<Prisma.$UserGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   fines<T extends Prisma.User$finesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$finesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserFinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   permissions<T extends Prisma.User$permissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$permissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  audit_logs<T extends Prisma.User$audit_logsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$audit_logsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3353,6 +3541,30 @@ export type User$permissionsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.PermissionScalarFieldEnum | Prisma.PermissionScalarFieldEnum[]
+}
+
+/**
+ * User.audit_logs
+ */
+export type User$audit_logsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AuditLog
+   */
+  select?: Prisma.AuditLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AuditLog
+   */
+  omit?: Prisma.AuditLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AuditLogInclude<ExtArgs> | null
+  where?: Prisma.AuditLogWhereInput
+  orderBy?: Prisma.AuditLogOrderByWithRelationInput | Prisma.AuditLogOrderByWithRelationInput[]
+  cursor?: Prisma.AuditLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AuditLogScalarFieldEnum | Prisma.AuditLogScalarFieldEnum[]
 }
 
 /**

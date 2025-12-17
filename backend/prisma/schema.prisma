@@ -42,6 +42,7 @@ model User {
   group            UserGroup?     @relation(fields: [group_id], references: [id])
   fines            UserFine[]
   permissions      Permission[]
+  audit_logs       AuditLog[]
 }
 
 model SubscriptionPlan {
@@ -276,4 +277,15 @@ enum MatchStatus {
   LIVE
   COMPLETED
   ABANDONED
+}
+
+model AuditLog {
+  id              Int      @id @default(autoincrement())
+  entity_type     String
+  entity_id       Int
+  action          String   // CREATE, UPDATE, DELETE
+  performed_by_id Int
+  performed_by    User     @relation(fields: [performed_by_id], references: [id])
+  details         Json?
+  timestamp       DateTime @default(now())
 }

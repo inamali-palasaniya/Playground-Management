@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma.js';
+import { AuditService } from '../services/audit.service.js';
 
 // Add Payment (Credit) with Auto-Match Logic
 // Add Payment (Credit) with Strict Linking
@@ -50,7 +51,7 @@ export const addPayment = async (req: Request, res: Response) => {
                 payment_method: txType === 'CREDIT' ? (payment_method || 'CASH') : undefined,
                 amount: numericAmount,
                 date: paymentDate,
-                is_paid: txType === 'CREDIT', 
+                is_paid: txType === 'CREDIT',
                 notes: finalNotes ? finalNotes.trim() : undefined,
                 parent_ledger_id: (txType === 'CREDIT' && link_to_id) ? parseInt(link_to_id) : undefined
             }
@@ -62,7 +63,7 @@ export const addPayment = async (req: Request, res: Response) => {
             if (parent) {
                 const allChildren = await prisma.feeLedger.findMany({ where: { parent_ledger_id: parent.id } });
                 const totalPaid = allChildren.reduce((sum, child) => sum + child.amount, 0);
-                
+
                 // Allow small floating point error epsilon if needed, but strict equality is usually okay for currency if integers/fixed.
                 // Using >= to be safe.
                 if (totalPaid >= parent.amount) {
@@ -75,6 +76,9 @@ export const addPayment = async (req: Request, res: Response) => {
         }
 
         // Removed Auto-Match Logic as per new requirement
+
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('PAYMENT', entry.id, 'CREATE', performedBy, { amount, notes, type: txType });
 
         res.status(201).json(entry);
     } catch (error: any) {
@@ -152,6 +156,10 @@ export const chargeMonthlyFee = async (req: Request, res: Response) => {
 
         res.status(201).json({ message: 'Monthly charges applied', debits });
 
+        const performedBy = (req as any).user?.userId || 1;
+        if (debits.length > 0) {
+            await AuditService.logAction('MONTHLY_CHARGE', parseInt(user_id), 'CREATE', performedBy, { count: debits.length, debits });
+        }
     } catch (error) {
         console.error('Error charging monthly fee:', error);
         res.status(500).json({ error: 'Failed to charge monthly fee' });
@@ -199,6 +207,9 @@ export const addFine = async (req: Request, res: Response) => {
         });
 
         res.status(201).json(ledger);
+
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('FINE', ledger.id, 'CREATE', performedBy, { amount, rule_id, notes });
     } catch (error) {
         console.error('Error adding fine:', error);
         res.status(500).json({ error: 'Failed to add fine' });
@@ -276,6 +287,9 @@ export const updateLedgerEntry = async (req: Request, res: Response) => {
         }
 
         res.json(updated);
+
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('LEDGER', updated.id, 'UPDATE', performedBy, { amount, notes, is_paid });
     } catch (error) {
         console.error('Update Ledger Error:', error);
         res.status(500).json({ error: 'Failed to update ledger entry' });
@@ -342,6 +356,9 @@ export const deleteLedgerEntry = async (req: Request, res: Response) => {
         }
 
         res.json({ message: 'Entry deleted' });
+
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('LEDGER', entryId, 'DELETE', performedBy, { amount: entry.amount, type: entry.type });
     } catch (error) {
         console.error('Error deleting ledger entry:', error);
         res.status(500).json({ error: 'Failed to delete ledger entry' });

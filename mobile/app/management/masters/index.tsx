@@ -34,7 +34,7 @@ export default function MastersScreen() {
                 <Text variant="titleMedium" style={styles.sectionHeader}>System Configuration</Text>
 
                 <MasterItem
-                    title="Subscription Plans" 
+                    title="Subscription Plans"
                     description="Configure monthly rates, deposits, and billing cycles."
                     icon="notebook-edit"
                     color="#6200ee"
@@ -42,7 +42,7 @@ export default function MastersScreen() {
                 />
 
                 <MasterItem
-                    title="Fine Rules" 
+                    title="Fine Rules"
                     description="Set penalties for late arrivals, dress code, etc."
                     icon="gavel"
                     color="#e65100"
@@ -50,13 +50,22 @@ export default function MastersScreen() {
                 />
 
                 <MasterItem
-                    title="User Groups" 
+                    title="User Groups"
                     description="Categorize users into squads or departments."
                     icon="account-group" // changed from account-multiple-outline for consistency
                     color="#00695c"
                     route="/management/masters/groups"
                 />
 
+                <Text variant="titleMedium" style={[styles.sectionHeader, { marginTop: 16 }]}>Audit & History</Text>
+
+                <MasterItem
+                    title="Deleted Items"
+                    description="View history of deleted records (Recycle Bin)."
+                    icon="delete-restore"
+                    color="#607D8B"
+                    route="/management/logs/deleted"
+                />
             </ScrollView>
         </View>
     );

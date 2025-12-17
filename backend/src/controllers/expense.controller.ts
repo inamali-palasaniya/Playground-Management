@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma.js';
+import { AuditService } from '../services/audit.service.js';
 
 export const createExpense = async (req: Request, res: Response) => {
     try {
@@ -20,6 +21,9 @@ export const createExpense = async (req: Request, res: Response) => {
         });
 
         res.status(201).json(expense);
+
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('EXPENSE', expense.id, 'CREATE', performedBy, { name, amount, category });
     } catch (error) {
         console.error('Error creating expense:', error);
         res.status(500).json({ error: 'Failed to create expense' });
@@ -72,6 +76,9 @@ export const updateExpense = async (req: Request, res: Response) => {
         });
 
         res.json(expense);
+
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('EXPENSE', expense.id, 'UPDATE', performedBy, req.body);
     } catch (error) {
         console.error('Error updating expense:', error);
         res.status(500).json({ error: 'Failed to update expense' });
@@ -82,9 +89,12 @@ export const deleteExpense = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
-        await prisma.expense.delete({
+        const deleted = await prisma.expense.delete({
             where: { id: parseInt(id) }
         });
+
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('EXPENSE', deleted.id, 'DELETE', performedBy, { name: deleted.name, amount: deleted.amount });
 
         res.json({ message: 'Expense deleted successfully' });
     } catch (error) {

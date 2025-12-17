@@ -49,6 +49,9 @@ app.use('/api/masters', masterRoutes);
 import financeRoutes from './routes/finance.routes.js';
 app.use('/api/finance', financeRoutes);
 
+import logRoutes from './routes/log.routes.js';
+app.use('/api/logs', logRoutes);
+
 
 app.get('/', (req, res) => {
     res.send('Sports Community Hub API');

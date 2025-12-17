@@ -97,3 +97,8 @@ export type BallEvent = Prisma.BallEventModel
  * 
  */
 export type Permission = Prisma.PermissionModel
+/**
+ * Model AuditLog
+ * 
+ */
+export type AuditLog = Prisma.AuditLogModel

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma.js';
+import { AuditService } from '../services/audit.service.js';
 
 export const checkIn = async (req: Request, res: Response) => {
   try {
@@ -317,6 +318,11 @@ export const updateAttendance = async (req: Request, res: Response) => {
       }
     }
 
+    // Sync Ledger if fee changed -> (Logic handled above)
+
+    const performedBy = (req as any).user?.userId || 1;
+    await AuditService.logAction('ATTENDANCE', attendanceId, 'UPDATE', performedBy, { is_present, in_time, out_time, daily_fee_charged });
+
     res.json(updated);
   } catch (error) {
     console.error('Error updating attendance:', error);
@@ -382,6 +388,10 @@ export const deleteAttendance = async (req: Request, res: Response) => {
     }
 
     await prisma.attendance.delete({ where: { id: attendanceId } });
+
+    const performedBy = (req as any).user?.userId || 1;
+    await AuditService.logAction('ATTENDANCE', attendanceId, 'DELETE', performedBy, { date: original?.date, user_id: original?.user_id });
+
     res.json({ message: 'Attendance deleted' });
   } catch (error) {
     console.error('Error deleting attendance:', error);

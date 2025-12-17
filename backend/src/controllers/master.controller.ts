@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma.js';
+import { AuditService } from '../services/audit.service.js';
 
 export const getPlans = async (req: Request, res: Response) => {
     try {
@@ -16,6 +17,10 @@ export const createPlan = async (req: Request, res: Response) => {
         const plan = await prisma.subscriptionPlan.create({
             data: { name, rate_daily, rate_monthly, is_deposit_required }
         });
+
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('PLAN', plan.id, 'CREATE', performedBy, { name, rate_monthly });
+
         res.json(plan);
     } catch (error) {
         res.status(500).json({ error: 'Error creating plan' });
@@ -37,6 +42,10 @@ export const createFine = async (req: Request, res: Response) => {
         const fine = await prisma.fineRule.create({
             data: { name, first_time_fine, subsequent_fine }
         });
+
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('FINE_RULE', fine.id, 'CREATE', performedBy, { name });
+
         res.json(fine);
     } catch (error) {
         res.status(500).json({ error: 'Error creating fine' });
@@ -58,6 +67,10 @@ export const createGroup = async (req: Request, res: Response) => {
         const group = await prisma.userGroup.create({
             data: { name }
         });
+
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('GROUP', group.id, 'CREATE', performedBy, { name });
+
         res.json(group);
     } catch (error) {
         res.status(500).json({ error: 'Error creating group' });
@@ -73,6 +86,10 @@ export const updatePlan = async (req: Request, res: Response) => {
             where: { id: parseInt(id) },
             data: { name, rate_daily, rate_monthly, is_deposit_required }
         });
+
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('PLAN', plan.id, 'UPDATE', performedBy, req.body);
+
         res.json(plan);
     } catch (error) {
         res.status(500).json({ error: 'Error updating plan' });
@@ -82,7 +99,11 @@ export const updatePlan = async (req: Request, res: Response) => {
 export const deletePlan = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        await prisma.subscriptionPlan.delete({ where: { id: parseInt(id) } });
+        const deleted = await prisma.subscriptionPlan.delete({ where: { id: parseInt(id) } });
+
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('PLAN', deleted.id, 'DELETE', performedBy, { name: deleted.name });
+
         res.json({ message: 'Plan deleted' });
     } catch (error) {
         res.status(500).json({ error: 'Error deleting plan' });
@@ -98,6 +119,10 @@ export const updateFine = async (req: Request, res: Response) => {
             where: { id: parseInt(id) },
             data: { name, first_time_fine, subsequent_fine }
         });
+
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('FINE_RULE', fine.id, 'UPDATE', performedBy, req.body);
+
         res.json(fine);
     } catch (error) {
         res.status(500).json({ error: 'Error updating fine' });
@@ -107,7 +132,11 @@ export const updateFine = async (req: Request, res: Response) => {
 export const deleteFine = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        await prisma.fineRule.delete({ where: { id: parseInt(id) } });
+        const deleted = await prisma.fineRule.delete({ where: { id: parseInt(id) } });
+
+        const performedBy = (req as any).user?.userId || 1;
+        await AuditService.logAction('FINE_RULE', deleted.id, 'DELETE', performedBy, { name: deleted.name });
+
         res.json({ message: 'Fine deleted' });
     } catch (error) {
         res.status(500).json({ error: 'Error deleting fine' });
