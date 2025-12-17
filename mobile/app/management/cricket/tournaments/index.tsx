@@ -15,7 +15,7 @@ export default function TournamentListScreen() {
         try {
             setLoading(true);
             const data = await apiService.request('/api/tournaments'); // Need to ensure this endpoint exists or mock it
-            setTournaments(data);
+            setTournaments(data as any[]);
         } catch (error) {
             // console.error(error); // Endpoint might not exist yet
             // Mock data for UI testing if API fails

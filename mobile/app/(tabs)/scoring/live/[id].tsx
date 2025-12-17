@@ -42,7 +42,7 @@ export default function LiveMatchScreen() {
 
             await apiService.request(`/api/matches/${id}/ball-event`, {
                 method: 'POST',
-                body: {
+                body: JSON.stringify({
                     match_id: Number(id),
                     runs_scored: runs,
                     is_wicket: isWicket,
@@ -51,7 +51,7 @@ export default function LiveMatchScreen() {
                     over_number: 0,
                     ball_number: 0,
                     extras: 0
-                }
+                })
             });
         } catch (error: any) {
             console.error('Scoring failed', error);

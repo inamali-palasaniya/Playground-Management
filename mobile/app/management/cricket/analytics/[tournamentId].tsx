@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Appbar, useTheme } from 'react-native-paper';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+
 
 // Local Components (Importing them directly or definition inline if simple, but better to import)
 // Since I created them as files, I'll import them.
