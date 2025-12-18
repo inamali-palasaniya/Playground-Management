@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl, Alert, ScrollView, TouchableOpacity } from 'react-native';
-import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button } from 'react-native-paper';
+import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button, Portal } from 'react-native-paper';
 import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import apiService from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
@@ -240,6 +240,15 @@ export default function UsersScreen() {
                             }}>
                                 • {item.balance > 0 ? `Payable: ₹${item.balance}` : `Advance: ₹${Math.abs(item.balance)}`}
                             </Text>
+                        )}
+                        {(item as any).is_active === false && (
+                            <Chip
+                                icon="cancel"
+                                style={{ backgroundColor: '#ffebee', marginTop: 4, height: 24 }}
+                                textStyle={{ color: '#c62828', fontSize: 10 }}
+                            >
+                                Inactive
+                            </Chip>
                         )}
                     </View>
                 }
@@ -498,19 +507,20 @@ export default function UsersScreen() {
             )}
 
             {isManagement && (
-                <FAB.Group
-                    open={fabOpen}
-                    visible
-                    icon={fabOpen ? 'close' : 'plus'}
-                    // In mobile/app/(tabs)/users/index.tsx (snippet)
-                    actions={[
-                        { icon: 'account-plus', label: 'Add User', onPress: () => router.push('/management/add-user') },
-                        { icon: 'cash-minus', label: 'Expenses', onPress: () => router.push('/management/expenses') },
-                        { icon: 'database-cog', label: 'Manage Masters', onPress: () => router.push('/management/masters') },
-                    ]}
-                    onStateChange={({ open }) => setFabOpen(open)}
-                    style={{ paddingBottom: 80 }} // Ensure it's above the tab bar
-                />
+                <Portal>
+                    <FAB.Group
+                        open={fabOpen}
+                        visible
+                        icon={fabOpen ? 'close' : 'plus'}
+                        actions={[
+                            { icon: 'account-plus', label: 'Add User', onPress: () => router.push('/management/add-user') },
+                            { icon: 'cash-minus', label: 'Expenses', onPress: () => router.push('/management/expenses') },
+                            { icon: 'database-cog', label: 'Manage Masters', onPress: () => router.push('/management/masters') },
+                        ]}
+                        onStateChange={({ open }) => setFabOpen(open)}
+                        style={{ paddingBottom: 60 }} // Adjusted padding for Portal
+                    />
+                </Portal>
             )}
 
             <AuditLogDialog

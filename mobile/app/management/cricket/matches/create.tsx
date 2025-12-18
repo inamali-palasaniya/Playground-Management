@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { TextInput, Button, Text, Menu, Divider } from 'react-native-paper';
-import { useRouter } from 'expo-router';
+import { TextInput, Button, Text, Menu, Divider, Appbar, Portal, useTheme } from 'react-native-paper';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../../../services/api.service';
 
 export default function CreateMatchScreen() {
     const router = useRouter();
+    const { id } = useLocalSearchParams();
+    const theme = useTheme();
     const [tournaments, setTournaments] = useState<any[]>([]);
     const [selectedTournament, setSelectedTournament] = useState<any>(null);
     const [teams, setTeams] = useState<any[]>([]);
-    
+
     // Form State
     const [teamA, setTeamA] = useState<any>(null);
     const [teamB, setTeamB] = useState<any>(null);
@@ -43,87 +46,110 @@ export default function CreateMatchScreen() {
 
         try {
             setLoading(true);
-            await apiService.createMatch({
+            const payload = {
                 tournament_id: selectedTournament.id,
                 team_a_id: teamA.id,
                 team_b_id: teamB.id,
-                start_time: new Date().toISOString(), // Default to Now for quick start, or add date picker later
+                start_time: new Date().toISOString(),
                 overs: parseInt(overs)
-            });
-            Alert.alert('Success', 'Match Scheduled!');
+            };
+
+            if (id) {
+                await apiService.request(`/api/matches/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(payload)
+                });
+            } else {
+                await apiService.createMatch(payload);
+            }
+            Alert.alert('Success', id ? 'Match Updated!' : 'Match Scheduled!');
             router.back();
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to create match');
+            Alert.alert('Error', 'Failed to save match');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
-            <Text variant="headlineSmall" style={{ marginBottom: 20 }}>Schedule Match</Text>
-            
-            {/* Tournament Selector */}
-            <Menu
-                visible={tourMenu}
-                onDismiss={() => setTourMenu(false)}
-                anchor={<Button mode="outlined" onPress={() => setTourMenu(true)} style={styles.input}>{selectedTournament ? selectedTournament.name : 'Select Tournament'}</Button>}
-            >
-                {tournaments.map(t => (
-                    <Menu.Item key={t.id} onPress={() => { setSelectedTournament(t); setTourMenu(false); }} title={t.name} />
-                ))}
-            </Menu>
+        <SafeAreaView style={styles.safeArea}>
+            <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
+                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.Content title={id ? "Edit Match" : "Schedule Match"} />
+            </Appbar.Header>
+            <ScrollView contentContainerStyle={styles.container}>
+                <Text variant="headlineSmall" style={{ marginBottom: 20 }}>Match Details</Text>
 
-            <Divider style={{ marginVertical: 15 }} />
+                {/* Tournament Selector */}
+                <Portal.Host>
+                    <Menu
+                        visible={tourMenu}
+                        onDismiss={() => setTourMenu(false)}
+                        anchor={<Button mode="outlined" onPress={() => setTourMenu(true)} style={styles.input}>{selectedTournament ? selectedTournament.name : 'Select Tournament'}</Button>}
+                    >
+                        {tournaments.map(t => (
+                            <Menu.Item key={t.id} onPress={() => { setSelectedTournament(t); setTourMenu(false); }} title={t.name} />
+                        ))}
+                    </Menu>
+                </Portal.Host>
 
-            {/* Team A Selector */}
-            <Menu
-                visible={teamAMenu}
-                onDismiss={() => setTeamAMenu(false)}
-                anchor={<Button mode="outlined" disabled={!selectedTournament} onPress={() => setTeamAMenu(true)} style={styles.input}>{teamA ? teamA.name : 'Select Team A'}</Button>}
-            >
-                {teams.map(t => (
-                    <Menu.Item key={t.id} onPress={() => { setTeamA(t); setTeamAMenu(false); }} title={t.name} />
-                ))}
-            </Menu>
+                <Divider style={{ marginVertical: 15 }} />
 
-            <Text style={{ textAlign: 'center', marginVertical: 10 }}>VS</Text>
+                {/* Team A Selector */}
+                <Portal.Host>
+                    <Menu
+                        visible={teamAMenu}
+                        onDismiss={() => setTeamAMenu(false)}
+                        anchor={<Button mode="outlined" disabled={!selectedTournament} onPress={() => setTeamAMenu(true)} style={styles.input}>{teamA ? teamA.name : 'Select Team A'}</Button>}
+                    >
+                        {teams.map(t => (
+                            <Menu.Item key={t.id} onPress={() => { setTeamA(t); setTeamAMenu(false); }} title={t.name} />
+                        ))}
+                    </Menu>
+                </Portal.Host>
 
-             {/* Team B Selector */}
-             <Menu
-                visible={teamBMenu}
-                onDismiss={() => setTeamBMenu(false)}
-                anchor={<Button mode="outlined" disabled={!selectedTournament} onPress={() => setTeamBMenu(true)} style={styles.input}>{teamB ? teamB.name : 'Select Team B'}</Button>}
-            >
-                {teams.map(t => (
-                    <Menu.Item key={t.id} onPress={() => { setTeamB(t); setTeamBMenu(false); }} title={t.name} />
-                ))}
-            </Menu>
+                <Text style={{ textAlign: 'center', marginVertical: 10 }}>VS</Text>
 
-            <TextInput
-                label="Overs per Innings"
-                value={overs}
-                onChangeText={setOvers}
-                keyboardType="numeric"
-                mode="outlined"
-                style={[styles.input, { marginTop: 20 }]}
-            />
+                {/* Team B Selector */}
+                <Portal.Host>
+                    <Menu
+                        visible={teamBMenu}
+                        onDismiss={() => setTeamBMenu(false)}
+                        anchor={<Button mode="outlined" disabled={!selectedTournament} onPress={() => setTeamBMenu(true)} style={styles.input}>{teamB ? teamB.name : 'Select Team B'}</Button>}
+                    >
+                        {teams.map(t => (
+                            <Menu.Item key={t.id} onPress={() => { setTeamB(t); setTeamBMenu(false); }} title={t.name} />
+                        ))}
+                    </Menu>
+                </Portal.Host>
 
-            <Button 
-                mode="contained" 
-                onPress={handleCreate} 
-                loading={loading}
-                disabled={loading}
-                style={{ marginTop: 20 }}
-            >
-                Schedule Match
-            </Button>
-        </ScrollView>
+                <TextInput
+                    label="Overs per Innings"
+                    value={overs}
+                    onChangeText={setOvers}
+                    keyboardType="numeric"
+                    mode="outlined"
+                    style={[styles.input, { marginTop: 20 }]}
+                />
+
+                <Button
+                    mode="contained"
+                    onPress={handleCreate}
+                    loading={loading}
+                    disabled={loading}
+                    style={{ marginTop: 20 }}
+                >
+                    {id ? 'Update Match' : 'Schedule Match'}
+                </Button>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 20, backgroundColor: 'white' },
+    safeArea: { flex: 1, backgroundColor: 'white' },
+    container: { padding: 20, paddingBottom: 100 },
     input: { marginBottom: 10 }
 });
+

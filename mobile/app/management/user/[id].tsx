@@ -116,6 +116,7 @@ const FineRoute = ({ userId }: { userId: number }) => {
 const LedgerRoute = ({ userId }: { userId: number }) => {
     const [ledger, setLedger] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [fabOpen, setFabOpen] = useState(false);
     const router = useRouter();
 
 
@@ -299,6 +300,27 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
                     ))
                 )}
             </ScrollView>
+            <Portal>
+                <FAB.Group
+                    open={fabOpen}
+                    visible={true} // Add a state for this if needed, or just true if it's the active tab
+                    icon={fabOpen ? 'close' : 'plus'}
+                    actions={[
+                        {
+                            icon: 'cash-plus',
+                            label: 'Add Payment',
+                            onPress: () => router.push({ pathname: '/management/add-payment', params: { userId, initialTxType: 'CREDIT' } }),
+                        },
+                        {
+                            icon: 'cash-minus',
+                            label: 'Add Charge',
+                            onPress: () => router.push({ pathname: '/management/add-payment', params: { userId, initialTxType: 'DEBIT' } }),
+                        },
+                    ]}
+                    onStateChange={({ open }) => setFabOpen(open)}
+                    style={{ paddingBottom: 60 }}
+                />
+            </Portal>
         </View>
     );
 };
@@ -365,7 +387,7 @@ const AttendanceRoute = ({ userId, onUpdate }: { userId: number, onUpdate?: () =
                 Alert.alert('Duplicate Attendance', `${errorMessage}${existingDetails}\n\nYou can edit the existing record instead.`);
             } else {
                 Alert.alert('Error', errorMessage);
-             }
+            }
         }
     };
 
@@ -617,11 +639,10 @@ export default function UserDetailScreen() {
     }, [id]);
 
     useEffect(() => {
-        if (user?.todays_attendance_id) {
-            apiService.getUserAttendance(user.id).then((list: any[]) => {
-                const today = list.find(a => a.id === user.todays_attendance_id);
-                setTodaysAttendance(today);
-            });
+        if (user?.attendances && user.attendances.length > 0) {
+            setTodaysAttendance(user.attendances[0]);
+        } else {
+            setTodaysAttendance(null);
         }
     }, [user]);
 
@@ -867,53 +888,53 @@ export default function UserDetailScreen() {
                                                 } catch (parseErr) {
                                                     Alert.alert('Error', 'Failed to toggle status (Parse Error)');
                                                 }
-                                        } else {
-                                            Alert.alert('Error', 'Failed to toggle status');
+                                            } else {
+                                                Alert.alert('Error', 'Failed to toggle status');
+                                            }
                                         }
-                                    }
-                                }}
-                            >
-                                {isPunchIn ? 'Check Out' : 'Check In'}
-                            </Button>
-                        </View>
-                    </Card.Content>
-                </Card>
-
-                {/* Financial Summary */}
-                <Card style={styles.infoCard}>
-                    <Card.Content>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <MaterialCommunityIcons name="cash" size={20} color="#1565c0" />
-                                <Text style={{ marginLeft: 8, fontWeight: 'bold', fontSize: 14 }}>Monthly Subscription</Text>
+                                    }}
+                                >
+                                    {isPunchIn ? 'Check Out' : 'Check In'}
+                                </Button>
                             </View>
-                            <Text style={{ fontSize: 14 }}>₹{user.deposit_amount || 0}/month</Text>
-                        </View>
+                        </Card.Content>
+                    </Card>
 
-                        {/* Progress Bar (Expenses vs Deposit) */}
-                        <View style={{ height: 4, backgroundColor: '#e0e0e0', borderRadius: 2, marginVertical: 8 }}>
-                            <View style={{
-                                width: `${Math.min(((user.total_debits || 0) / (user.deposit_amount || 1)) * 100, 100)}%`,
-                                height: '100%',
-                                backgroundColor: user.balance < 0 ? 'red' : '#1565c0',
-                                borderRadius: 2
-                            }} />
-                        </View>
+                    {/* Financial Summary */}
+                    <Card style={styles.infoCard}>
+                        <Card.Content>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <MaterialCommunityIcons name="cash" size={20} color="#1565c0" />
+                                    <Text style={{ marginLeft: 8, fontWeight: 'bold', fontSize: 14 }}>Monthly Subscription</Text>
+                                </View>
+                                <Text style={{ fontSize: 14 }}>₹{user.deposit_amount || 0}/month</Text>
+                            </View>
 
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                            <View>
-                                <Text style={{ fontWeight: 'bold' }}>₹{user.total_debits || 0}</Text>
-                                <Text style={{ fontSize: 10, color: '#666' }}>Total Expenses</Text>
+                            {/* Progress Bar (Expenses vs Deposit) */}
+                            <View style={{ height: 4, backgroundColor: '#e0e0e0', borderRadius: 2, marginVertical: 8 }}>
+                                <View style={{
+                                    width: `${Math.min(((user.total_debits || 0) / (user.deposit_amount || 1)) * 100, 100)}%`,
+                                    height: '100%',
+                                    backgroundColor: user.balance < 0 ? 'red' : '#1565c0',
+                                    borderRadius: 2
+                                }} />
                             </View>
-                            <View>
-                                <Text style={{ fontWeight: 'bold', color: user.balance < 0 ? 'red' : 'green' }}>
-                                    ₹{user.balance || 0}
-                                </Text>
-                                <Text style={{ fontSize: 10, color: '#666' }}>Current Balance</Text>
+
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <View>
+                                    <Text style={{ fontWeight: 'bold' }}>₹{user.total_debits || 0}</Text>
+                                    <Text style={{ fontSize: 10, color: '#666' }}>Total Expenses</Text>
+                                </View>
+                                <View>
+                                    <Text style={{ fontWeight: 'bold', color: user.balance < 0 ? 'red' : 'green' }}>
+                                        ₹{user.balance || 0}
+                                    </Text>
+                                    <Text style={{ fontSize: 10, color: '#666' }}>Current Balance</Text>
+                                </View>
                             </View>
-                        </View>
-                    </Card.Content>
-                </Card>
+                        </Card.Content>
+                    </Card>
                 </View>
             </View>
 

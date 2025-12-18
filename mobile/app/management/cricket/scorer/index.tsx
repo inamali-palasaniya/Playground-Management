@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
-import { Text, Button, ActivityIndicator, IconButton, useTheme, Card, Avatar, Divider } from 'react-native-paper';
+import { Text, Button, ActivityIndicator, IconButton, useTheme, Card, Avatar, Divider, Appbar } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../../../services/api.service';
 import MatchSetupModal from './MatchSetupModal';
 import SelectPlayerModal from './SelectPlayerModal';
@@ -12,6 +13,13 @@ export default function ScorerScreen() {
     const router = useRouter();
     const [match, setMatch] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+
+    // Theme Colors for Night Mode (Moved up for availability in early returns)
+    const bgColor = '#121212';
+    const cardColor = '#1e1e1e';
+    const textColor = '#ffffff';
+    const accentColor = '#BB86FC';
+
     const [setupVisible, setSetupVisible] = useState(false);
 
     // Settings
@@ -39,8 +47,7 @@ export default function ScorerScreen() {
     });
 
     const calculateState = (matchData: any) => {
-        if (!matchData.ball_events || matchData.ball_events.length === 0) {
-            // If no ball events, reset state or use initial setup values
+        if (!matchData?.ball_events || matchData.ball_events.length === 0) {
             setMatchState(prev => ({
                 ...prev,
                 score: 0,
@@ -49,8 +56,7 @@ export default function ScorerScreen() {
                 balls: 0,
                 currentOver: 0,
                 currentBall: 0,
-                innings: matchData.current_innings || 1,
-                // strikerId, nonStrikerId, bowlerId will be set by setup or remain 0
+                innings: matchData?.current_innings || 1,
             }));
             return;
         }
@@ -59,48 +65,46 @@ export default function ScorerScreen() {
         let wickets = 0;
         let validBalls = 0;
         let currentOver = 0;
-        let currentBall = 0; // 0-indexed
+        let currentBall = 0;
         let strikerId = 0;
         let nonStrikerId = 0;
         let bowlerId = 0;
         let innings = matchData.current_innings || 1;
 
-        // Iterate events to build state
         matchData.ball_events.forEach((ball: any) => {
-            if (ball.innings !== innings) return; // Only process current innings
+            if (!ball || ball.innings !== innings) return;
 
-            score += ball.runs_scored + ball.extras;
+            const runs = Number(ball.runs_scored) || 0;
+            const extras = Number(ball.extras) || 0;
+            score += runs + extras;
+
             if (ball.is_wicket) wickets++;
 
-            // Update current players based on the last ball event
-            strikerId = ball.striker_id;
-            nonStrikerId = ball.non_striker_id;
-            bowlerId = ball.bowler_id;
+            if (ball.striker_id) strikerId = ball.striker_id;
+            if (ball.non_striker_id) nonStrikerId = ball.non_striker_id;
+            if (ball.bowler_id) bowlerId = ball.bowler_id;
 
             if (ball.extra_type !== 'WD' && ball.extra_type !== 'NB') {
                 validBalls++;
                 currentBall = (validBalls - 1) % 6;
                 currentOver = Math.floor((validBalls - 1) / 6);
             }
-            // If it's a wide or no-ball, it doesn't count towards validBalls,
-            // so currentBall and currentOver don't advance based on it.
-            // The next ball will still be the same ball_number.
         });
 
-        const oversDisplay = `${currentOver}.${currentBall + 1}`; // For display, 1-indexed ball
+        const oversDisplay = validBalls > 0 ? `${currentOver}.${currentBall + 1}` : "0.0";
 
         setMatchState(prev => ({
             ...prev,
             score,
             wickets,
-            overs: parseFloat(oversDisplay), // Store as float for display
+            overs: parseFloat(oversDisplay),
             balls: validBalls,
             currentOver,
             currentBall,
             innings,
-            strikerId,
-            nonStrikerId,
-            bowlerId
+            strikerId: strikerId || prev.strikerId,
+            nonStrikerId: nonStrikerId || prev.nonStrikerId,
+            bowlerId: bowlerId || prev.bowlerId
         }));
     };
 
@@ -174,10 +178,7 @@ export default function ScorerScreen() {
                 return;
             }
 
-            // Determine batting team based on current_batting_team_id from match object
             const battingTeamId = match.current_batting_team_id;
-
-            // Calculate validity based on Turf Rules
             const ballValid = (extraType !== 'WD' && extraType !== 'NB') || !settings.rebowlWideOrNoBall;
 
             const payload = {
@@ -260,31 +261,25 @@ export default function ScorerScreen() {
         }
     };
 
-    if (loading) return <View style={styles.container}><ActivityIndicator /></View>;
-    if (!match) return <View style={styles.container}><Text>Match not found</Text></View>;
+    if (loading) return (
+        <SafeAreaView style={[styles.container, { backgroundColor: bgColor, justifyContent: 'center', alignItems: 'center' }]}>
+            <ActivityIndicator size="large" color={accentColor} />
+            <Text style={{ color: textColor, marginTop: 10 }}>Loading match...</Text>
+        </SafeAreaView>
+    );
 
-    // Helper to find player by ID
-    const getPlayerById = (playerId: number) => {
-        if (!match) return null;
-        const allPlayers = [...(match.team_a?.players || []), ...(match.team_b?.players || [])];
-        return allPlayers.find(p => p.id === playerId);
-    };
-
-    const currentStriker = getPlayerById(matchState.strikerId);
-    const currentNonStriker = getPlayerById(matchState.nonStrikerId);
-    const currentBowler = getPlayerById(matchState.bowlerId);
-
-    // Theme Colors for Night Mode
-    const bgColor = '#121212';
-    const cardColor = '#1e1e1e';
-    const textColor = '#ffffff';
-    const accentColor = '#BB86FC';
+    if (!match) return (
+        <SafeAreaView style={[styles.container, { backgroundColor: bgColor, justifyContent: 'center', alignItems: 'center' }]}>
+            <Text style={{ color: textColor }}>Match not found</Text>
+            <Button mode="contained" onPress={() => router.back()} style={{ marginTop: 20 }}>Go Back</Button>
+        </SafeAreaView>
+    );
 
     // Helper to find player details
     const getPlayerName = (id: number) => {
         if (!match) return 'Player';
         const allPlayers = [...(match.team_a?.players || []), ...(match.team_b?.players || [])];
-        const p = allPlayers.find((p: any) => p.user.id === (id || p.id));
+        const p = allPlayers.find((p: any) => p.user?.id === id || p.id === id);
         return p?.user?.name || 'Unknown';
     };
 
@@ -297,10 +292,8 @@ export default function ScorerScreen() {
         } else {
             isTeamABatting = match.toss_winner_id !== match.team_a_id;
         }
-        // If Innings 2, swap
         if (matchState.innings === 2) isTeamABatting = !isTeamABatting;
-
-        return isTeamABatting ? match.team_a_id : match.team_b_id;
+        return isTeamABatting ? match?.team_a_id : match?.team_b_id;
     };
 
     const battingTeamId = getBattingTeamId();
@@ -308,128 +301,133 @@ export default function ScorerScreen() {
 
     // Helper to format players
     const formatPlayers = (players: any[]) => players?.map((p: any) => ({
-        id: p.user.id,
-        name: p.user.name
+        id: p.user?.id || p.id,
+        name: p.user?.name || 'Player'
     })) || [];
 
     const battingTeamPlayers = formatPlayers(battingTeamId === match?.team_a_id ? match?.team_a?.players : match?.team_b?.players);
     const bowlingTeamPlayers = formatPlayers(bowlingTeamId === match?.team_a_id ? match?.team_a?.players : match?.team_b?.players);
 
     return (
-        <View style={[styles.container, { backgroundColor: bgColor }]}>
-            {/* Header / Scoreboard */}
-            <View style={styles.header}>
-                <View>
-                    <Text variant="headlineMedium" style={{ color: textColor, fontWeight: 'bold' }}>
-                        {match.team_a?.name} vs {match.team_b?.name}
-                    </Text>
-                    <Text variant="titleMedium" style={{ color: 'gray' }}>
-                        {matchState.innings === 1 ? '1st Innings' : '2nd Innings'}
-                    </Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text variant="displaySmall" style={{ color: accentColor, fontWeight: 'bold', marginRight: 10 }}>
-                            {matchState.score}/{matchState.wickets}
+        <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
+            <Appbar.Header style={{ backgroundColor: bgColor }} elevated={false}>
+                <Appbar.BackAction color={textColor} onPress={() => router.back()} />
+                <Appbar.Content title="Live Scorer" titleStyle={{ color: textColor }} />
+                <Appbar.Action icon="refresh" color={textColor} onPress={loadMatch} />
+            </Appbar.Header>
+            <View style={{ flex: 1, paddingHorizontal: 16 }}>
+                {/* Header / Scoreboard */}
+                <View style={styles.header}>
+                    <View>
+                        <Text variant="headlineMedium" style={{ color: textColor, fontWeight: 'bold' }}>
+                            {match.team_a?.name} vs {match.team_b?.name}
                         </Text>
-                        <IconButton icon="cog" iconColor={textColor} onPress={() => setSettingsVisible(true)} />
+                        <Text variant="titleMedium" style={{ color: 'gray' }}>
+                            {matchState.innings === 1 ? '1st Innings' : '2nd Innings'}
+                        </Text>
                     </View>
-                    <Text variant="titleMedium" style={{ color: textColor }}>
-                        Overs: {matchState.overs} ({match.overs})
-                    </Text>
+                    <View style={{ alignItems: 'flex-end' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Text variant="displaySmall" style={{ color: accentColor, fontWeight: 'bold', marginRight: 10 }}>
+                                {matchState.score}/{matchState.wickets}
+                            </Text>
+                            <IconButton icon="cog" iconColor={textColor} onPress={() => setSettingsVisible(true)} />
+                        </View>
+                        <Text variant="titleMedium" style={{ color: textColor }}>
+                            Overs: {matchState.overs} ({match.overs})
+                        </Text>
+                    </View>
                 </View>
+
+                {/* Batsmen & Bowler Section */}
+                <Card style={[styles.statsCard, { backgroundColor: cardColor }]}>
+                    <Card.Content>
+                        <View style={styles.playerRow}>
+                            <Text style={{ color: textColor, flex: 1 }}>🏏 {getPlayerName(matchState.strikerId)} *</Text>
+                        </View>
+                        <View style={styles.playerRow}>
+                            <Text style={{ color: 'gray', flex: 1 }}>🏏 {getPlayerName(matchState.nonStrikerId)}</Text>
+                        </View>
+                        <Divider style={{ marginVertical: 10, backgroundColor: 'gray' }} />
+                        <View style={styles.playerRow}>
+                            <Text style={{ color: textColor, flex: 1 }}>🥎 {getPlayerName(matchState.bowlerId)}</Text>
+                            <Text style={{ color: textColor }}>Running...</Text>
+                        </View>
+                    </Card.Content>
+                </Card>
+
+                {/* Control Pad */}
+                <View style={styles.controls}>
+                    {/* Runs */}
+                    <View style={styles.row}>
+                        {[0, 1, 2, 3, 4, 6].map(run => (
+                            <TouchableOpacity
+                                key={run}
+                                style={[styles.btn, { backgroundColor: run === 4 || run === 6 ? '#03DAC6' : '#333' }]}
+                                onPress={() => handleBall(run)}
+                            >
+                                <Text style={{ fontSize: 24, color: run === 4 || run === 6 ? 'black' : 'white', fontWeight: 'bold' }}>{run}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+
+                    {/* Extras & Wicket */}
+                    <View style={styles.row}>
+                        <Button mode="contained" buttonColor="#CF6679" onPress={() => handleBall(0, undefined, true)} style={styles.actionBtn}>WICKET</Button>
+                        <Button mode="outlined" textColor="#BB86FC" onPress={() => handleBall(1, 'WD')} style={styles.actionBtn}>WIDE</Button>
+                        <Button mode="outlined" textColor="#BB86FC" onPress={() => handleBall(1, 'NB')} style={styles.actionBtn}>NO BALL</Button>
+                    </View>
+                    <View style={styles.row}>
+                        <Button mode="outlined" textColor="gray" onPress={() => handleBall(0, 'BYE')} style={styles.actionBtn}>BYE</Button>
+                        <Button mode="outlined" textColor="gray" onPress={() => handleBall(0, 'LB')} style={styles.actionBtn}>LEG BYE</Button>
+                        <Button mode="outlined" textColor="orange" onPress={handleUndo} style={styles.actionBtn}>UNDO</Button>
+                    </View>
+                </View>
+
+                <MatchSetupModal
+                    visible={setupVisible}
+                    onDismiss={() => { }}
+                    teamA={match.team_a}
+                    teamB={match.team_b}
+                    onStart={handleMatchStart}
+                />
+
+                <SelectPlayerModal
+                    visible={bowlerSelectionVisible}
+                    onDismiss={() => { }}
+                    title="Select Next Bowler"
+                    players={bowlingTeamPlayers}
+                    onSelect={(p) => {
+                        setMatchState(prev => ({ ...prev, bowlerId: p.id }));
+                        setBowlerSelectionVisible(false);
+                    }}
+                />
+
+                <SelectPlayerModal
+                    visible={batsmanSelectionVisible}
+                    onDismiss={() => { }}
+                    title="Select New Batsman"
+                    players={battingTeamPlayers}
+                    onSelect={(p) => {
+                        setMatchState(prev => ({ ...prev, strikerId: p.id }));
+                        setBatsmanSelectionVisible(false);
+                    }}
+                />
+
+                <SettingsModal
+                    visible={settingsVisible}
+                    onDismiss={() => setSettingsVisible(false)}
+                    settings={settings}
+                    onUpdateSettings={setSettings}
+                />
             </View>
-
-            {/* Batsmen & Bowler Section */}
-            <Card style={[styles.statsCard, { backgroundColor: cardColor }]}>
-                <Card.Content>
-                    <View style={styles.playerRow}>
-                        <Text style={{ color: textColor, flex: 1 }}>🏏 {getPlayerName(matchState.strikerId)} *</Text>
-                    </View>
-                    <View style={styles.playerRow}>
-                        <Text style={{ color: 'gray', flex: 1 }}>🏏 {getPlayerName(matchState.nonStrikerId)}</Text>
-                    </View>
-                    <Divider style={{ marginVertical: 10, backgroundColor: 'gray' }} />
-                    <View style={styles.playerRow}>
-                        <Text style={{ color: textColor, flex: 1 }}>🥎 {getPlayerName(matchState.bowlerId)}</Text>
-                        <Text style={{ color: textColor }}>Running...</Text>
-                    </View>
-                </Card.Content>
-            </Card>
-
-            {/* Control Pad */}
-            <View style={styles.controls}>
-                {/* Runs */}
-                <View style={styles.row}>
-                    {[0, 1, 2, 3, 4, 6].map(run => (
-                        <TouchableOpacity
-                            key={run}
-                            style={[styles.btn, { backgroundColor: run === 4 || run === 6 ? '#03DAC6' : '#333' }]}
-                            onPress={() => handleBall(run)}
-                        >
-                            <Text style={{ fontSize: 24, color: run === 4 || run === 6 ? 'black' : 'white', fontWeight: 'bold' }}>{run}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-
-                {/* Extras & Wicket */}
-                <View style={styles.row}>
-                    <Button mode="contained" buttonColor="#CF6679" onPress={() => handleBall(0, undefined, true)} style={styles.actionBtn}>WICKET</Button>
-                    <Button mode="outlined" textColor="#BB86FC" onPress={() => handleBall(1, 'WD')} style={styles.actionBtn}>WIDE</Button>
-                    <Button mode="outlined" textColor="#BB86FC" onPress={() => handleBall(1, 'NB')} style={styles.actionBtn}>NO BALL</Button>
-                </View>
-                <View style={styles.row}>
-                    <Button mode="outlined" textColor="gray" onPress={() => handleBall(0, 'BYE')} style={styles.actionBtn}>BYE</Button>
-                    <Button mode="outlined" textColor="gray" onPress={() => handleBall(0, 'LB')} style={styles.actionBtn}>LEG BYE</Button>
-                    <Button mode="outlined" textColor="orange" onPress={handleUndo} style={styles.actionBtn}>UNDO</Button>
-                </View>
-            </View>
-
-            <MatchSetupModal
-                visible={setupVisible}
-                onDismiss={() => { /* Prevent dismissal if mandatory? */ }}
-                teamA={match.team_a}
-                teamB={match.team_b}
-                onStart={handleMatchStart}
-            />
-
-            {/* Selection Modals */}
-            <SelectPlayerModal
-                visible={bowlerSelectionVisible}
-                onDismiss={() => { }} // Mandatory selection
-                title="Select Next Bowler"
-                players={bowlingTeamPlayers}
-                onSelect={(p) => {
-                    setMatchState(prev => ({ ...prev, bowlerId: p.id }));
-                    setBowlerSelectionVisible(false);
-                }}
-            />
-
-            <SelectPlayerModal
-                visible={batsmanSelectionVisible}
-                onDismiss={() => { }} // Mandatory
-                title="Select New Batsman"
-                players={battingTeamPlayers}
-                onSelect={(p) => {
-                    // New batsman comes on strike
-                    setMatchState(prev => ({ ...prev, strikerId: p.id }));
-                    setBatsmanSelectionVisible(false);
-                }}
-            />
-
-            <SettingsModal
-                visible={settingsVisible}
-                onDismiss={() => setSettingsVisible(false)}
-                settings={settings}
-                onUpdateSettings={setSettings}
-            />
-        </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, paddingTop: 40, paddingHorizontal: 16 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
+    container: { flex: 1 },
+    header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, marginTop: 10 },
     statsCard: { marginBottom: 20 },
     playerRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
     controls: { flex: 1, justifyContent: 'flex-end', paddingBottom: 20 },
@@ -437,3 +435,4 @@ const styles = StyleSheet.create({
     btn: { width: '30%', aspectRatio: 1.5, justifyContent: 'center', alignItems: 'center', borderRadius: 8, marginBottom: 10 },
     actionBtn: { flex: 1, marginHorizontal: 4 }
 });
+

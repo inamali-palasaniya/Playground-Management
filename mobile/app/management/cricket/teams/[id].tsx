@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList, Alert } from 'react-native';
-import { Card, Text, Avatar, FAB, Button, Portal, Modal, TextInput, ActivityIndicator, IconButton, useTheme } from 'react-native-paper';
+import { Card, Text, Avatar, FAB, Button, Portal, Modal, TextInput, ActivityIndicator, IconButton, useTheme, Appbar, TouchableRipple } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../../../services/api.service';
 
 export default function TeamDetailScreen() {
@@ -69,38 +70,73 @@ export default function TeamDetailScreen() {
         ]);
     };
 
-    const filteredUsers = users.filter((u) => 
+    const filteredUsers = users.filter((u) =>
         u.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !team?.players.some((p: any) => p.user.id === u.id)
     );
 
-    if (loading) return <ActivityIndicator style={{ marginTop: 20 }} />;
-    if (!team) return <View style={styles.container}><Text>Team not found</Text></View>;
+    if (loading) return (
+        <SafeAreaView style={styles.safeArea}>
+            <ActivityIndicator style={{ marginTop: 20 }} />
+        </SafeAreaView>
+    );
+
+    if (!team) return (
+        <SafeAreaView style={styles.safeArea}>
+            <Appbar.Header elevated>
+                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.Content title="Team Details" />
+            </Appbar.Header>
+            <View style={styles.container}><Text>Team not found</Text></View>
+        </SafeAreaView>
+    );
 
     return (
-        <View style={styles.container}>
-            <Card style={{ marginBottom: 10, padding: 10 }}>
-                <Text variant="headlineSmall">{team.name}</Text>
-                <Text variant="bodyMedium" style={{ color: 'gray' }}>Tournament: {team.tournament?.name}</Text>
-                <Text variant="bodySmall" style={{ marginTop: 5 }}>Players: {team.players.length}</Text>
-            </Card>
+        <SafeAreaView style={styles.safeArea}>
+            <Appbar.Header elevated>
+                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.Content title={team.name} subtitle={team.tournament?.name} />
+                <Appbar.Action icon="refresh" onPress={loadTeam} />
+            </Appbar.Header>
 
-            <FlatList
-                data={team.players}
-                keyExtractor={(item: any) => item.id.toString()}
-                renderItem={({ item }) => (
-                    <Card style={styles.playerCard}>
-                        <Card.Title
-                            title={item.user.name}
-                            subtitle={item.user.role}
-                            left={(props) => <Avatar.Text {...props} label={item.user.name.substring(0, 2).toUpperCase()} size={40} />}
-                            right={(props) => (
-                                <IconButton {...props} icon="delete" iconColor="red" onPress={() => handleRemovePlayer(item.user.id)} />
-                            )}
-                        />
-                    </Card>
-                )}
-            />
+            <View style={styles.container}>
+                <Card style={styles.headerCard}>
+                    <Card.Content style={styles.headerContent}>
+                        <View style={styles.statsItem}>
+                            <Text variant="headlineMedium" style={styles.statsValue}>{team.players.length}</Text>
+                            <Text variant="labelMedium" style={styles.statsLabel}>PLAYERS</Text>
+                        </View>
+                        <View style={styles.divider} />
+                        <View style={styles.statsItem}>
+                            <Avatar.Icon size={40} icon="trophy-outline" style={{ backgroundColor: theme.colors.primaryContainer }} />
+                            <Text variant="labelMedium" style={[styles.statsLabel, { marginTop: 4 }]}>TOURNAMENT</Text>
+                        </View>
+                    </Card.Content>
+                </Card>
+
+                <View style={styles.listHeader}>
+                    <Text variant="titleMedium">Squad List</Text>
+                    <Text variant="bodySmall" style={{ color: 'gray' }}>{team.players.length} Total</Text>
+                </View>
+
+                <FlatList
+                    data={team.players}
+                    keyExtractor={(item: any) => item.id.toString()}
+                    contentContainerStyle={{ paddingBottom: 100 }}
+                    renderItem={({ item }) => (
+                        <Card style={styles.playerCard} mode="contained">
+                            <Card.Title
+                                title={item.user.name}
+                                subtitle={item.user.role || 'Player'}
+                                left={(props) => <Avatar.Text {...props} label={item.user.name.substring(0, 2).toUpperCase()} size={40} />}
+                                right={(props) => (
+                                    <IconButton {...props} icon="delete" iconColor={theme.colors.error} onPress={() => handleRemovePlayer(item.user.id)} />
+                                )}
+                            />
+                        </Card>
+                    )}
+                />
+            </View>
 
             <FAB
                 style={styles.fab}
@@ -111,38 +147,53 @@ export default function TeamDetailScreen() {
 
             <Portal>
                 <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)} contentContainerStyle={styles.modalContent}>
-                    <Text variant="headlineSmall" style={{ marginBottom: 10 }}>Add Player</Text>
+                    <Text variant="titleLarge" style={{ marginBottom: 16 }}>Add Player to Team</Text>
                     <TextInput
-                        placeholder="Search User..."
+                        placeholder="Search users..."
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                         mode="outlined"
-                        style={{ marginBottom: 10 }}
+                        left={<TextInput.Icon icon="magnify" />}
+                        style={{ marginBottom: 16 }}
                     />
                     <FlatList
-                        data={filteredUsers.slice(0, 20)} // Limit for performance
+                        data={filteredUsers.slice(0, 20)}
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={({ item }) => (
-                            <Card style={{ marginBottom: 5 }} onPress={() => handleAddPlayer(item.id)}>
-                                <Card.Title
-                                    title={item.name}
-                                    subtitle={item.user_type}
-                                    right={(props) => <IconButton {...props} icon="plus" />}
-                                />
-                            </Card>
+                            <TouchableRipple onPress={() => handleAddPlayer(item.id)}>
+                                <View style={styles.userSearchItem}>
+                                    <Avatar.Text size={36} label={item.name.substring(0, 2).toUpperCase()} />
+                                    <View style={{ flex: 1, marginLeft: 12 }}>
+                                        <Text variant="bodyLarge">{item.name}</Text>
+                                        <Text variant="bodySmall" style={{ color: 'gray' }}>{item.user_type}</Text>
+                                    </View>
+                                    <IconButton icon="plus-circle-outline" />
+                                </View>
+                            </TouchableRipple>
                         )}
-                        style={{ maxHeight: 300 }}
+                        ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: '#eee' }} />}
+                        style={{ maxHeight: 400 }}
                     />
-                    <Button onPress={() => setModalVisible(false)} style={{ marginTop: 10 }}>Close</Button>
+                    <Button mode="outlined" onPress={() => setModalVisible(false)} style={{ marginTop: 16 }}>Cancel</Button>
                 </Modal>
             </Portal>
-        </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 16, backgroundColor: '#f5f5f5' },
-    playerCard: { marginBottom: 8, backgroundColor: 'white' },
-    fab: { position: 'absolute', margin: 16, right: 0, bottom: 0 },
-    modalContent: { backgroundColor: 'white', padding: 20, margin: 20, borderRadius: 8, maxHeight: '80%' }
+    safeArea: { flex: 1, backgroundColor: '#f8f9fa' },
+    container: { flex: 1, padding: 16 },
+    headerCard: { marginBottom: 20, backgroundColor: 'white', borderRadius: 12, elevation: 2 },
+    headerContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingVertical: 10 },
+    statsItem: { alignItems: 'center', flex: 1 },
+    statsValue: { fontWeight: 'bold', color: '#6200ee' },
+    statsLabel: { color: 'gray', letterSpacing: 1 },
+    divider: { width: 1, height: '80%', backgroundColor: '#eee' },
+    listHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, marginTop: 4 },
+    playerCard: { marginBottom: 8, backgroundColor: 'white', borderRadius: 8 },
+    userSearchItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
+    fab: { position: 'absolute', margin: 16, right: 0, bottom: 20 },
+    modalContent: { backgroundColor: 'white', padding: 24, margin: 20, borderRadius: 16, maxHeight: '80%' }
 });
+

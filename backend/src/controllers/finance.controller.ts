@@ -110,6 +110,29 @@ export const chargeMonthlyFee = async (req: Request, res: Response) => {
         const plan = subscription.plan;
         const date = new Date(); // Charge date
 
+        // 1.5. Check for existing charge this month (Idempotency)
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+        const existingCharge = await prisma.feeLedger.findFirst({
+            where: {
+                user_id: parseInt(user_id),
+                type: 'MONTHLY_FEE',
+                transaction_type: 'DEBIT',
+                date: {
+                    gte: startOfMonth,
+                    lte: endOfMonth
+                }
+            }
+        });
+
+        if (existingCharge) {
+            return res.status(409).json({
+                error: 'Monthly fee already charged for this month.',
+                existing: existingCharge
+            });
+        }
+
         // 2. Check for Split Logic
         // If Plan has monthly_deposit_part > 0 AND User deposit < 2000 (Target)
         const user = await prisma.user.findUnique({ where: { id: parseInt(user_id) } });

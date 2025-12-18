@@ -282,7 +282,8 @@ export const updateAttendance = async (req: Request, res: Response) => {
             date: {
               gte: dateStart,
               lte: dateEnd
-            }
+            },
+            transaction_type: 'DEBIT' // Added for strictness
           }
         });
 
@@ -303,7 +304,7 @@ export const updateAttendance = async (req: Request, res: Response) => {
                 amount: newFee,
                 date: original.date,
                 is_paid: false,
-                notes: `Daily fee for ${original.date.toISOString().split('T')[0]}`,
+                notes: `Daily fee for ${new Date(original.date).toISOString().split('T')[0]}`,
               }
             });
           }
@@ -390,7 +391,10 @@ export const deleteAttendance = async (req: Request, res: Response) => {
     await prisma.attendance.delete({ where: { id: attendanceId } });
 
     const performedBy = (req as any).user?.userId || 1;
-    await AuditService.logAction('ATTENDANCE', attendanceId, 'DELETE', performedBy, { date: original?.date, user_id: original?.user_id });
+    await AuditService.logAction('ATTENDANCE', attendanceId, 'DELETE', performedBy, {
+      date: original?.date ? new Date(original.date).toISOString().split('T')[0] : null,
+      user_id: original?.user_id
+    });
 
     res.json({ message: 'Attendance deleted' });
   } catch (error) {
