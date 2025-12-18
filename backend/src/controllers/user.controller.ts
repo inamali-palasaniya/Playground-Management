@@ -518,7 +518,10 @@ export const updateUser = async (req: Request, res: Response) => {
         if (currentUser && currentUser.userId === user.id) {
             // Using direct jwt sign to ensure circular deps don't break simple controller logic
             const jwt = require('jsonwebtoken'); // Import at top ideally, but ensuring safety here
-            const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-it';
+            const JWT_SECRET = process.env.JWT_SECRET;
+            if (!JWT_SECRET) {
+                throw new Error('JWT_SECRET is not defined in environment variables');
+            }
             newToken = jwt.sign(
                 { userId: user.id, email: user.email, role: user.role }, // Fresh Payload
                 JWT_SECRET,
