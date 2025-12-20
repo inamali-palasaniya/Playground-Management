@@ -354,7 +354,7 @@ export default function PeopleScreen() {
                                     <Chip
                                         mode="outlined"
                                         icon="account-group"
-                                        onPress={() => { if (!menuGroup) setMenuGroup(true); }}
+                                        onPress={() => setMenuGroup(true)}
                                         selected={!!selectedGroup}
                                         style={styles.filterChip}
                                         showSelectedOverlay
@@ -377,7 +377,7 @@ export default function PeopleScreen() {
                                     <Chip
                                         mode="outlined"
                                         icon="shield-account"
-                                        onPress={() => { if (!menuRole) setMenuRole(true); }}
+                                        onPress={() => setMenuRole(true)}
                                         selected={!!selectedRole}
                                         style={styles.filterChip}
                                         showSelectedOverlay
@@ -400,7 +400,7 @@ export default function PeopleScreen() {
                                     <Chip
                                         mode="outlined"
                                         icon="check-circle-outline"
-                                        onPress={() => { if (!menuStatus) setMenuStatus(true); }}
+                                        onPress={() => setMenuStatus(true)}
                                         selected={!!selectedStatus}
                                         style={styles.filterChip}
                                         showSelectedOverlay
@@ -422,7 +422,7 @@ export default function PeopleScreen() {
                                     <Chip
                                         mode="outlined"
                                         icon="clock-outline"
-                                        onPress={() => { if (!menuPunch) setMenuPunch(true); }}
+                                        onPress={() => setMenuPunch(true)}
                                         selected={!!selectedPunch}
                                         style={styles.filterChip}
                                         showSelectedOverlay
@@ -444,7 +444,7 @@ export default function PeopleScreen() {
                                     <Chip
                                         mode="outlined"
                                         icon="briefcase-outline"
-                                        onPress={() => { if (!menuType) setMenuType(true); }}
+                                        onPress={() => setMenuType(true)}
                                         selected={!!selectedType}
                                         style={styles.filterChip}
                                         showSelectedOverlay
@@ -466,7 +466,7 @@ export default function PeopleScreen() {
                                     <Chip
                                         mode="outlined"
                                         icon="tag-outline"
-                                        onPress={() => { if (!menuPlan) setMenuPlan(true); }}
+                                        onPress={() => setMenuPlan(true)}
                                         selected={!!selectedPlan}
                                         style={styles.filterChip}
                                         showSelectedOverlay
@@ -489,7 +489,7 @@ export default function PeopleScreen() {
                                     <Chip
                                         mode="outlined"
                                         icon="cash"
-                                        onPress={() => { if (!menuFinance) setMenuFinance(true); }}
+                                        onPress={() => setMenuFinance(true)}
                                         selected={!!activeFilter && (activeFilter === 'NEGATIVE_BALANCE' || activeFilter === 'SETTLED' || activeFilter === 'EXPIRED')}
                                         style={styles.filterChip}
                                         showSelectedOverlay

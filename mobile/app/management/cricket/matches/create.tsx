@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
 import { TextInput, Button, Text, Divider, Appbar, useTheme } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
 import apiService from '../../../../services/api.service';
 import GenericSelectModal from '../scorer/GenericSelectModal';
 
@@ -18,7 +20,12 @@ export default function CreateMatchScreen() {
     const [teamA, setTeamA] = useState<any>(null);
     const [teamB, setTeamB] = useState<any>(null);
     const [overs, setOvers] = useState('10');
+    const [startTime, setStartTime] = useState(new Date());
     const [loading, setLoading] = useState(false);
+
+    // Pickers
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
 
     // Selection Modals
     const [tourMenu, setTourMenu] = useState(false);
@@ -29,16 +36,67 @@ export default function CreateMatchScreen() {
         apiService.request<any[]>('/api/tournaments').then(setTournaments).catch(console.error);
     }, []);
 
+    // Load Match Data for Edit
     useEffect(() => {
-        if (selectedTournament) {
-            // Fetch teams for this tournament
-            apiService.request<any[]>(`/api/teams?tournament_id=${selectedTournament.id}`)
-                .then(setTeams)
-                .catch(console.error);
-            setTeamA(null);
-            setTeamB(null);
+        if (id) {
+            setLoading(true);
+            apiService.request(`/api/matches/${id}`).then(async (data: any) => {
+                setOvers(data.overs?.toString() || '10');
+                if (data.start_time) setStartTime(new Date(data.start_time));
+
+                if (data.tournament) {
+                    setSelectedTournament(data.tournament);
+                    // Fetch teams for this assigned tournament
+                    try {
+                        const tData = await apiService.request<any[]>(`/api/teams?tournament_id=${data.tournament.id}`);
+                        setTeams(tData);
+
+                        // Set teams after fetching logic
+                        // Need to match IDs because objects might differ slightly
+                        const tA = tData.find((t: any) => t.id === data.team_a?.id) || data.team_a;
+                        const tB = tData.find((t: any) => t.id === data.team_b?.id) || data.team_b;
+                        setTeamA(tA);
+                        setTeamB(tB);
+                    } catch (err) {
+                        console.error("Failed to load teams", err);
+                    }
+                }
+            }).catch(e => {
+                console.error(e);
+                Alert.alert('Error', 'Failed to load match details');
+            }).finally(() => setLoading(false));
         }
-    }, [selectedTournament]);
+    }, [id]);
+
+    const handleTournamentSelect = (t: any) => {
+        setSelectedTournament(t);
+        setTeamA(null);
+        setTeamB(null);
+        // Fetch teams
+        apiService.request<any[]>(`/api/teams?tournament_id=${t.id}`)
+            .then(setTeams)
+            .catch(console.error);
+    };
+
+    const onDateChange = (event: any, selectedDate?: Date) => {
+        setShowDatePicker(false);
+        if (selectedDate) {
+            const current = new Date(startTime);
+            selectedDate.setHours(current.getHours());
+            selectedDate.setMinutes(current.getMinutes());
+            setStartTime(selectedDate);
+        }
+    };
+
+    const onTimeChange = (event: any, selectedDate?: Date) => {
+        setShowTimePicker(false);
+        if (selectedDate) {
+            const current = new Date(startTime);
+            current.setHours(selectedDate.getHours());
+            current.setMinutes(selectedDate.getMinutes());
+            setStartTime(current);
+        }
+    };
 
     const handleCreate = async () => {
         if (!selectedTournament) return Alert.alert('Error', 'Select a tournament');
@@ -51,7 +109,7 @@ export default function CreateMatchScreen() {
                 tournament_id: selectedTournament.id,
                 team_a_id: teamA.id,
                 team_b_id: teamB.id,
-                start_time: new Date().toISOString(),
+                start_time: startTime.toISOString(),
                 overs: parseInt(overs)
             };
 
@@ -94,6 +152,7 @@ export default function CreateMatchScreen() {
 
                 <Divider style={{ marginVertical: 15 }} />
 
+                <Text variant="titleMedium" style={{ marginBottom: 10 }}>Teams</Text>
                 <View style={styles.vsRow}>
                     <Button
                         mode="outlined"
@@ -114,13 +173,41 @@ export default function CreateMatchScreen() {
                     </Button>
                 </View>
 
+                {/* Date Time Picker */}
+                <Text variant="titleMedium" style={{ marginTop: 10, marginBottom: 5 }}>Schedule</Text>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <Button mode="outlined" onPress={() => setShowDatePicker(true)} icon="calendar" style={{ flex: 1 }}>
+                        {format(startTime, 'dd MMM yyyy')}
+                    </Button>
+                    <Button mode="outlined" onPress={() => setShowTimePicker(true)} icon="clock-outline" style={{ flex: 1 }}>
+                        {format(startTime, 'hh:mm a')}
+                    </Button>
+                </View>
+
+                {showDatePicker && (
+                    <DateTimePicker
+                        value={startTime}
+                        mode="date"
+                        display="default"
+                        onChange={onDateChange}
+                    />
+                )}
+                {showTimePicker && (
+                    <DateTimePicker
+                        value={startTime}
+                        mode="time"
+                        display="default"
+                        onChange={onTimeChange}
+                    />
+                )}
+
                 <TextInput
                     label="Overs per Innings"
                     value={overs}
                     onChangeText={setOvers}
                     keyboardType="numeric"
                     mode="outlined"
-                    style={[styles.input, { marginTop: 10 }]}
+                    style={[styles.input, { marginTop: 15 }]}
                     left={<TextInput.Icon icon="counter" />}
                 />
 
@@ -139,7 +226,7 @@ export default function CreateMatchScreen() {
                     onDismiss={() => setTourMenu(false)}
                     title="Select Tournament"
                     items={tournaments}
-                    onSelect={setSelectedTournament}
+                    onSelect={handleTournamentSelect}
                     selectedValue={selectedTournament?.id}
                 />
 

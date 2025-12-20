@@ -130,9 +130,26 @@ export default function DashboardScreen() {
                                                     await apiService.checkIn(user.id);
                                                 }
                                                 loadData(); // Refresh to show new status
-                                            } catch (error) {
-                                                console.error(error);
-                                                alert('Punch failed');
+                                            } catch (error: any) {
+                                                console.log("Punch error:", error);
+                                                let msg = 'Punch failed';
+
+                                                if (error.body) {
+                                                    try {
+                                                        const parsed = JSON.parse(error.body);
+                                                        if (parsed.error) msg = parsed.error;
+                                                    } catch (e) {
+                                                        msg = error.body;
+                                                    }
+                                                } else if (error.message) {
+                                                    msg = error.message;
+                                                }
+
+                                                if (msg.includes('Already checked in')) {
+                                                    alert('You are already checked in for today!');
+                                                } else {
+                                                    alert(msg);
+                                                }
                                             }
                                         }}
                                     >

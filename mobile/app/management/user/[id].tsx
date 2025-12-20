@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useIsFocused } from '@react-navigation/native';
-import { View, StyleSheet, ScrollView, useWindowDimensions, Alert, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, useWindowDimensions, Alert, Platform, TouchableOpacity } from 'react-native';
 import { Text, Avatar, Button, Card, useTheme, DataTable, FAB, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Menu, Divider } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
@@ -12,6 +12,7 @@ import { Linking } from 'react-native';
 import { PermissionSelector } from '../../../components/PermissionSelector';
 import { generateReceipt } from '../../../utils/receiptGenerator';
 import { useAuth } from '../../../context/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // --- Sub-Components for Tabs ---
 
@@ -95,18 +96,16 @@ const FineRoute = ({ userId, isFocused, userRole }: { userId: number, isFocused:
             <ScrollView style={styles.tabContent}>
                 {fines.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No fines found.</Text> : (
                     fines.map((item) => (
-                        <Card key={item.id} style={[styles.ledgerCard, { borderLeftColor: 'red', borderLeftWidth: 4 }]}>
+                        <Card key={item.id} style={styles.ledgerCard}>
                             <Card.Content>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <View>
-                                        <Text variant="titleMedium">{item.transaction_type} - {item.type}</Text>
-                                        <Text variant="bodySmall">{format(new Date(item.date), 'dd MMM yyyy')}</Text>
-                                        <Text>₹{item.amount}</Text>
-                                        <Text variant="bodySmall" style={{ color: '#8b8b8b', fontStyle: 'italic' }}>
-                                            By: {item.created_by?.name || 'Admin'}
-                                        </Text>
+                                        <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>Fine</Text>
+                                        <Text variant="bodySmall" style={{ color: 'gray' }}>{format(new Date(item.date), 'dd MMM yyyy')}</Text>
+                                        <Text variant="bodyMedium" style={{ color: '#d32f2f', fontWeight: 'bold' }}>₹{item.amount}</Text>
+                                        <Text variant="bodySmall" style={{ color: '#999' }}>By: {item.created_by?.name || 'Admin'}</Text>
                                     </View>
-                                    <IconButton icon="delete" iconColor="red" onPress={() => handleDelete(item.id)} />
+                                    <IconButton icon="delete-outline" iconColor="#d32f2f" size={20} onPress={() => handleDelete(item.id)} />
                                 </View>
                             </Card.Content>
                         </Card>
@@ -239,67 +238,63 @@ const LedgerRoute = ({ userId, isFocused, userRole }: { userId: number, isFocuse
                     rootItems.map((item) => (
                         <Card
                             key={item.id}
-                            style={[styles.ledgerCard, { borderLeftColor: item.is_paid ? 'green' : 'red', borderLeftWidth: 4 }]}
+                            style={styles.ledgerCard}
                             onPress={() => router.push({ pathname: '/management/ledger/[id]', params: { id: item.id, userId } })}
                         >
                             <Card.Content>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+
+                                    {/* Icon Identifier */}
+                                    <View style={{ marginRight: 10, marginTop: 4 }}>
+                                        <MaterialCommunityIcons
+                                            name={item.transaction_type === 'CREDIT' ? 'arrow-bottom-left' : 'arrow-top-right'}
+                                            size={24}
+                                            color={item.transaction_type === 'CREDIT' ? 'green' : (item.is_paid ? 'gray' : 'red')}
+                                            style={{ backgroundColor: '#f5f5f5', borderRadius: 20, padding: 6 }}
+                                        />
+                                    </View>
+
                                     <View style={{ flex: 1 }}>
-                                        <Text variant="titleMedium">{item.type.replace('_', ' ')} <Text style={{ fontSize: 12, color: 'gray' }}>#{item.id}</Text></Text>
-                                        <Text variant="bodySmall">{format(new Date(item.date), 'dd MMM yyyy')}</Text>
-                                        {item.notes && <Text variant="bodySmall" style={{ color: 'gray' }}>{item.notes}</Text>}
-                                        <Text variant="bodySmall" style={{ color: '#8b8b8b', fontStyle: 'italic', marginTop: 2 }}>
-                                            By: {item.created_by?.name || 'Admin'}
-                                        </Text>
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                            <Text variant="titleSmall" style={{ fontWeight: 'bold', textTransform: 'capitalize' }}>{item.type.replace('_', ' ').toLowerCase()}</Text>
+                                            <Text variant="titleSmall" style={{ fontWeight: 'bold', color: item.transaction_type === 'CREDIT' ? 'green' : 'black' }}>
+                                                {item.transaction_type === 'CREDIT' ? '+' : '-'}₹{item.amount}
+                                            </Text>
+                                        </View>
+
+                                        <Text variant="bodySmall" style={{ color: 'gray' }}>{format(new Date(item.date), 'dd MMM yyyy')} • #{item.id}</Text>
+                                        {item.notes && <Text variant="bodySmall" numberOfLines={1} style={{ color: '#555', marginTop: 2 }}>{item.notes}</Text>}
+
+                                        {/* Status Badge */}
+                                        {!item.is_paid && item.transaction_type === 'DEBIT' && (
+                                            <View style={{ backgroundColor: '#ffebee', alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginTop: 4 }}>
+                                                <Text style={{ color: 'red', fontSize: 10, fontWeight: 'bold' }}>UNPAID</Text>
+                                            </View>
+                                        )}
+
                                         {/* Children (Payments) */}
                                         {item.children && item.children.length > 0 && (
-                                            <View style={{ marginTop: 8, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#eee' }}>
+                                            <View style={{ marginTop: 8, paddingLeft: 8, borderLeftWidth: 2, borderLeftColor: '#eee' }}>
                                                 {item.children.map((child: any) => (
-                                                    <View key={child.id} style={{ marginBottom: 4 }}>
-                                                        <Text variant="bodySmall" style={{ color: 'green' }}>
-                                                            Paid ₹{child.amount} on {format(new Date(child.date), 'dd MMM')} <Text style={{ fontSize: 10, color: '#ccc' }}>PMT-{child.id}</Text>
-                                                        </Text>
-                                                    </View>
+                                                    <Text key={child.id} style={{ fontSize: 11, color: 'green' }}>
+                                                        Paid ₹{child.amount} on {format(new Date(child.date), 'dd MMM')}
+                                                    </Text>
                                                 ))}
                                             </View>
                                         )}
                                     </View>
-                                    <View style={{ alignItems: 'flex-end' }}>
-                                        <Text variant="titleMedium" style={{ color: item.type === 'PAYMENT' || item.transaction_type === 'CREDIT' ? 'green' : 'black' }}>
-                                            {item.transaction_type === 'CREDIT' ? '-' : '+'}₹{item.amount}
-                                        </Text>
-                                        <Text variant="labelSmall" style={{ color: item.is_paid ? 'green' : 'red' }}>
-                                            {item.is_paid ? 'PAID' : 'UNPAID'}
-                                        </Text>
+                                </View>
 
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                                            {/* Pay Button for Unpaid Debits */}
-                                            {!item.is_paid && item.transaction_type === 'DEBIT' && userRole !== 'NORMAL' && (
-                                                <Button
-                                                    mode="contained"
-                                                    compact
-                                                    labelStyle={{ fontSize: 10, marginVertical: 2, color: 'white' }}
-                                                    style={{ marginRight: 8, height: 24 }}
-                                                    onPress={() => router.push({
-                                                        pathname: '/management/add-payment',
-                                                        params: {
-                                                            userId,
-                                                            userName: 'User',
-                                                            linkedChargeId: item.id,
-                                                            linkedAmount: item.amount,
-                                                            linkedType: item.type === 'SUBSCRIPTION' ? 'SUBSCRIPTION' : 'PAYMENT'
-                                                        }
-                                                    })}
-                                                >
-                                                    Pay
-                                                </Button>
-                                            )}
-
-                                            {userRole !== 'NORMAL' && <IconButton icon="pencil" size={18} onPress={() => handleEditStart(item)} />}
-                                            <IconButton icon="file-document-outline" size={18} iconColor="#1565c0" onPress={() => handleReceipt(item)} />
-                                            {userRole !== 'NORMAL' && <IconButton icon="delete" size={18} iconColor="red" onPress={() => handleDelete(item.id)} />}
-                                        </View>
-                                    </View>
+                                {/* Action Row */}
+                                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10, borderTopWidth: 1, borderTopColor: '#f0f0f0', paddingTop: 5 }}>
+                                    {!item.is_paid && item.transaction_type === 'DEBIT' && userRole !== 'NORMAL' && (
+                                        <Button compact mode="text" onPress={() => router.push({ pathname: '/management/add-payment', params: { userId, linkedChargeId: item.id, linkedAmount: item.amount, linkedType: item.type === 'SUBSCRIPTION' ? 'SUBSCRIPTION' : 'PAYMENT' } })}>
+                                            Pay Now
+                                        </Button>
+                                    )}
+                                    <IconButton icon="file-document-outline" size={16} onPress={() => handleReceipt(item)} style={{ margin: 0 }} />
+                                    {userRole !== 'NORMAL' && <IconButton icon="pencil-outline" size={16} onPress={() => handleEditStart(item)} style={{ margin: 0 }} />}
+                                    {userRole !== 'NORMAL' && <IconButton icon="delete-outline" size={16} iconColor="red" onPress={() => handleDelete(item.id)} style={{ margin: 0 }} />}
                                 </View>
                             </Card.Content>
                         </Card>
@@ -628,6 +623,79 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, userRole }: { userId: nu
 };
 
 
+const MatchesRoute = ({ userId, isFocused }: { userId: number, isFocused: boolean }) => {
+    const [matches, setMatches] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const router = useRouter();
+
+    const loadMatches = useCallback(() => {
+        setLoading(true);
+        apiService.request<any[]>(`/api/users/${userId}/matches`)
+            .then(data => setMatches(data))
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, [userId]);
+
+    useEffect(() => {
+        if (isFocused) {
+            loadMatches();
+        }
+    }, [isFocused, loadMatches]);
+
+    if (loading) return <ActivityIndicator style={{ marginTop: 20 }} />;
+
+    return (
+        <ScrollView style={styles.tabContent}>
+            {matches.length === 0 ? (
+                <View style={{ alignItems: 'center', marginTop: 40 }}>
+                    <MaterialCommunityIcons name="cricket" size={48} color="#ccc" />
+                    <Text style={{ textAlign: 'center', marginTop: 10, color: 'gray' }}>No matches played yet.</Text>
+                </View>
+            ) : (
+                matches.map(({ match, stats }: any) => (
+                    <Card key={match.id} style={{ marginBottom: 12, marginHorizontal: 16, backgroundColor: 'white', elevation: 2, borderRadius: 12 }} onPress={() => router.push({ pathname: '/management/cricket/analytics/[id]', params: { id: match.id } })}>
+                        <View style={{ flexDirection: 'row', backgroundColor: '#f5f5f5', padding: 8, borderTopLeftRadius: 12, borderTopRightRadius: 12, justifyContent: 'space-between' }}>
+                            <Text style={{ fontSize: 12, color: '#666' }}>{format(new Date(match.start_time), 'dd MMM, HH:mm')}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: match.is_completed ? 'green' : 'orange', marginRight: 4 }} />
+                                <Text style={{ fontSize: 12, fontWeight: 'bold', color: match.is_completed ? 'green' : 'orange' }}>{match.is_completed ? 'FINISHED' : 'LIVE'}</Text>
+                            </View>
+                        </View>
+
+                        <Card.Content style={{ paddingVertical: 12 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                                <View style={{ flex: 1 }}>
+                                    <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>{match.team_a.name}</Text>
+                                </View>
+                                <Text style={{ fontWeight: 'bold', color: 'gray' }}>VS</Text>
+                                <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                                    <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>{match.team_b.name}</Text>
+                                </View>
+                            </View>
+
+                            <Text style={{ textAlign: 'center', fontSize: 12, color: '#666', marginBottom: 10 }}>{match.result_description || 'Match in progress...'}</Text>
+
+                            <View style={{ flexDirection: 'row', backgroundColor: '#f9f9f9', borderRadius: 8, padding: 8 }}>
+                                <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#eee' }}>
+                                    <Text variant="labelSmall" style={{ color: '#666' }}>BATTING</Text>
+                                    <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>{stats.batting.runs}<Text style={{ fontSize: 12, fontWeight: 'normal' }}>/</Text>{stats.batting.balls}</Text>
+                                    <Text style={{ fontSize: 10, color: 'gray' }}>Runs/Balls</Text>
+                                </View>
+                                <View style={{ flex: 1, alignItems: 'center' }}>
+                                    <Text variant="labelSmall" style={{ color: '#666' }}>BOWLING</Text>
+                                    <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>{stats.bowling.wickets}<Text style={{ fontSize: 12, fontWeight: 'normal' }}>-</Text>{stats.bowling.runs}</Text>
+                                    <Text style={{ fontSize: 10, color: 'gray' }}>Wkts-Runs</Text>
+                                </View>
+                            </View>
+                        </Card.Content>
+                    </Card>
+                ))
+            )}
+        </ScrollView>
+    );
+};
+
+
 export default function UserDetailScreen() {
     const { id } = useLocalSearchParams();
     const theme = useTheme();
@@ -641,6 +709,7 @@ export default function UserDetailScreen() {
         { key: 'ledger', title: 'Ledger' },
         { key: 'fine', title: 'Fines' },
         { key: 'attendance', title: 'Attendance' },
+        { key: 'matches', title: 'Matches' },
         { key: 'permissions', title: 'Perms' },
     ]);
 
@@ -714,6 +783,8 @@ export default function UserDetailScreen() {
                     canEdit={currentUserRole === 'MANAGEMENT' || currentUserRole === 'SUPER_ADMIN'}
                     userRole={user?.role}
                 />;
+            case 'matches':
+                return <MatchesRoute userId={Number(id)} isFocused={isFocused && index === 3} />; // Assuming index logic works or verify isFocused behavior
             default:
                 return null;
         }
@@ -728,232 +799,192 @@ export default function UserDetailScreen() {
 
     return (
         <View style={styles.container}>
-            {/* Header / Profile Card - Fixed Top Section */}
+            {/* New Modern Header - Gradient Background */}
             <View>
-                {/* Header Container */}
-                <View style={styles.headerContainer}>
+                <LinearGradient
+                    colors={[theme.colors.primary, '#1976d2']}
+                    style={styles.headerGradient}
+                >
                     <View style={styles.topNav}>
-                        <IconButton icon="arrow-left" size={24} onPress={() => router.back()} />
-                        <Text variant="titleLarge" style={{ fontWeight: 'bold', flex: 1, textAlign: 'center' }}>
-                            {user.name}
+                        <IconButton icon="arrow-left" iconColor="white" size={24} onPress={() => router.back()} />
+                        <Text variant="titleLarge" style={{ fontWeight: 'bold', flex: 1, textAlign: 'center', color: 'white' }}>
+                            Profile
                         </Text>
-
-                        {/* Professional Menu Action - HIDDEN FOR NORMAL USERS */}
                         {currentUser?.role !== 'NORMAL' && (
-                            <View style={{ flexDirection: 'row' }}>
-                                <Menu
-                                    visible={menuVisible}
-                                    onDismiss={closeMenu}
-                                    anchor={<IconButton icon="dots-vertical" onPress={openMenu} />}
-                                >
-                                    <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Payment" leadingIcon="cash-plus" />
-                                    <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Charge" leadingIcon="cash-minus" />
-                                </Menu>
-                            </View>
+                            <Menu
+                                visible={menuVisible}
+                                onDismiss={closeMenu}
+                                anchor={<IconButton icon="dots-vertical" iconColor="white" onPress={openMenu} />}
+                            >
+                                <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Payment" leadingIcon="cash-plus" />
+                                <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Charge" leadingIcon="cash-minus" />
+                            </Menu>
                         )}
+                        {currentUser?.role === 'NORMAL' && <View style={{ width: 48 }} />} 
                     </View>
 
-                    {/* Avatar & Role */}
-                    <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                    <View style={{ alignItems: 'center', paddingBottom: 40 }}>
                         <Avatar.Text
                             size={80}
                             label={user.name.substring(0, 2).toUpperCase()}
-                            style={{ backgroundColor: theme.colors.primary }}
-                            color="white"
+                            style={{ backgroundColor: 'white', elevation: 4 }}
+                            color={theme.colors.primary}
+                            labelStyle={{ fontWeight: 'bold' }}
                         />
-                        <View style={styles.roleBadge}>
-                            <Text style={styles.roleText}>{user.role === 'SUPER_ADMIN' ? 'Super Admin' : user.role || 'User'}</Text>
+                        <Text variant="headlineSmall" style={{ color: 'white', fontWeight: 'bold', marginTop: 10 }}>{user.name}</Text>
+                        <Text variant="bodyMedium" style={{ color: 'rgba(255,255,255,0.9)' }}>{user.role === 'SUPER_ADMIN' ? 'Super Admin' : user.role || 'User'}</Text>
+                    </View>
+                </LinearGradient>
+
+                {/* Floating Contact Card & Status */}
+                {/* Floating Contact Card & Status */}
+                <View style={styles.floatingCard}>
+                    {/* Contact Details */}
+                    <View style={{ marginBottom: 15 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                            <MaterialCommunityIcons name="phone" size={20} color={theme.colors.primary} style={{ marginRight: 10 }} />
+                            <Text variant="bodyMedium" style={{ flex: 1, color: '#333' }} onPress={() => user.phone && Linking.openURL(`tel:${user.phone}`)}>
+                                {user.phone || 'No Phone'}
+                            </Text>
+                            {user.phone && (
+                                <IconButton
+                                    icon="whatsapp"
+                                    size={20}
+                                    iconColor="#25D366"
+                                    onPress={() => Linking.openURL(`whatsapp://send?phone=${user.phone}`)}
+                                />
+                            )}
                         </View>
-                        {!user.is_active && (
-                            <View style={{ backgroundColor: 'red', borderRadius: 4, paddingHorizontal: 8, marginTop: 4 }}>
-                                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>INACTIVE</Text>
-                            </View>
-                        )}
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <MaterialCommunityIcons name="email" size={20} color={theme.colors.primary} style={{ marginRight: 10 }} />
+                            <Text variant="bodyMedium" style={{ flex: 1, color: '#333' }} onPress={() => user.email && Linking.openURL(`mailto:${user.email}`)}>
+                                {user.email || 'No Email'}
+                            </Text>
+                        </View>
                     </View>
 
-                    {/* Status Actions */}
-                    <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 10, gap: 10 }}>
-                        <IconButton
-                            icon="phone"
-                            mode="contained"
-                            containerColor="#e0f2f1"
-                            iconColor="#00695c"
-                            onPress={() => Linking.openURL(`tel:${user.phone}`)}
-                            disabled={!user.phone}
-                        />
-                        {user.phone && (
-                            <IconButton
-                                icon="whatsapp"
-                                mode="contained"
-                                containerColor="#25D366" // WhatsApp green
-                                iconColor="white"
-                                size={24}
-                                onPress={() => Linking.openURL(`whatsapp://send?phone=${user.phone}`)}
-                            />
-                        )}
-                        <IconButton
-                            icon="email"
-                            mode="contained"
-                            containerColor="#e0e0e0"
-                            iconColor="#333"
-                            size={24}
-                            onPress={() => user.email && Linking.openURL(`mailto:${user.email}`)}
-                            disabled={!user.email}
-                        />
-                    </View>
+                    <Divider style={{ marginBottom: 15 }} />
 
-                </View>
-                {/* Status Toggle */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-                    <Text style={{ marginRight: 8 }}>Status:</Text>
-                    {user.role === 'SUPER_ADMIN' ? (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e8f5e9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}>
-                            <MaterialCommunityIcons name="check-circle" size={16} color="green" />
-                            <Text style={{ marginLeft: 4, color: 'green', fontWeight: 'bold' }}>Active</Text>
-                        </View>
-                    ) : (
-                        <>
-                            <Button
-                                mode={user.is_active ? 'contained' : 'outlined'}
-                                compact
-                                buttonColor={user.is_active ? 'green' : undefined}
-                                textColor={user.is_active ? 'white' : 'gray'}
-                                onPress={() => {
-                                    apiService.updateUser(user.id, { is_active: true } as any).then(() => refreshUser()).catch(e => Alert.alert('Error', 'Update failed'));
-                                }}
-                                style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
-                            >
-                                Active
-                            </Button>
-                            <Button
-                                mode={!user.is_active ? 'contained' : 'outlined'}
-                                compact
-                                buttonColor={!user.is_active ? 'red' : undefined}
-                                textColor={!user.is_active ? 'white' : 'gray'}
-                                onPress={() => {
-                                    apiService.updateUser(user.id, { is_active: false } as any).then(() => refreshUser()).catch(e => Alert.alert('Error', 'Update failed'));
-                                }}
-                                style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
-                            >
-                                Inactive
-                            </Button>
-                        </>
-                    )}
-
-                    {/* EXPIRED Banner */}
-                    {user.subscription_status === 'EXPIRED' && (
-                        <View style={{ backgroundColor: '#ffebee', padding: 10, marginHorizontal: 16, marginBottom: 10, borderRadius: 8, flexDirection: 'row', alignItems: 'center', borderColor: 'red', borderWidth: 1 }}>
-                            <MaterialCommunityIcons name="alert-circle" size={24} color="red" />
-                            <Text style={{ marginLeft: 10, color: 'red', fontWeight: 'bold' }}>Subscription Expired! Payment Due.</Text>
-                        </View>
-                    )}
-                </View>
-
-                {/* Info Cards (Attendance/Subscription) - Keeping stable */}
-                <View>
-                    {/* Info Cards */}
-                    <Card style={styles.infoCard}>
-                        <Card.Content style={styles.infoRow}>
-                            <MaterialCommunityIcons name="email-outline" size={20} color="#555" />
-                            <View style={{ marginLeft: 12, flex: 1 }}>
-                                <Text style={styles.infoLabel}>Email Address</Text>
-                                <Text style={styles.infoValue}>{user.email || 'N/A'}</Text>
+                    {/* Actions Row: Attendance & Status */}
+                    <View style={{ gap: 10 }}>
+                        {/* Attendance Action */}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <View>
+                                <Text variant="labelMedium" style={{ color: 'gray' }}>Attendance</Text>
+                                <Text variant="titleSmall" style={{ fontWeight: 'bold', color: todaysAttendance?.out_time ? 'green' : (todaysAttendance ? 'orange' : 'gray') }}>
+                                    {todaysAttendance ? (todaysAttendance.out_time ? 'Checked Out' : 'Checked In') : 'Not Present'}
+                                </Text>
                             </View>
-                        </Card.Content>
-                        <Divider />
-                        <Card.Content style={styles.infoRow}>
-                            <MaterialCommunityIcons name="phone-outline" size={20} color="#555" />
-                            <View style={{ marginLeft: 12, flex: 1 }}>
-                                <Text style={styles.infoLabel}>Phone Number</Text>
-                                <Text style={styles.infoValue}>{user.phone}</Text>
-                            </View>
-                        </Card.Content>
-                    </Card>
-
-                    {/* Attendance Today Card */}
-                    <Card style={styles.infoCard}>
-                        <Card.Content>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <View>
-                                    <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>Attendance: {todaysAttendance ? (todaysAttendance.out_time ? 'COMPLETED' : 'PRESENT') : 'NOT MARKED'}</Text>
-                                    {isPunchIn && <Text style={{ color: 'green', marginTop: 4 }}>Time Logged: {loggedTime}</Text>}
-                                </View>
-                                <Button
-                                    mode="contained"
-                                    buttonColor={isPunchIn ? '#d32f2f' : '#1565c0'}
-                                    onPress={async () => {
-                                        try {
-                                            if (isPunchIn) {
-                                                // Check out
-                                                await apiService.checkOut(user.id);
-                                                Alert.alert('Success', 'Checked Out');
-                                            } else {
-                                                // Quick Check In
-                                                await apiService.checkIn(user.id);
-                                                Alert.alert('Success', 'Checked In');
-                                            }
-                                            refreshUser(); // Refresh user data to update attendance status
-                                        } catch (e: any) {
-                                            if (e.body) {
-                                                try {
-                                                    const err = JSON.parse(e.body);
-                                                    if (err.existing && err.existing.in_time) {
-                                                        const dt = new Date(err.existing.in_time).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-                                                        Alert.alert('Already Checked In', `You checked in today at ${dt}.\nOnly one session per day is allowed.`);
-                                                        return;
-                                                    }
-                                                    Alert.alert('Error', err.error || 'Failed to toggle status');
-                                                } catch (parseErr) {
-                                                    Alert.alert('Error', 'Failed to toggle status (Parse Error)');
-                                                }
-                                            } else {
-                                                Alert.alert('Error', 'Failed to toggle status');
-                                            }
+                            <Button
+                                mode={todaysAttendance && !todaysAttendance.out_time ? "outlined" : "contained"}
+                                compact
+                                textColor={todaysAttendance && !todaysAttendance.out_time ? "red" : "white"}
+                                buttonColor={todaysAttendance && !todaysAttendance.out_time ? "white" : theme.colors.primary}
+                                style={{ borderColor: 'red' }}
+                                onPress={async () => {
+                                    try {
+                                        if (todaysAttendance && !todaysAttendance.out_time) {
+                                            await apiService.checkOut(user.id);
+                                        } else {
+                                            await apiService.checkIn(user.id);
                                         }
-                                    }}
-                                >
-                                    {isPunchIn ? 'Check Out' : 'Check In'}
-                                </Button>
-                            </View>
-                        </Card.Content>
-                    </Card>
+                                        refreshUser();
+                                    } catch (error: any) {
+                                        Alert.alert("Error", error.message || "Action failed");
+                                    }
+                                }}
+                            >
+                                {todaysAttendance && !todaysAttendance.out_time ? 'Check Out' : 'Check In'}
+                            </Button>
+                        </View>
 
-                    {/* Financial Summary */}
-                    <Card style={styles.infoCard}>
-                        <Card.Content>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <MaterialCommunityIcons name="cash" size={20} color="#1565c0" />
-                                    <Text style={{ marginLeft: 8, fontWeight: 'bold', fontSize: 14 }}>Monthly Subscription</Text>
-                                </View>
-                                <Text style={{ fontSize: 14 }}>₹{user.deposit_amount || 0}/month</Text>
+                        {/* Status Toggle Row */}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 5 }}>
+                            <Text variant="labelMedium" style={{ color: 'gray' }}>Account Status</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                {user.role === 'SUPER_ADMIN' ? (
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e8f5e9', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+                                        <MaterialCommunityIcons name="check-circle" size={14} color="green" />
+                                        <Text style={{ marginLeft: 4, color: 'green', fontSize: 12, fontWeight: 'bold' }}>Active</Text>
+                                    </View>
+                                ) : (
+                                    <View style={{ flexDirection: 'row', borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: '#eee' }}>
+                                        <TouchableOpacity
+                                            onPress={() => apiService.updateUser(user.id, { is_active: true } as any).then(() => refreshUser())}
+                                            style={{ backgroundColor: user.is_active ? 'green' : 'white', paddingHorizontal: 12, paddingVertical: 6 }}
+                                        >
+                                            <Text style={{ color: user.is_active ? 'white' : 'gray', fontSize: 12 }}>Active</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            onPress={() => apiService.updateUser(user.id, { is_active: false } as any).then(() => refreshUser())}
+                                            style={{ backgroundColor: !user.is_active ? 'red' : 'white', paddingHorizontal: 12, paddingVertical: 6 }}
+                                        >
+                                            <Text style={{ color: !user.is_active ? 'white' : 'gray', fontSize: 12 }}>Inactive</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
                             </View>
-
-                            {/* Progress Bar (Expenses vs Deposit) */}
-                            <View style={{ height: 4, backgroundColor: '#e0e0e0', borderRadius: 2, marginVertical: 8 }}>
-                                <View style={{
-                                    width: `${Math.min(((user.total_debits || 0) / (user.deposit_amount || 1)) * 100, 100)}%`,
-                                    height: '100%',
-                                    backgroundColor: user.balance < 0 ? 'red' : '#1565c0',
-                                    borderRadius: 2
-                                }} />
-                            </View>
-
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <View>
-                                    <Text style={{ fontWeight: 'bold' }}>₹{user.total_debits || 0}</Text>
-                                    <Text style={{ fontSize: 10, color: '#666' }}>Total Expenses</Text>
-                                </View>
-                                <View>
-                                    <Text style={{ fontWeight: 'bold', color: user.balance < 0 ? 'red' : 'green' }}>
-                                        ₹{user.balance || 0}
-                                    </Text>
-                                    <Text style={{ fontSize: 10, color: '#666' }}>Current Balance</Text>
-                                </View>
-                            </View>
-                        </Card.Content>
-                    </Card>
+                        </View>
+                    </View>
                 </View>
+
+                {/* Subscription Warning */}
+                {user.subscription_status === 'EXPIRED' && (
+                    <View style={{ backgroundColor: '#ffebee', padding: 10, marginHorizontal: 16, marginBottom: 10, borderRadius: 8, flexDirection: 'row', alignItems: 'center', borderColor: 'red', borderWidth: 1 }}>
+                        <MaterialCommunityIcons name="alert-circle" size={24} color="red" />
+                        <Text style={{ marginLeft: 10, color: 'red', fontWeight: 'bold', flex: 1 }}>Subscription Expired! Payment Due.</Text>
+                    </View>
+                )}
+
+                {/* Subscription & Financial Breakdown Block */}
+                <Card style={{ marginHorizontal: 16, marginBottom: 15, backgroundColor: 'white', elevation: 2 }}>
+                    <Card.Title
+                        title="Subscription & Financials"
+                        left={(props) => <MaterialCommunityIcons {...props} name="wallet-membership" color={theme.colors.primary} />}
+                    />
+                    <Card.Content>
+                        {/* Plan Details */}
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#eee' }}>
+                            <View>
+                                <Text variant="labelMedium" style={{ color: 'gray' }}>Current Plan</Text>
+                                <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>
+                                    {user.plan_name || 'Standard Plan'}
+                                </Text>
+                            </View>
+                            <View style={{ alignItems: 'flex-end' }}>
+                                <Text variant="labelMedium" style={{ color: 'gray' }}>Rate</Text>
+                                <Text variant="titleMedium" style={{ fontWeight: 'bold', color: theme.colors.primary }}>
+                                    {/* Assuming deposit_amount is roughly current plan rate or using logic from subscription data if available */}
+                                    {user.subscriptions && user.subscriptions.length > 0
+                                        ? `₹${user.subscriptions[0].plan?.amount || 0}/${user.subscriptions[0].plan?.frequency === 'DAILY' ? 'day' : 'month'}`
+                                        : 'No Active Plan'}
+                                </Text>
+                            </View>
+                        </View>
+
+                        {/* Financial Stats Grid */}
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#eee' }}>
+                                <Text variant="labelMedium" style={{ color: 'gray' }}>Total Paid</Text>
+                                <Text variant="titleLarge" style={{ color: 'green', fontWeight: 'bold' }}>
+                                    ₹{user.total_credits || 0}
+                                </Text>
+                            </View>
+                            <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#eee' }}>
+                                <Text variant="labelMedium" style={{ color: 'gray' }}>Total Expenses</Text>
+                                <Text variant="titleLarge" style={{ color: '#d32f2f', fontWeight: 'bold' }}>
+                                    ₹{user.total_debits || 0}
+                                </Text>
+                            </View>
+                            <View style={{ flex: 1, alignItems: 'center' }}>
+                                <Text variant="labelMedium" style={{ color: 'gray' }}>{user.balance < 0 ? 'Due' : 'Advance'}</Text>
+                                <Text variant="titleLarge" style={{ color: user.balance < 0 ? 'red' : 'green', fontWeight: 'bold' }}>
+                                    ₹{Math.abs(user.balance || 0)}
+                                </Text>
+                            </View>
+                        </View>
+                    </Card.Content>
+                </Card>
             </View>
 
             <View style={{ flex: 1 }}>
@@ -962,7 +993,18 @@ export default function UserDetailScreen() {
                     renderScene={renderScene}
                     onIndexChange={setIndex}
                     initialLayout={{ width: layout.width }}
-                    renderTabBar={props => <TabBar {...props} indicatorStyle={{ backgroundColor: theme.colors.primary }} style={{ backgroundColor: 'white' }} activeColor="black" inactiveColor="gray" />}
+                    renderTabBar={props => (
+                        <TabBar
+                            {...props}
+                            scrollEnabled={true}
+                            indicatorStyle={{ backgroundColor: theme.colors.primary, height: 3 }}
+                            style={{ backgroundColor: 'white', elevation: 2 }}
+                            tabStyle={{ width: 'auto', minWidth: 100 }}
+                            labelStyle={{ color: 'black', fontWeight: 'bold', textTransform: 'capitalize' }}
+                            activeColor={theme.colors.primary}
+                            inactiveColor="gray"
+                        />
+                    )}
                 />
             </View>
         </View >
@@ -970,90 +1012,42 @@ export default function UserDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f8f9fa' }, // Lighter background
+    container: { flex: 1, backgroundColor: '#f8f9fa' },
     loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    headerContainer: {
-        backgroundColor: '#fff',
+    headerGradient: {
+        paddingTop: Platform.OS === 'android' ? 40 : 0,
+        paddingBottom: 40,
+        borderBottomLeftRadius: 20,
+        borderBottomRightRadius: 20,
+        marginBottom: 40 // Space for floating card
     },
     topNav: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 8,
-        paddingTop: 40,
-        paddingBottom: 10
+        paddingTop: 10,
+        paddingBottom: 20
     },
-    roleBadge: {
-        backgroundColor: '#e3f2fd',
-        paddingHorizontal: 16,
-        paddingVertical: 4,
-        borderRadius: 12,
-        marginTop: -12, // overlap avatar slightly
-        borderWidth: 2,
-        borderColor: 'white'
-    },
-    roleText: {
-        fontSize: 12,
-        fontWeight: 'bold',
-        color: '#1565c0'
-    },
-    chipVip: {
-        backgroundColor: '#fff3e0',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 16,
-        flexDirection: 'row',
-        alignItems: 'center'
-    },
-    chipLabel: {
-        backgroundColor: 'white',
-        borderWidth: 1,
-        borderColor: '#eee',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 16,
-        flexDirection: 'row',
-        alignItems: 'center'
-    },
-    infoCard: {
+    floatingCard: {
+        marginTop: -50, // Pull up to overlap with gradient
         marginHorizontal: 16,
-        marginBottom: 10,
         backgroundColor: 'white',
-        borderRadius: 12,
-        elevation: 0,
-        borderWidth: 1,
-        borderColor: '#f0f0f0'
-    },
-    infoRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 4
-    },
-    infoLabel: {
-        fontSize: 10,
-        color: '#888'
-    },
-    infoValue: {
-        fontSize: 14,
-        color: '#333'
-    },
-    punchCard: {
-        marginHorizontal: 16,
-        marginBottom: 10,
-        backgroundColor: 'white',
-        borderRadius: 12,
-        elevation: 1,
-    },
-    timeBarContainer: {
-        marginTop: 15,
-        backgroundColor: '#e3f2fd', // Light blue bg
         borderRadius: 12,
         padding: 16,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center'
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        marginBottom: 10
     },
-    // Keep legacy styles for sub-components
+    miniStatCard: {
+        width: 100,
+        borderRadius: 12,
+        elevation: 2,
+    },
+    // Sub-component styles
     tabContent: { flex: 1, padding: 16 },
-    ledgerCard: { marginBottom: 10, backgroundColor: 'white' },
+    ledgerCard: { marginBottom: 10, backgroundColor: 'white', elevation: 2, borderRadius: 8 },
     fab: { position: 'absolute', margin: 16, right: 0, bottom: 0, backgroundColor: '#6200ee' }
 });

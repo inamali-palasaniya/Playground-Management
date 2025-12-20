@@ -53,6 +53,18 @@ export default function MatchSetupModal({ visible, onDismiss, teamA, teamB, onSt
     const handleStart = () => {
         if (!tossWinner || !striker || !nonStriker || !bowler) return;
 
+        // Date Validation
+        if (initialData?.start_time) {
+            const scheduledTime = new Date(initialData.start_time).getTime();
+            const now = new Date().getTime();
+            // Allow 15 mins buffer before? Or strict? User said "not before".
+            // Let's use exact time.
+            if (now < scheduledTime) {
+                alert(`Match is scheduled for ${new Date(scheduledTime).toLocaleString()}. You cannot start it yet.`);
+                return;
+            }
+        }
+
         // Validation
         const sId = striker.user?.id || striker.user_id || striker.id;
         const nsId = nonStriker.user?.id || nonStriker.user_id || nonStriker.id;
