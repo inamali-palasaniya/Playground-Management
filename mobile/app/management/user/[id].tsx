@@ -1000,7 +1000,12 @@ export default function UserDetailScreen() {
                             indicatorStyle={{ backgroundColor: theme.colors.primary, height: 3 }}
                             style={{ backgroundColor: 'white', elevation: 2 }}
                             tabStyle={{ width: 'auto', minWidth: 100 }}
-                            labelStyle={{ color: 'black', fontWeight: 'bold', textTransform: 'capitalize' }}
+                            // @ts-ignore
+                            renderLabel={({ route, color }: any) => (
+                                <Text style={{ color, fontWeight: 'bold', textTransform: 'capitalize' }}>
+                                    {route.title}
+                                </Text>
+                            )}
                             activeColor={theme.colors.primary}
                             inactiveColor="gray"
                         />

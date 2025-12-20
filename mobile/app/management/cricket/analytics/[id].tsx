@@ -78,14 +78,19 @@ export default function MatchAnalyticsScreen() {
                 <Card style={{ flex: 1, marginRight: 5 }}>
                     <Card.Content style={{ alignItems: 'center' }}>
                         <Text variant="labelSmall">{match.team_a?.name}</Text>
-                        {/* We need total score here, likely from stats or backend field. Using computed for now if not in stats object directly */}
-                        <Text variant="titleLarge">{Object.values(innings1.batting || {}).reduce((a: any, b: any) => a + b.runs, 0)}/{Object.values(innings2.bowling || {}).reduce((a: any, b: any) => a + b.wickets, 0)}</Text>
+                        <Text variant="titleLarge">
+                            {String(Object.values(innings1.batting || {}).reduce((a: any, b: any) => a + b.runs, 0))}/
+                            {String(Object.values(innings2.bowling || {}).reduce((a: any, b: any) => a + b.wickets, 0))}
+                        </Text>
                     </Card.Content>
                 </Card>
                 <Card style={{ flex: 1, marginLeft: 5 }}>
                     <Card.Content style={{ alignItems: 'center' }}>
                         <Text variant="labelSmall">{match.team_b?.name}</Text>
-                        <Text variant="titleLarge">{Object.values(innings2.batting || {}).reduce((a: any, b: any) => a + b.runs, 0)}/{Object.values(innings1.bowling || {}).reduce((a: any, b: any) => a + b.wickets, 0)}</Text>
+                        <Text variant="titleLarge">
+                            {String(Object.values(innings2.batting || {}).reduce((a: any, b: any) => a + b.runs, 0))}/
+                            {String(Object.values(innings1.bowling || {}).reduce((a: any, b: any) => a + b.wickets, 0))}
+                        </Text>
                     </Card.Content>
                 </Card>
             </View>
@@ -113,11 +118,11 @@ export default function MatchAnalyticsScreen() {
 
                     return (
                         <DataTable.Row key={id}>
-                            <DataTable.Cell>{name}</DataTable.Cell>
-                            <DataTable.Cell numeric>{s.runs}</DataTable.Cell>
-                            <DataTable.Cell numeric>{s.balls}</DataTable.Cell>
-                            <DataTable.Cell numeric>{s['4s']}</DataTable.Cell>
-                            <DataTable.Cell numeric>{s['6s']}</DataTable.Cell>
+                            <DataTable.Cell><Text>{name}</Text></DataTable.Cell>
+                            <DataTable.Cell numeric><Text>{s.runs}</Text></DataTable.Cell>
+                            <DataTable.Cell numeric><Text>{s.balls}</Text></DataTable.Cell>
+                            <DataTable.Cell numeric><Text>{s['4s']}</Text></DataTable.Cell>
+                            <DataTable.Cell numeric><Text>{s['6s']}</Text></DataTable.Cell>
                         </DataTable.Row>
                     );
                 })}
@@ -136,10 +141,10 @@ export default function MatchAnalyticsScreen() {
                     const name = player?.user?.name || player?.name || 'Unk';
                     return (
                         <DataTable.Row key={id}>
-                            <DataTable.Cell>{name}</DataTable.Cell>
-                            <DataTable.Cell numeric>{s.overs}</DataTable.Cell>
-                            <DataTable.Cell numeric>{s.runs}</DataTable.Cell>
-                            <DataTable.Cell numeric>{s.wickets}</DataTable.Cell>
+                            <DataTable.Cell><Text>{name}</Text></DataTable.Cell>
+                            <DataTable.Cell numeric><Text>{s.overs}</Text></DataTable.Cell>
+                            <DataTable.Cell numeric><Text>{s.runs}</Text></DataTable.Cell>
+                            <DataTable.Cell numeric><Text>{s.wickets}</Text></DataTable.Cell>
                         </DataTable.Row>
                     );
                 })}
