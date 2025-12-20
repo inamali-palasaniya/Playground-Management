@@ -76,7 +76,7 @@ const FineRoute = ({ userId, isFocused, userRole }: { userId: number, isFocused:
             .finally(() => setLoading(false));
     };
 
-    useEffect(() => { loadFines(); }, [userId]);
+    useEffect(() => { if (isFocused) loadFines(); }, [userId, isFocused]);
 
     const handleDelete = async (id: number) => {
         Alert.alert('Delete Fine', 'Are you sure?', [
@@ -134,7 +134,7 @@ const LedgerRoute = ({ userId, isFocused, userRole }: { userId: number, isFocuse
             .finally(() => setLoading(false));
     }
 
-    useEffect(() => { loadLedger(); }, [userId]);
+    useEffect(() => { if (isFocused) loadLedger(); }, [userId, isFocused]);
 
     const handleDelete = async (id: number) => {
         Alert.alert('Delete Entry', 'Are you sure?', [

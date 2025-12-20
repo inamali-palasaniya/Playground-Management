@@ -308,6 +308,7 @@ export const PermissionScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
   module_name: 'module_name',
+  can_view: 'can_view',
   can_add: 'can_add',
   can_edit: 'can_edit',
   can_delete: 'can_delete'

@@ -192,11 +192,32 @@ export const updateMatch = async (req: Request, res: Response) => {
         if (current_batting_team_id) data.current_batting_team_id = Number(current_batting_team_id);
 
         // Remove NaN values if any
-        Object.keys(data).forEach(key => {
-            if (typeof data[key] === 'number' && isNaN(data[key])) {
-                delete data[key];
+        // Validations
+        if (data.current_striker_id || data.current_non_striker_id || data.current_bowler_id) {
+            const currentMatch = await prisma.match.findUnique({ where: { id: parseInt(id) } });
+            if (currentMatch) {
+                const sId = data.current_striker_id || currentMatch.current_striker_id;
+                const nsId = data.current_non_striker_id || currentMatch.current_non_striker_id;
+                const bId = data.current_bowler_id || currentMatch.current_bowler_id;
+                const battingTeamId = data.current_batting_team_id || currentMatch.current_batting_team_id;
+
+                if (sId && nsId && Number(sId) === Number(nsId)) {
+                    return res.status(400).json({ error: 'Striker and Non-Striker cannot be the same player.' });
+                }
+
+                if (bId && battingTeamId) {
+                    const bowlerInBattingTeam = await prisma.teamPlayer.findFirst({
+                        where: {
+                            team_id: battingTeamId,
+                            user_id: bId
+                        }
+                    });
+                    if (bowlerInBattingTeam) {
+                        return res.status(400).json({ error: 'Bowler cannot be from the batting team.' });
+                    }
+                }
             }
-        });
+        }
 
         const match = await prisma.match.update({
             where: { id: parseInt(id) },
@@ -252,9 +273,12 @@ export const recordBallEvent = async (req: Request, res: Response) => {
         });
 
         res.status(201).json(ballEvent);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error recording ball event:', error);
-        res.status(500).json({ error: 'Failed to record ball event' });
+        res.status(500).json({
+            error: error.message || 'Failed to record ball event',
+            details: error.message
+        });
     }
 };
 

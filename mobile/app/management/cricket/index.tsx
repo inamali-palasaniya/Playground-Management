@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { Card, Text, useTheme, Title, Paragraph, Appbar, Avatar, IconButton, Button } from 'react-native-paper';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../../services/api.service';
@@ -29,9 +30,13 @@ export default function CricketDashboard() {
         }
     };
 
-    useEffect(() => {
-        loadData();
-    }, []);
+
+
+    useFocusEffect(
+        useCallback(() => {
+            loadData();
+        }, [])
+    );
 
     const onRefresh = () => {
         setRefreshing(true);

@@ -237,9 +237,20 @@ export default function ScorerScreen() {
 
             loadMatch();
 
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            Alert.alert('Error', 'Failed to record ball');
+            let message = 'Failed to record ball';
+            if (error.body) {
+                try {
+                    const parsed = JSON.parse(error.body);
+                    if (parsed.error) message = parsed.error;
+                } catch (e) {
+                    message = String(error.body);
+                }
+            } else if (error.message) {
+                message = error.message;
+            }
+            Alert.alert('Validation Error', message);
         }
     };
 
@@ -438,14 +449,26 @@ export default function ScorerScreen() {
                     title="Select Next Bowler"
                     players={bowlingTeamPlayers}
                     onSelect={async (p) => {
+                        // Validate Bowler Team
+                        const battingTeamId = match?.current_batting_team_id;
+                        if (battingTeamId) {
+                            const battingTeam = battingTeamId === match?.team_a_id ? match?.team_a : match?.team_b;
+                            const isInBatting = battingTeam?.players?.find((bp: any) => (bp.user?.id || bp.id) === p.id);
+                            if (isInBatting) {
+                                Alert.alert('Invalid Bowler', 'Bowler cannot be from the batting team.');
+                                return;
+                            }
+                        }
+
                         setMatchState(prev => ({ ...prev, bowlerId: p.id }));
                         setBowlerSelectionVisible(false);
                         try {
                             await apiService.updateMatch(Number(matchId), {
                                 current_bowler_id: p.id
                             });
-                        } catch (e) {
+                        } catch (e: any) {
                             console.error("Failed to persist bowler change", e);
+                            Alert.alert('Error', e.body ? JSON.parse(e.body).error : 'Failed to update bowler');
                         }
                     }}
                 />
@@ -456,14 +479,21 @@ export default function ScorerScreen() {
                     title="Select New Batsman"
                     players={battingTeamPlayers}
                     onSelect={async (p) => {
+                        // Validate Striker != NonStriker
+                        if (p.id === matchState.nonStrikerId) {
+                            Alert.alert('Invalid Selection', 'Striker cannot be the same as Non-Striker.');
+                            return;
+                        }
+
                         setMatchState(prev => ({ ...prev, strikerId: p.id }));
                         setBatsmanSelectionVisible(false);
                         try {
                             await apiService.updateMatch(Number(matchId), {
                                 current_striker_id: p.id
                             });
-                        } catch (e) {
+                        } catch (e: any) {
                             console.error("Failed to persist batsman change", e);
+                            Alert.alert('Error', e.body ? JSON.parse(e.body).error : 'Failed to update batsman');
                         }
                     }}
                 />

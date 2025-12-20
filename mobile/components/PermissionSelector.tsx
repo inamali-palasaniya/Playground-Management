@@ -39,11 +39,12 @@ export const PermissionSelector = ({ permissions, onChange, readonly = false }: 
         onChange([...otherPermissions, updatedPermission]);
     };
 
-    const renderIcon = (module: string, type: 'can_add' | 'can_edit' | 'can_delete') => {
+    const renderIcon = (module: string, type: 'can_view' | 'can_add' | 'can_edit' | 'can_delete') => {
         const isActive = getPermission(module)[type];
         let iconName: any = 'circle-outline';
         let color = '#ccc';
 
+        if (type === 'can_view') { iconName = 'eye'; color = isActive ? '#2196F3' : '#e0e0e0'; }
         if (type === 'can_add') { iconName = 'plus-circle'; color = isActive ? '#4CAF50' : '#e0e0e0'; }
         if (type === 'can_edit') { iconName = 'pencil-circle'; color = isActive ? '#FFC107' : '#e0e0e0'; }
         if (type === 'can_delete') { iconName = 'delete-circle'; color = isActive ? '#F44336' : '#e0e0e0'; }
@@ -59,7 +60,7 @@ export const PermissionSelector = ({ permissions, onChange, readonly = false }: 
             <IconButton
                 icon={isActive ? iconName.replace('-outline', '') : iconName}
                 iconColor={color}
-                size={30}
+                size={26}
                 onPress={() => togglePermission(module, type)}
                 disabled={readonly}
             />
@@ -70,6 +71,7 @@ export const PermissionSelector = ({ permissions, onChange, readonly = false }: 
         <View style={styles.container}>
             <View style={styles.headerRow}>
                 <Text style={[styles.col, styles.moduleCol]}>Module</Text>
+                <Text style={styles.col}>View</Text>
                 <Text style={styles.col}>Add</Text>
                 <Text style={styles.col}>Edit</Text>
                 <Text style={styles.col}>Del</Text>
@@ -78,6 +80,7 @@ export const PermissionSelector = ({ permissions, onChange, readonly = false }: 
             {MODULES.map((module) => (
                 <View key={module} style={styles.row}>
                     <Text style={[styles.col, styles.moduleCol, { textTransform: 'capitalize' }]}>{module.replace('master_', 'Master: ')}</Text>
+                    <View style={styles.col}>{renderIcon(module, 'can_view')}</View>
                     <View style={styles.col}>{renderIcon(module, 'can_add')}</View>
                     <View style={styles.col}>{renderIcon(module, 'can_edit')}</View>
                     <View style={styles.col}>{renderIcon(module, 'can_delete')}</View>

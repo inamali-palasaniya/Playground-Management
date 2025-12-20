@@ -6,24 +6,31 @@ import { AuthService } from '../services/auth.service';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+import { useAuth } from '../context/AuthContext';
+
 export default function LoginScreen() {
   const router = useRouter();
+  const { refreshUser } = useAuth();
   const theme = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+
+
   const handleLogin = async () => {
     if (!email || !password) {
-      // Using error state on inputs could be better, but Alert is fine for now
       return;
     }
 
     setLoading(true);
     try {
       await AuthService.login(email, password);
-      router.replace('/(tabs)/dashboard');
+      // Refresh user in context to trigger the AuthContext effect
+      await refreshUser();
+      // Router replace logic is also handled in AuthContext, but we can do it here for safety
+      // router.replace('/(tabs)/dashboard'); 
     } catch (error: any) {
       alert(error.message || 'Login Failed');
     } finally {

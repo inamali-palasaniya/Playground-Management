@@ -52,12 +52,33 @@ export default function MatchSetupModal({ visible, onDismiss, teamA, teamB, onSt
 
     const handleStart = () => {
         if (!tossWinner || !striker || !nonStriker || !bowler) return;
+
+        // Validation
+        const sId = striker.user?.id || striker.user_id || striker.id;
+        const nsId = nonStriker.user?.id || nonStriker.user_id || nonStriker.id;
+        const bId = bowler.user?.id || bowler.user_id || bowler.id;
+
+        if (sId === nsId) {
+            alert('Striker and Non-Striker cannot be the same player.');
+            return;
+        }
+
+        // Check if bowler is in batting team
+        // battingTeam is derived from state
+        if (battingTeam) {
+            const bowlerInBatting = battingTeam.players?.find((p: any) => (p.user?.id || p.id) === bId);
+            if (bowlerInBatting) {
+                alert('Bowler cannot be from the batting team.');
+                return;
+            }
+        }
+
         onStart({
             tossWinnerId: tossWinner,
             tossDecision,
-            strikerId: striker.user?.id || striker.user_id || striker.id,
-            nonStrikerId: nonStriker.user?.id || nonStriker.user_id || nonStriker.id,
-            bowlerId: bowler.user?.id || bowler.user_id || bowler.id
+            strikerId: sId,
+            nonStrikerId: nsId,
+            bowlerId: bId
         });
     };
 

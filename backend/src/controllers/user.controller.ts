@@ -41,6 +41,7 @@ export const createUser = async (req: Request, res: Response) => {
                 permissions: {
                     create: Array.isArray(permissions) ? permissions.map((p: any) => ({
                         module_name: p.module_name,
+                        can_view: p.can_view || false,
                         can_add: p.can_add || false,
                         can_edit: p.can_edit || false,
                         can_delete: p.can_delete || false
@@ -275,6 +276,7 @@ export const getUsers = async (req: Request, res: Response) => {
             const { fee_ledger, ...userWithoutLedger } = user;
 
             if (filter === 'NEGATIVE_BALANCE' && balance <= 0) return null;
+            if (filter === 'SETTLED' && balance > 0) return null;
 
             return {
                 ...user,
@@ -467,6 +469,7 @@ export const updateUser = async (req: Request, res: Response) => {
                         data: permissions.map((p: any) => ({
                             user_id: parseInt(id),
                             module_name: p.module_name,
+                            can_view: p.can_view || false,
                             can_add: p.can_add || false,
                             can_edit: p.can_edit || false,
                             can_delete: p.can_delete || false
@@ -577,47 +580,27 @@ export const deleteUser = async (req: Request, res: Response) => {
         if (targetUser.role === 'SUPER_ADMIN') {
             throw new Error('Cannot delete the Super Admin user.');
         }
-        // if (targetUser.role === 'MANAGEMENT') {
-        //     const adminCount = await prisma.user.count({ where: { role: 'MANAGEMENT' } });
-        //     if (adminCount <= 1) {
-        //         return res.status(409).json({ error: 'Cannot delete the last Management user. Please create another Management user first.' });
-        //     }
-        // }
 
-        if (!targetUser.is_active) {
-            return res.status(400).json({ error: 'User is already inactive.' });
-        }
-
-        await prisma.$transaction(async (tx) => {
-            // Soft Delete: Just set is_active = false
-            // We do NOT delete financial records or attendance history to preserve data integrity.
-
-            // Optional: We could clear the push token or session data here if we had it.
-
-            await tx.user.update({
-                where: { id: userId },
-                data: { is_active: false }
-            });
+        // Hard Delete with Cascade (Prisma handles cascade if configured in schema, 
+        // but we explicitly use delete here instead of update is_active=false)
+        await prisma.user.delete({
+            where: { id: userId }
         });
 
         // AUDIT LOG
         const performedBy = (req as any).user?.userId || 1;
-        await AuditService.logAction('USER', userId, 'UPDATE', performedBy, {
+        await AuditService.logAction('USER', userId, 'DELETE', performedBy, {
             name: targetUser.name,
             email: targetUser.email,
             phone: targetUser.phone,
             role: targetUser.role,
-            action: 'DEACTIVATE',
-            note: 'User deactivated (Soft Delete)'
+            action: 'HARD_DELETE',
+            note: 'User permanently deleted with cascading data removal.'
         });
 
-        res.json({ message: 'User deactivated successfully' });
+        res.json({ message: 'User permanently deleted successfully' });
     } catch (error: any) {
         console.error('Error deleting user:', error);
-        if (error.code === 'P2003') {
-            res.status(409).json({ error: 'Cannot delete user: They have linked match history or other preserved records.' });
-        } else {
-            res.status(500).json({ error: 'Failed to delete user', details: error.message });
-        }
+        res.status(500).json({ error: 'Failed to delete user', details: error.message });
     }
 };

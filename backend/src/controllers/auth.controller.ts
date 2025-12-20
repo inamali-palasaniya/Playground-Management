@@ -3,10 +3,7 @@ import prisma from '../utils/prisma.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  console.error('CRITICAL: JWT_SECRET is not defined in environment variables. Authentication will fail.');
-}
+
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -34,6 +31,7 @@ export const register = async (req: Request, res: Response) => {
       },
     });
 
+    const JWT_SECRET = process.env.JWT_SECRET;
     if (!JWT_SECRET) {
       return res.status(500).json({ error: 'Server configuration error (JWT_SECRET)' });
     }
@@ -86,7 +84,9 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
+    const JWT_SECRET = process.env.JWT_SECRET;
     if (!JWT_SECRET) {
+      console.error('CRITICAL: JWT_SECRET missing during login.');
       return res.status(500).json({ error: 'Server configuration error (JWT_SECRET)' });
     }
 

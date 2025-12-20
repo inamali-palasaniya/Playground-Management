@@ -40,6 +40,7 @@ export type PermissionMinAggregateOutputType = {
   id: number | null
   user_id: number | null
   module_name: string | null
+  can_view: boolean | null
   can_add: boolean | null
   can_edit: boolean | null
   can_delete: boolean | null
@@ -49,6 +50,7 @@ export type PermissionMaxAggregateOutputType = {
   id: number | null
   user_id: number | null
   module_name: string | null
+  can_view: boolean | null
   can_add: boolean | null
   can_edit: boolean | null
   can_delete: boolean | null
@@ -58,6 +60,7 @@ export type PermissionCountAggregateOutputType = {
   id: number
   user_id: number
   module_name: number
+  can_view: number
   can_add: number
   can_edit: number
   can_delete: number
@@ -79,6 +82,7 @@ export type PermissionMinAggregateInputType = {
   id?: true
   user_id?: true
   module_name?: true
+  can_view?: true
   can_add?: true
   can_edit?: true
   can_delete?: true
@@ -88,6 +92,7 @@ export type PermissionMaxAggregateInputType = {
   id?: true
   user_id?: true
   module_name?: true
+  can_view?: true
   can_add?: true
   can_edit?: true
   can_delete?: true
@@ -97,6 +102,7 @@ export type PermissionCountAggregateInputType = {
   id?: true
   user_id?: true
   module_name?: true
+  can_view?: true
   can_add?: true
   can_edit?: true
   can_delete?: true
@@ -193,6 +199,7 @@ export type PermissionGroupByOutputType = {
   id: number
   user_id: number
   module_name: string
+  can_view: boolean
   can_add: boolean
   can_edit: boolean
   can_delete: boolean
@@ -225,6 +232,7 @@ export type PermissionWhereInput = {
   id?: Prisma.IntFilter<"Permission"> | number
   user_id?: Prisma.IntFilter<"Permission"> | number
   module_name?: Prisma.StringFilter<"Permission"> | string
+  can_view?: Prisma.BoolFilter<"Permission"> | boolean
   can_add?: Prisma.BoolFilter<"Permission"> | boolean
   can_edit?: Prisma.BoolFilter<"Permission"> | boolean
   can_delete?: Prisma.BoolFilter<"Permission"> | boolean
@@ -235,6 +243,7 @@ export type PermissionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   module_name?: Prisma.SortOrder
+  can_view?: Prisma.SortOrder
   can_add?: Prisma.SortOrder
   can_edit?: Prisma.SortOrder
   can_delete?: Prisma.SortOrder
@@ -249,6 +258,7 @@ export type PermissionWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.PermissionWhereInput | Prisma.PermissionWhereInput[]
   user_id?: Prisma.IntFilter<"Permission"> | number
   module_name?: Prisma.StringFilter<"Permission"> | string
+  can_view?: Prisma.BoolFilter<"Permission"> | boolean
   can_add?: Prisma.BoolFilter<"Permission"> | boolean
   can_edit?: Prisma.BoolFilter<"Permission"> | boolean
   can_delete?: Prisma.BoolFilter<"Permission"> | boolean
@@ -259,6 +269,7 @@ export type PermissionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   module_name?: Prisma.SortOrder
+  can_view?: Prisma.SortOrder
   can_add?: Prisma.SortOrder
   can_edit?: Prisma.SortOrder
   can_delete?: Prisma.SortOrder
@@ -276,6 +287,7 @@ export type PermissionScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"Permission"> | number
   user_id?: Prisma.IntWithAggregatesFilter<"Permission"> | number
   module_name?: Prisma.StringWithAggregatesFilter<"Permission"> | string
+  can_view?: Prisma.BoolWithAggregatesFilter<"Permission"> | boolean
   can_add?: Prisma.BoolWithAggregatesFilter<"Permission"> | boolean
   can_edit?: Prisma.BoolWithAggregatesFilter<"Permission"> | boolean
   can_delete?: Prisma.BoolWithAggregatesFilter<"Permission"> | boolean
@@ -283,6 +295,7 @@ export type PermissionScalarWhereWithAggregatesInput = {
 
 export type PermissionCreateInput = {
   module_name: string
+  can_view?: boolean
   can_add?: boolean
   can_edit?: boolean
   can_delete?: boolean
@@ -293,6 +306,7 @@ export type PermissionUncheckedCreateInput = {
   id?: number
   user_id: number
   module_name: string
+  can_view?: boolean
   can_add?: boolean
   can_edit?: boolean
   can_delete?: boolean
@@ -300,6 +314,7 @@ export type PermissionUncheckedCreateInput = {
 
 export type PermissionUpdateInput = {
   module_name?: Prisma.StringFieldUpdateOperationsInput | string
+  can_view?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_add?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_edit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_delete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -310,6 +325,7 @@ export type PermissionUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   user_id?: Prisma.IntFieldUpdateOperationsInput | number
   module_name?: Prisma.StringFieldUpdateOperationsInput | string
+  can_view?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_add?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_edit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_delete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -319,6 +335,7 @@ export type PermissionCreateManyInput = {
   id?: number
   user_id: number
   module_name: string
+  can_view?: boolean
   can_add?: boolean
   can_edit?: boolean
   can_delete?: boolean
@@ -326,6 +343,7 @@ export type PermissionCreateManyInput = {
 
 export type PermissionUpdateManyMutationInput = {
   module_name?: Prisma.StringFieldUpdateOperationsInput | string
+  can_view?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_add?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_edit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_delete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -335,6 +353,7 @@ export type PermissionUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   user_id?: Prisma.IntFieldUpdateOperationsInput | number
   module_name?: Prisma.StringFieldUpdateOperationsInput | string
+  can_view?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_add?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_edit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_delete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -359,6 +378,7 @@ export type PermissionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   module_name?: Prisma.SortOrder
+  can_view?: Prisma.SortOrder
   can_add?: Prisma.SortOrder
   can_edit?: Prisma.SortOrder
   can_delete?: Prisma.SortOrder
@@ -373,6 +393,7 @@ export type PermissionMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   module_name?: Prisma.SortOrder
+  can_view?: Prisma.SortOrder
   can_add?: Prisma.SortOrder
   can_edit?: Prisma.SortOrder
   can_delete?: Prisma.SortOrder
@@ -382,6 +403,7 @@ export type PermissionMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   module_name?: Prisma.SortOrder
+  can_view?: Prisma.SortOrder
   can_add?: Prisma.SortOrder
   can_edit?: Prisma.SortOrder
   can_delete?: Prisma.SortOrder
@@ -436,6 +458,7 @@ export type PermissionUncheckedUpdateManyWithoutUserNestedInput = {
 
 export type PermissionCreateWithoutUserInput = {
   module_name: string
+  can_view?: boolean
   can_add?: boolean
   can_edit?: boolean
   can_delete?: boolean
@@ -444,6 +467,7 @@ export type PermissionCreateWithoutUserInput = {
 export type PermissionUncheckedCreateWithoutUserInput = {
   id?: number
   module_name: string
+  can_view?: boolean
   can_add?: boolean
   can_edit?: boolean
   can_delete?: boolean
@@ -482,6 +506,7 @@ export type PermissionScalarWhereInput = {
   id?: Prisma.IntFilter<"Permission"> | number
   user_id?: Prisma.IntFilter<"Permission"> | number
   module_name?: Prisma.StringFilter<"Permission"> | string
+  can_view?: Prisma.BoolFilter<"Permission"> | boolean
   can_add?: Prisma.BoolFilter<"Permission"> | boolean
   can_edit?: Prisma.BoolFilter<"Permission"> | boolean
   can_delete?: Prisma.BoolFilter<"Permission"> | boolean
@@ -490,6 +515,7 @@ export type PermissionScalarWhereInput = {
 export type PermissionCreateManyUserInput = {
   id?: number
   module_name: string
+  can_view?: boolean
   can_add?: boolean
   can_edit?: boolean
   can_delete?: boolean
@@ -497,6 +523,7 @@ export type PermissionCreateManyUserInput = {
 
 export type PermissionUpdateWithoutUserInput = {
   module_name?: Prisma.StringFieldUpdateOperationsInput | string
+  can_view?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_add?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_edit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_delete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -505,6 +532,7 @@ export type PermissionUpdateWithoutUserInput = {
 export type PermissionUncheckedUpdateWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   module_name?: Prisma.StringFieldUpdateOperationsInput | string
+  can_view?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_add?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_edit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_delete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -513,6 +541,7 @@ export type PermissionUncheckedUpdateWithoutUserInput = {
 export type PermissionUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   module_name?: Prisma.StringFieldUpdateOperationsInput | string
+  can_view?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_add?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_edit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   can_delete?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -524,6 +553,7 @@ export type PermissionSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   id?: boolean
   user_id?: boolean
   module_name?: boolean
+  can_view?: boolean
   can_add?: boolean
   can_edit?: boolean
   can_delete?: boolean
@@ -534,6 +564,7 @@ export type PermissionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   id?: boolean
   user_id?: boolean
   module_name?: boolean
+  can_view?: boolean
   can_add?: boolean
   can_edit?: boolean
   can_delete?: boolean
@@ -544,6 +575,7 @@ export type PermissionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   id?: boolean
   user_id?: boolean
   module_name?: boolean
+  can_view?: boolean
   can_add?: boolean
   can_edit?: boolean
   can_delete?: boolean
@@ -554,12 +586,13 @@ export type PermissionSelectScalar = {
   id?: boolean
   user_id?: boolean
   module_name?: boolean
+  can_view?: boolean
   can_add?: boolean
   can_edit?: boolean
   can_delete?: boolean
 }
 
-export type PermissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "module_name" | "can_add" | "can_edit" | "can_delete", ExtArgs["result"]["permission"]>
+export type PermissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "module_name" | "can_view" | "can_add" | "can_edit" | "can_delete", ExtArgs["result"]["permission"]>
 export type PermissionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -579,6 +612,7 @@ export type $PermissionPayload<ExtArgs extends runtime.Types.Extensions.Internal
     id: number
     user_id: number
     module_name: string
+    can_view: boolean
     can_add: boolean
     can_edit: boolean
     can_delete: boolean
@@ -1009,6 +1043,7 @@ export interface PermissionFieldRefs {
   readonly id: Prisma.FieldRef<"Permission", 'Int'>
   readonly user_id: Prisma.FieldRef<"Permission", 'Int'>
   readonly module_name: Prisma.FieldRef<"Permission", 'String'>
+  readonly can_view: Prisma.FieldRef<"Permission", 'Boolean'>
   readonly can_add: Prisma.FieldRef<"Permission", 'Boolean'>
   readonly can_edit: Prisma.FieldRef<"Permission", 'Boolean'>
   readonly can_delete: Prisma.FieldRef<"Permission", 'Boolean'>
