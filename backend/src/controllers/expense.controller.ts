@@ -16,7 +16,8 @@ export const createExpense = async (req: Request, res: Response) => {
                 category,
                 amount: parseFloat(amount),
                 date: date ? new Date(date) : new Date(),
-                notes
+                notes,
+                created_by_id: (req as any).user?.userId || null
             }
         });
 
@@ -49,6 +50,7 @@ export const getExpenses = async (req: Request, res: Response) => {
 
         const expenses = await prisma.expense.findMany({
             where,
+            include: { created_by: { select: { name: true } } },
             orderBy: { date: 'desc' }
         });
 

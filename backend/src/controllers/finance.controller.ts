@@ -53,7 +53,8 @@ export const addPayment = async (req: Request, res: Response) => {
                 date: paymentDate,
                 is_paid: txType === 'CREDIT',
                 notes: finalNotes ? finalNotes.trim() : undefined,
-                parent_ledger_id: (txType === 'CREDIT' && link_to_id) ? parseInt(link_to_id) : undefined
+                parent_ledger_id: (txType === 'CREDIT' && link_to_id) ? parseInt(link_to_id) : undefined,
+                created_by_id: (req as any).user?.userId || null
             }
         });
 
@@ -225,7 +226,8 @@ export const addFine = async (req: Request, res: Response) => {
                 transaction_type: 'DEBIT',
                 amount: amount,
                 is_paid: false,
-                notes: notes || `Fine: ${rule.name} (Occurrence: ${previousFines + 1})`
+                notes: notes || `Fine: ${rule.name} (Occurrence: ${previousFines + 1})`,
+                created_by_id: (req as any).user?.userId || null
             }
         });
 
@@ -245,7 +247,10 @@ export const getUserFinancials = async (req: Request, res: Response) => {
         const { userId } = req.params;
         const ledger = await prisma.feeLedger.findMany({
             where: { user_id: Number(userId) },
-            include: { child_ledger: true },
+            include: {
+                child_ledger: true,
+                created_by: { select: { name: true } }
+            },
             orderBy: { date: 'desc' }
         });
 

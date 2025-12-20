@@ -36,10 +36,25 @@ model User {
   faced_balls      BallEvent[]    @relation("Striker")
   non_striker_balls BallEvent[]   @relation("NonStriker")
   fee_ledger       FeeLedger[]
+  series_won_mots  Tournament[]   @relation("ManOfTheSeries")
   matches_won_motm Match[]        @relation("ManOfTheMatch")
   subscriptions    Subscription[]
   player_teams     TeamPlayer[]
-  series_won_mots  Tournament[]   @relation("ManOfTheSeries")
+  matches_as_striker Match[]      @relation("CurrentStriker")
+  matches_as_non_striker Match[]  @relation("CurrentNonStriker")
+  matches_as_bowler Match[]       @relation("CurrentBowler")
+  createdAt        DateTime       @default(now())
+  created_by_id    Int?
+  created_by       User?          @relation("UserCreator", fields: [created_by_id], references: [id])
+  created_users    User[]         @relation("UserCreator")
+  
+  created_attendances Attendance[] @relation("AttendanceCreator")
+  created_ledgers     FeeLedger[]  @relation("LedgerCreator")
+  created_expenses    Expense[]    @relation("ExpenseCreator")
+  created_tournaments Tournament[] @relation("TournamentCreator")
+  created_teams       Team[]       @relation("TeamCreator")
+  created_matches     Match[]      @relation("MatchCreator")
+
   group            UserGroup?     @relation(fields: [group_id], references: [id])
   fines            UserFine[]
   permissions      Permission[]
@@ -90,6 +105,8 @@ model Attendance {
   location_lat      Float?
   location_lng      Float?
   out_time          DateTime?
+  created_by_id     Int?
+  created_by        User?     @relation("AttendanceCreator", fields: [created_by_id], references: [id])
   user              User      @relation(fields: [user_id], references: [id])
 
 
@@ -107,8 +124,10 @@ model FeeLedger {
   date             DateTime        @default(now())
   is_paid          Boolean         @default(false)
   notes            String?
-  createdAt DateTime   @default(now())
-  user      User       @relation(fields: [user_id], references: [id])
+  createdAt        DateTime        @default(now())
+  created_by_id Int?
+  created_by    User?      @relation("LedgerCreator", fields: [created_by_id], references: [id])
+  user          User       @relation(fields: [user_id], references: [id])
   
   parent_ledger_id Int?
   parent_ledger    FeeLedger?  @relation("LedgerHierarchy", fields: [parent_ledger_id], references: [id])
@@ -142,14 +161,16 @@ model UserFine {
   @@index([user_id])
   @@index([rule_id])
 }
-
 model Expense {
-  id       Int      @id @default(autoincrement())
-  name     String
-  category String
-  amount   Float
-  date     DateTime @default(now())
-  notes    String?
+  id            Int      @id @default(autoincrement())
+  name          String
+  category      String
+  amount        Float
+  date          DateTime @default(now())
+  notes         String?
+  createdAt     DateTime @default(now())
+  created_by_id Int?
+  created_by    User?    @relation("ExpenseCreator", fields: [created_by_id], references: [id])
 }
 
 model Tournament {
@@ -161,8 +182,11 @@ model Tournament {
   man_of_the_series_id Int?
   matches              Match[]
   teams                Team[]
+  createdAt            DateTime  @default(now())
+  created_by_id        Int?
   game                 Game      @relation(fields: [game_id], references: [id])
   man_of_the_series    User?     @relation("ManOfTheSeries", fields: [man_of_the_series_id], references: [id])
+  created_by           User?     @relation("TournamentCreator", fields: [created_by_id], references: [id])
 }
 
 model Team {
@@ -173,16 +197,20 @@ model Team {
   matches_as_b  Match[]      @relation("TeamB")
   toss_won      Match[]      @relation("TossWinner")
   matches_won   Match[]      @relation("MatchWinner")
+  matches_batting Match[]      @relation("CurrentBattingTeam")
+  createdAt     DateTime   @default(now())
+  created_by_id Int?
   tournament    Tournament   @relation(fields: [tournament_id], references: [id])
   players       TeamPlayer[]
+  created_by    User?      @relation("TeamCreator", fields: [created_by_id], references: [id])
 }
 
 model TeamPlayer {
   id      Int  @id @default(autoincrement())
   team_id Int
   user_id Int
-  team    Team @relation(fields: [team_id], references: [id])
-  user    User @relation(fields: [user_id], references: [id])
+  team    Team @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  user    User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model Match {
@@ -204,14 +232,27 @@ model Match {
 
   man_of_the_match_id Int?
 
+  // Current Live State
+  current_striker_id     Int?
+  current_non_striker_id Int?
+  current_bowler_id      Int?
+  current_batting_team_id Int?
+
   ball_events         BallEvent[]
   
+  createdAt           DateTime    @default(now())
+  created_by_id       Int?
   man_of_the_match    User?       @relation("ManOfTheMatch", fields: [man_of_the_match_id], references: [id])
-  team_a              Team        @relation("TeamA", fields: [team_a_id], references: [id])
-  team_b              Team        @relation("TeamB", fields: [team_b_id], references: [id])
-  toss_winner         Team?       @relation("TossWinner", fields: [toss_winner_id], references: [id])
-  winning_team        Team?       @relation("MatchWinner", fields: [winning_team_id], references: [id])
-  tournament          Tournament  @relation(fields: [tournament_id], references: [id])
+  current_striker     User?       @relation("CurrentStriker", fields: [current_striker_id], references: [id])
+  current_non_striker User?       @relation("CurrentNonStriker", fields: [current_non_striker_id], references: [id])
+  current_bowler      User?       @relation("CurrentBowler", fields: [current_bowler_id], references: [id])
+  current_batting_team Team?      @relation("CurrentBattingTeam", fields: [current_batting_team_id], references: [id])
+  team_a              Team        @relation("TeamA", fields: [team_a_id], references: [id], onDelete: Cascade)
+  team_b              Team        @relation("TeamB", fields: [team_b_id], references: [id], onDelete: Cascade)
+  toss_winner         Team?       @relation("TossWinner", fields: [toss_winner_id], references: [id], onDelete: SetNull)
+  winning_team        Team?       @relation("MatchWinner", fields: [winning_team_id], references: [id], onDelete: SetNull)
+  tournament          Tournament  @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
+  created_by          User?       @relation("MatchCreator", fields: [created_by_id], references: [id])
 }
 
 model BallEvent {
@@ -234,7 +275,7 @@ model BallEvent {
   timestamp       DateTime @default(now())
 
   bowler          User     @relation("Bowler", fields: [bowler_id], references: [id])
-  match           Match    @relation(fields: [match_id], references: [id])
+  match           Match    @relation(fields: [match_id], references: [id], onDelete: Cascade)
   striker         User     @relation("Striker", fields: [striker_id], references: [id])
   non_striker     User?    @relation("NonStriker", fields: [non_striker_id], references: [id])
 }

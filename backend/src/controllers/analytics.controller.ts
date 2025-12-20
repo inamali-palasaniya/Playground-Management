@@ -112,19 +112,16 @@ export const getAttendanceStats = async (req: Request, res: Response) => {
       : 0;
 
     // --- Live Counters ---
-    // 1. Total Users (Normal users)
-    const totalNormalUsers = await prisma.user.count({
-      where: { role: 'NORMAL' }
-    });
+    const totalUsersCount = await prisma.user.count();
 
     // Active Users (Enabled)
     const activeUsersCount = await prisma.user.count({
-      where: { role: 'NORMAL', is_active: true }
+      where: { is_active: true }
     });
 
     // Inactive Users (Disabled)
     const inactiveUsersCount = await prisma.user.count({
-      where: { role: 'NORMAL', is_active: false }
+      where: { is_active: false }
     });
 
     // 2. Today's formatted date string (YYYY-MM-DD) for strict day matching or use date range
@@ -140,38 +137,33 @@ export const getAttendanceStats = async (req: Request, res: Response) => {
           gte: startOfToday,
           lte: endOfToday
         },
-        is_present: true,
-        user: { role: 'NORMAL' } // Only count normal users
+        is_present: true
       }
     });
 
     // 4. Today Out (Active Total - In) - Assuming inactive users don't punch in
     const todayOutCount = Math.max(0, activeUsersCount - todayInCount);
 
-    // --- Aggregated Stats by User Type ---
-    // Total users by type
-    const usersByType = await prisma.user.groupBy({
-      by: ['user_type'],
-      where: { role: 'NORMAL' },
+    // --- Aggregated Stats by User Role ---
+    const usersByRole = await prisma.user.groupBy({
+      by: ['role'],
       _count: true
     });
 
-    // Present users by type
-    const presentUsersByType = await prisma.attendance.findMany({
+    const presentUsersByRole = await prisma.attendance.findMany({
       where: {
         date: { gte: startOfToday, lte: endOfToday },
-        is_present: true,
-        user: { role: 'NORMAL' }
+        is_present: true
       },
-      include: { user: { select: { user_type: true } } }
+      include: { user: { select: { role: true } } }
     });
 
-    const breakdown = usersByType.map(group => {
-      const type = group.user_type;
+    const breakdownByRole = usersByRole.map(group => {
+      const role = group.role;
       const total = group._count;
-      const inCount = presentUsersByType.filter(a => a.user.user_type === type).length;
+      const inCount = presentUsersByRole.filter(a => a.user.role === role).length;
       return {
-        type,
+        role,
         total,
         in: inCount,
         out: Math.max(0, total - inCount)
@@ -180,7 +172,6 @@ export const getAttendanceStats = async (req: Request, res: Response) => {
 
     // --- Expired Monthly Plans ---
     // Users whose latest subscription is EXPIRED and plan name contains 'Monthly'
-    // This is an approximation. Ideally check specific sub ID.
     const expiredMonthlyCount = await prisma.subscription.count({
       where: {
         status: 'EXPIRED',
@@ -190,6 +181,54 @@ export const getAttendanceStats = async (req: Request, res: Response) => {
       }
     });
 
+    // --- Upcoming Expirations (Next 3 days) ---
+    const andThreeDays = new Date();
+    andThreeDays.setDate(andThreeDays.getDate() + 3);
+    const upcomingExpirationsCount = await prisma.subscription.count({
+      where: {
+        status: 'ACTIVE',
+        end_date: {
+          gte: new Date(),
+          lte: andThreeDays
+        }
+      }
+    });
+
+    // --- Outstanding Balance Count ---
+    const userLedgers = await prisma.feeLedger.groupBy({
+      by: ['user_id'],
+      _sum: {
+        amount: true
+      },
+      where: {
+        transaction_type: 'DEBIT'
+      }
+    });
+
+    // This is a bit complex with Prisma groupBy for balance. 
+    // Let's do a more efficient raw query or fetch all active users and calculate.
+    // Given the scale, fetching all users with their ledger sums might be okay for now, 
+    // but ideally we'd have a balance field on User.
+    const usersWithLedgers = await prisma.user.findMany({
+      where: { is_active: true },
+      select: {
+        id: true,
+        fee_ledger: {
+          select: { amount: true, transaction_type: true }
+        }
+      }
+    });
+
+    const outstandingBalanceCount = usersWithLedgers.filter(user => {
+      let totalDebits = 0;
+      let totalCredits = 0;
+      user.fee_ledger.forEach(t => {
+        if (t.transaction_type === 'DEBIT') totalDebits += t.amount;
+        else if (t.transaction_type === 'CREDIT') totalCredits += t.amount;
+      });
+      return (totalDebits - totalCredits) > 0;
+    }).length;
+
     res.json({
       total_attendance: totalAttendance,
       present_count: presentCount,
@@ -198,13 +237,15 @@ export const getAttendanceStats = async (req: Request, res: Response) => {
       avg_daily_attendance: Math.round(avgDailyAttendance * 10) / 10,
       attendance_rate: totalAttendance > 0 ? (presentCount / totalAttendance) * 100 : 0,
       // New Live Stats
-      total_users: totalNormalUsers,
+      total_users: totalUsersCount,
       active_users: activeUsersCount,
       inactive_users: inactiveUsersCount,
       today_in: todayInCount,
       today_out: todayOutCount,
-      breakdown_by_type: breakdown,
-      expired_monthly_count: expiredMonthlyCount
+      breakdown_by_role: breakdownByRole,
+      expired_monthly_count: expiredMonthlyCount,
+      upcoming_expirations_count: upcomingExpirationsCount,
+      outstanding_balance_count: outstandingBalanceCount
     });
   } catch (error) {
     console.error('Error fetching attendance stats:', error);

@@ -6,7 +6,8 @@ import {
     updateMatch,
     recordBallEvent,
     getLiveScore,
-    undoLastBall
+    undoLastBall,
+    deleteMatch
 } from '../controllers/match.controller.js';
 
 import {
@@ -24,6 +25,7 @@ router.put('/:id/status', updateMatch); // Legacy support
 router.post('/:id/ball-event', recordBallEvent);
 router.get('/:id/live-score', getLiveScore);
 router.delete('/:id/undo', undoLastBall);
+router.delete('/:id', deleteMatch);
 
 // Analytics
 router.put('/:id/awards', setManOfTheMatch);

@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET is not defined in environment variables');
+  console.error('CRITICAL: JWT_SECRET is not defined in environment variables. Authentication will fail.');
 }
 
 export interface AuthRequest extends Request {
@@ -28,6 +28,9 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
   }
 
   try {
+    if (!JWT_SECRET) {
+      return res.status(500).json({ error: 'Server configuration error (JWT_SECRET)' });
+    }
     const verified = jwt.verify(token, JWT_SECRET) as any;
 
     // Check DB for Active Status (Force Logout)

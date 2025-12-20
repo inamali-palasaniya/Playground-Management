@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { TextInput, Button, Text, Menu, Divider, Appbar, Portal, useTheme } from 'react-native-paper';
+import { TextInput, Button, Text, Divider, Appbar, useTheme } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../../../services/api.service';
+import GenericSelectModal from '../scorer/GenericSelectModal';
 
 export default function CreateMatchScreen() {
     const router = useRouter();
@@ -19,7 +20,7 @@ export default function CreateMatchScreen() {
     const [overs, setOvers] = useState('10');
     const [loading, setLoading] = useState(false);
 
-    // Menus
+    // Selection Modals
     const [tourMenu, setTourMenu] = useState(false);
     const [teamAMenu, setTeamAMenu] = useState(false);
     const [teamBMenu, setTeamBMenu] = useState(false);
@@ -63,7 +64,7 @@ export default function CreateMatchScreen() {
                 await apiService.createMatch(payload);
             }
             Alert.alert('Success', id ? 'Match Updated!' : 'Match Scheduled!');
-            router.back();
+            router.replace('/management/cricket/matches');
         } catch (error) {
             console.error(error);
             Alert.alert('Error', 'Failed to save match');
@@ -75,54 +76,43 @@ export default function CreateMatchScreen() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
-                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.BackAction onPress={() => router.replace('/management/cricket/matches')} />
                 <Appbar.Content title={id ? "Edit Match" : "Schedule Match"} />
             </Appbar.Header>
             <ScrollView contentContainerStyle={styles.container}>
-                <Text variant="headlineSmall" style={{ marginBottom: 20 }}>Match Details</Text>
+                <Text variant="headlineSmall" style={styles.heading}>Match Details</Text>
 
                 {/* Tournament Selector */}
-                <Portal.Host>
-                    <Menu
-                        visible={tourMenu}
-                        onDismiss={() => setTourMenu(false)}
-                        anchor={<Button mode="outlined" onPress={() => setTourMenu(true)} style={styles.input}>{selectedTournament ? selectedTournament.name : 'Select Tournament'}</Button>}
-                    >
-                        {tournaments.map(t => (
-                            <Menu.Item key={t.id} onPress={() => { setSelectedTournament(t); setTourMenu(false); }} title={t.name} />
-                        ))}
-                    </Menu>
-                </Portal.Host>
+                <Button
+                    mode="outlined"
+                    onPress={() => setTourMenu(true)}
+                    style={styles.input}
+                    icon="trophy-outline"
+                >
+                    {selectedTournament ? selectedTournament.name : 'Select Tournament'}
+                </Button>
 
                 <Divider style={{ marginVertical: 15 }} />
 
-                {/* Team A Selector */}
-                <Portal.Host>
-                    <Menu
-                        visible={teamAMenu}
-                        onDismiss={() => setTeamAMenu(false)}
-                        anchor={<Button mode="outlined" disabled={!selectedTournament} onPress={() => setTeamAMenu(true)} style={styles.input}>{teamA ? teamA.name : 'Select Team A'}</Button>}
+                <View style={styles.vsRow}>
+                    <Button
+                        mode="outlined"
+                        disabled={!selectedTournament}
+                        onPress={() => setTeamAMenu(true)}
+                        style={[styles.input, { flex: 1, marginRight: 5 }]}
                     >
-                        {teams.map(t => (
-                            <Menu.Item key={t.id} onPress={() => { setTeamA(t); setTeamAMenu(false); }} title={t.name} />
-                        ))}
-                    </Menu>
-                </Portal.Host>
-
-                <Text style={{ textAlign: 'center', marginVertical: 10 }}>VS</Text>
-
-                {/* Team B Selector */}
-                <Portal.Host>
-                    <Menu
-                        visible={teamBMenu}
-                        onDismiss={() => setTeamBMenu(false)}
-                        anchor={<Button mode="outlined" disabled={!selectedTournament} onPress={() => setTeamBMenu(true)} style={styles.input}>{teamB ? teamB.name : 'Select Team B'}</Button>}
+                        {teamA ? teamA.name : 'Team A'}
+                    </Button>
+                    <Text style={styles.vsText}>VS</Text>
+                    <Button
+                        mode="outlined"
+                        disabled={!selectedTournament}
+                        onPress={() => setTeamBMenu(true)}
+                        style={[styles.input, { flex: 1, marginLeft: 5 }]}
                     >
-                        {teams.map(t => (
-                            <Menu.Item key={t.id} onPress={() => { setTeamB(t); setTeamBMenu(false); }} title={t.name} />
-                        ))}
-                    </Menu>
-                </Portal.Host>
+                        {teamB ? teamB.name : 'Team B'}
+                    </Button>
+                </View>
 
                 <TextInput
                     label="Overs per Innings"
@@ -130,7 +120,8 @@ export default function CreateMatchScreen() {
                     onChangeText={setOvers}
                     keyboardType="numeric"
                     mode="outlined"
-                    style={[styles.input, { marginTop: 20 }]}
+                    style={[styles.input, { marginTop: 10 }]}
+                    left={<TextInput.Icon icon="counter" />}
                 />
 
                 <Button
@@ -138,10 +129,37 @@ export default function CreateMatchScreen() {
                     onPress={handleCreate}
                     loading={loading}
                     disabled={loading}
-                    style={{ marginTop: 20 }}
+                    style={styles.submitBtn}
                 >
                     {id ? 'Update Match' : 'Schedule Match'}
                 </Button>
+
+                <GenericSelectModal
+                    visible={tourMenu}
+                    onDismiss={() => setTourMenu(false)}
+                    title="Select Tournament"
+                    items={tournaments}
+                    onSelect={setSelectedTournament}
+                    selectedValue={selectedTournament?.id}
+                />
+
+                <GenericSelectModal
+                    visible={teamAMenu}
+                    onDismiss={() => setTeamAMenu(false)}
+                    title="Select Team A"
+                    items={teams}
+                    onSelect={setTeamA}
+                    selectedValue={teamA?.id}
+                />
+
+                <GenericSelectModal
+                    visible={teamBMenu}
+                    onDismiss={() => setTeamBMenu(false)}
+                    title="Select Team B"
+                    items={teams}
+                    onSelect={setTeamB}
+                    selectedValue={teamB?.id}
+                />
             </ScrollView>
         </SafeAreaView>
     );
@@ -150,6 +168,9 @@ export default function CreateMatchScreen() {
 const styles = StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: 'white' },
     container: { padding: 20, paddingBottom: 100 },
-    input: { marginBottom: 10 }
+    heading: { marginBottom: 20, fontWeight: 'bold' },
+    input: { marginBottom: 10, borderRadius: 8 },
+    vsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 10 },
+    vsText: { fontWeight: 'bold', color: 'gray' },
+    submitBtn: { marginTop: 30, borderRadius: 8, paddingVertical: 5 }
 });
-

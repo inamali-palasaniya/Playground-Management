@@ -1,9 +1,11 @@
 import React, { useState, useCallback } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import { View, StyleSheet, FlatList, RefreshControl, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button, Portal } from 'react-native-paper';
 import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import apiService from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
+import { format } from 'date-fns';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AuditLogDialog from '../../components/AuditLogDialog';
 
@@ -19,6 +21,8 @@ interface User {
     punch_status?: 'IN' | 'OUT' | 'NONE';
     balance?: number;
     deposit_amount?: number;
+    created_by_name?: string;
+    createdAt?: string;
 }
 
 interface Group {
@@ -31,9 +35,11 @@ interface SubscriptionPlan {
     name: string;
 }
 
-export default function UsersScreen() {
-    const router = useRouter();
+export default function PeopleScreen() {
     const theme = useTheme();
+    const router = useRouter();
+    const isFocused = useIsFocused();
+    const { user_type, punch_status, status, filter } = useLocalSearchParams();
     const [users, setUsers] = useState<User[]>([]);
     const [groups, setGroups] = useState<Group[]>([]);
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -74,6 +80,11 @@ export default function UsersScreen() {
             const user = await AuthService.getUser();
             setCurrentUser(user);
 
+            if (!user) {
+                setLoading(false);
+                return;
+            }
+
             if (user?.role === 'NORMAL') {
                 // For normal users, we don't fetch the list.
                 // We just show their own card or redirect.
@@ -101,6 +112,7 @@ export default function UsersScreen() {
 
                 const [usersData, groupsData, plansData] = await Promise.all([usersPromise, groupsPromise, plansPromise]);
 
+                console.log('API returned users:', (usersData as any[])?.length, 'Sample:', (usersData as any[])?.[0]);
                 setUsers(usersData as User[]);
                 setGroups(groupsData as Group[]);
                 setPlans(plansData as SubscriptionPlan[]);
@@ -108,6 +120,7 @@ export default function UsersScreen() {
         } catch (error) {
             console.error('Failed to load data:', error);
         } finally {
+            console.log('Users loaded:', users.length, 'items');
             setLoading(false);
             setRefreshing(false);
         }
@@ -120,6 +133,7 @@ export default function UsersScreen() {
             if (params.filter && params.filter !== activeFilter) setActiveFilter(params.filter as string);
 
             // Map legacy params to new state
+            if (params.role && params.role !== selectedRole) setSelectedRole(params.role as string);
             if (params.status && params.status !== selectedStatus) setSelectedStatus(params.status as string);
             if (params.punch_status && params.punch_status !== selectedPunch) setSelectedPunch(params.punch_status as string);
             if (params.user_type && params.user_type !== selectedType) setSelectedType(params.user_type as string);
@@ -127,7 +141,7 @@ export default function UsersScreen() {
             loadData();
         }, [
             selectedGroup, selectedRole, selectedStatus, selectedPunch, selectedType, selectedPlan, activeFilter,
-            params.filter, params.status, params.punch_status, params.user_type
+            params.filter, params.role, params.status, params.punch_status, params.user_type
         ])
     );
 
@@ -192,6 +206,7 @@ export default function UsersScreen() {
 
     const renderItem = ({ item }: { item: User }) => (
         <Card
+            key={`user-${item.id}-${item.name}-${item.role}`}
             style={[
                 styles.card,
                 {
@@ -204,121 +219,106 @@ export default function UsersScreen() {
         >
             <Card.Title
                 title={item.name}
+                titleStyle={{ fontSize: 16, fontWeight: 'bold' }}
                 subtitle={
-                    <View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            {item.role === 'SUPER_ADMIN' && <MaterialCommunityIcons name="shield-crown" size={16} color="gold" style={{ marginRight: 4 }} />}
-                            <Text style={{ fontWeight: item.role === 'SUPER_ADMIN' ? 'bold' : 'normal', color: item.role === 'SUPER_ADMIN' ? '#d32f2f' : 'black' }}>
-                                {item.role === 'SUPER_ADMIN' ? 'Super Admin' : item.role}
-                            </Text>
-                            <Text> • {item.group?.name || 'No Group'}</Text>
-                        </View>
-
-                        <View style={{ marginTop: 2 }}>
-                            {item.email && (
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-                                    <MaterialCommunityIcons name="email-outline" size={12} color="gray" style={{ marginRight: 4 }} />
-                                    <Text variant="bodySmall" style={{ color: 'gray' }}>{item.email}</Text>
-                                </View>
-                            )}
-                            {item.phone && (
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <MaterialCommunityIcons name="phone-outline" size={12} color="gray" style={{ marginRight: 4 }} />
-                                    <Text variant="bodySmall" style={{ color: 'gray' }}>{item.phone}</Text>
-                                </View>
-                            )}
-                        </View>
-
-                        {item.plan_name ? <Text variant="bodySmall" style={{ color: '#555', marginTop: 2 }}>Plan: {item.plan_name}</Text> : null}
-                        {item.deposit_amount !== undefined && item.deposit_amount > 0 ? <Text variant="bodySmall" style={{ color: '#555' }}>Deposit: ₹{item.deposit_amount}</Text> : ''}
-
-                        {item.balance !== undefined && item.balance !== 0 && (
-                            <Text style={{
-                                fontWeight: 'bold',
-                                color: item.balance > 0 ? 'red' : 'green',
-                                marginTop: 2
-                            }}>
-                                • {item.balance > 0 ? `Payable: ₹${item.balance}` : `Advance: ₹${Math.abs(item.balance)}`}
-                            </Text>
-                        )}
-                        {(item as any).is_active === false && (
-                            <Chip
-                                icon="cancel"
-                                style={{ backgroundColor: '#ffebee', marginTop: 4, height: 24 }}
-                                textStyle={{ color: '#c62828', fontSize: 10 }}
-                            >
-                                Inactive
-                            </Chip>
-                        )}
-                    </View>
+                    <Text style={{ fontSize: 12, color: '#555' }}>
+                        <Text style={{ fontWeight: item.role === 'SUPER_ADMIN' ? 'bold' : 'normal', color: item.role === 'SUPER_ADMIN' ? '#d32f2f' : '#333' }}>
+                            {item.role === 'SUPER_ADMIN' ? 'Super Admin' : item.role}
+                        </Text>
+                        <Text style={{ color: '#888' }}> • {item.group?.name || 'No Group'}</Text>
+                    </Text>
                 }
-                subtitleNumberOfLines={4}
-                left={(props) => <Avatar.Text {...props} label={item.name.substring(0, 2).toUpperCase()} />}
+                subtitleStyle={{ marginTop: -2 }}
+                left={(props) => <Avatar.Text {...props} size={40} label={item.name.substring(0, 2).toUpperCase()} />}
                 right={(props) => (
                     <View style={{ marginRight: 8, alignItems: 'flex-end', justifyContent: 'center' }}>
-                        {/* Only show actions for MANAGEMENT */}
                         {currentUser?.role !== 'NORMAL' && (
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                {/* 1. In/Out Icon */}
                                 <IconButton
                                     icon={item.punch_status === 'IN' ? 'logout' : 'login'}
                                     mode="contained"
                                     containerColor={item.punch_status === 'IN' ? '#FF5252' : '#4CAF50'}
                                     iconColor="white"
-                                    size={20}
-                                    onPress={(e) => {
-                                        e.stopPropagation();
-                                        handlePunch(item);
-                                    }}
+                                    size={18}
+                                    style={{ margin: 0, marginRight: 4 }}
+                                    onPress={(e) => { e.stopPropagation(); handlePunch(item); }}
                                 />
-                                {/* 2. Edit Icon (Green) */}
                                 <IconButton
                                     icon="pencil"
-                                    size={20}
-                                    iconColor="#4CAF50" // Green
-                                    onPress={(e) => {
-                                        e.stopPropagation();
-                                        router.push({ pathname: '/management/edit-user', params: { id: item.id } });
-                                    }}
+                                    size={18}
+                                    iconColor="#4CAF50"
+                                    style={{ margin: 0 }}
+                                    onPress={(e) => { e.stopPropagation(); router.push({ pathname: '/management/edit-user', params: { id: item.id } }); }}
                                 />
-                                {/* 3. Delete Icon (Red) */}
                                 <IconButton
                                     icon="delete"
-                                    size={20}
-                                    iconColor="#F44336" // Red
-                                    onPress={(e) => {
-                                        e.stopPropagation();
-                                        confirmDelete(item.id, item.name);
-                                    }}
+                                    size={18}
+                                    iconColor="#F44336"
+                                    style={{ margin: 0 }}
+                                    onPress={(e) => { e.stopPropagation(); confirmDelete(item.id, item.name); }}
                                 />
-                                {/* 4. History Icon (Blue-Grey) */}
                                 <IconButton
                                     icon="history"
-                                    size={20}
+                                    size={18}
                                     iconColor="#607D8B"
-                                    onPress={(e) => {
-                                        e.stopPropagation();
-                                        setAuditEntityId(item.id);
-                                        setAuditVisible(true);
-                                    }}
+                                    style={{ margin: 0 }}
+                                    onPress={(e) => { e.stopPropagation(); setAuditEntityId(item.id); setAuditVisible(true); }}
                                 />
-                            </View>
-                        )}
-                        {item.balance !== undefined && item.balance !== 0 && (
-                            <View style={{
-                                backgroundColor: item.balance > 0 ? '#ffebee' : '#e8f5e9',
-                                paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12,
-                                borderWidth: 1, borderColor: item.balance > 0 ? '#ef9a9a' : '#a5d6a7',
-                                marginTop: 8, marginRight: 10, alignSelf: 'flex-end', marginBottom: 12
-                            }}>
-                                <Text style={{ fontSize: 10, color: item.balance > 0 ? '#c62828' : '#2e7d32', fontWeight: 'bold' }}>
-                                    {item.balance > 0 ? `Due: ₹${item.balance}` : `Adv: ₹${Math.abs(item.balance)}`}
-                                </Text>
                             </View>
                         )}
                     </View>
                 )}
             />
+            <Card.Content>
+                <View style={{ paddingBottom: 4 }}>
+                    {/* Contact Row: Email Left, Phone Right */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+                            {item.email ? (
+                                <>
+                                    <MaterialCommunityIcons name="email-outline" size={14} color="gray" />
+                                    <Text variant="bodySmall" numberOfLines={1} style={{ color: 'gray', marginLeft: 4, flex: 1 }}>{item.email}</Text>
+                                </>
+                            ) : null}
+                        </View>
+                        {item.phone && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <MaterialCommunityIcons name="phone-outline" size={14} color="gray" />
+                                <Text variant="bodySmall" style={{ color: 'gray', marginLeft: 4 }}>{item.phone}</Text>
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Financials & Plan Row */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                        {item.plan_name && (
+                            <View style={{ backgroundColor: '#f0f0f0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                                <Text style={{ fontSize: 10, color: '#555' }}>{item.plan_name}</Text>
+                            </View>
+                        )}
+                        {item.balance !== undefined && item.balance !== 0 && (
+                            <Text style={{ fontSize: 11, fontWeight: 'bold', color: item.balance > 0 ? '#d32f2f' : '#388e3c' }}>
+                                {item.balance > 0 ? `Due: ₹${item.balance}` : `Adv: ₹${Math.abs(item.balance)}`}
+                            </Text>
+                        )}
+                        {item.deposit_amount !== undefined && item.deposit_amount > 0 && (
+                            <Text style={{ fontSize: 10, color: '#666' }}>Dep: ₹{item.deposit_amount}</Text>
+                        )}
+                    </View>
+
+                    {/* Footer: Created By + Inactive Status */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 0.5, borderTopColor: '#f0f0f0', paddingTop: 6 }}>
+                        <Text style={{ fontSize: 10, color: '#999', fontStyle: 'italic' }}>
+                            Added by {item.created_by_name || 'System'} • {item.createdAt ? format(new Date(item.createdAt), 'dd MMM') : ''}
+                        </Text>
+                        {(item as any).is_active === false && (
+                            <View style={{ backgroundColor: '#ffebee', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10 }}>
+                                <Text style={{ color: '#c62828', fontSize: 10, fontWeight: 'bold' }}>Inactive</Text>
+                            </View>
+                        )}
+                    </View>
+                </View>
+            </Card.Content>
         </Card>
     );
 
@@ -501,6 +501,7 @@ export default function UsersScreen() {
                     data={isManagement ? filteredUsers : users} // If normal, users contains only self
                     renderItem={renderItem}
                     keyExtractor={(item) => item.id.toString()}
+                    extraData={users}
                     contentContainerStyle={styles.list}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                 />
@@ -510,12 +511,13 @@ export default function UsersScreen() {
                 <Portal>
                     <FAB.Group
                         open={fabOpen}
-                        visible
+                        visible={isFocused}
                         icon={fabOpen ? 'close' : 'plus'}
                         actions={[
-                            { icon: 'account-plus', label: 'Add User', onPress: () => router.push('/management/add-user') },
-                            { icon: 'cash-minus', label: 'Expenses', onPress: () => router.push('/management/expenses') },
-                            { icon: 'database-cog', label: 'Manage Masters', onPress: () => router.push('/management/masters') },
+                            ...(AuthService.hasPermission(currentUser, 'user', 'add') ? [{ icon: 'account-plus', label: 'Add User', onPress: () => router.push('/management/add-user') }] : []),
+                            ...(AuthService.hasPermission(currentUser, 'expense', 'view') ? [{ icon: 'cash-minus', label: 'Expenses', onPress: () => router.push('/management/expenses') }] : []),
+                            ...((AuthService.hasPermission(currentUser, 'master_groups', 'view') || AuthService.hasPermission(currentUser, 'master_plans', 'view') || AuthService.hasPermission(currentUser, 'master_fines', 'view'))
+                                ? [{ icon: 'database-cog', label: 'Manage Masters', onPress: () => router.push('/management/masters') }] : []),
                         ]}
                         onStateChange={({ open }) => setFabOpen(open)}
                         style={{ paddingBottom: 60 }} // Adjusted padding for Portal

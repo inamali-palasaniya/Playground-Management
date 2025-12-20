@@ -18,6 +18,7 @@ export const getTournaments = async (req: Request, res: Response) => {
             },
           },
         },
+        created_by: { select: { name: true } },
       },
       orderBy: { start_date: 'desc' },
     });
@@ -75,6 +76,7 @@ export const createTournament = async (req: Request, res: Response) => {
         game_id: parseInt(game_id),
         start_date: new Date(start_date),
         end_date: end_date ? new Date(end_date) : null,
+        created_by_id: (req as any).user?.userId || null,
       },
       include: {
         game: true,

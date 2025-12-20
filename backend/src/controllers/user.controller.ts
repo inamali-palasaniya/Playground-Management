@@ -37,6 +37,7 @@ export const createUser = async (req: Request, res: Response) => {
         const user = await prisma.user.create({
             data: {
                 ...userData,
+                created_by_id: (req as any).user?.userId || null,
                 permissions: {
                     create: Array.isArray(permissions) ? permissions.map((p: any) => ({
                         module_name: p.module_name,
@@ -76,7 +77,8 @@ export const createUser = async (req: Request, res: Response) => {
                             transaction_type: 'DEBIT',
                             amount: plan.rate_monthly,
                             is_paid: false,
-                            notes: `Initial Monthly Fee (Plan: ${plan.name})`
+                            notes: `Initial Monthly Fee (Plan: ${plan.name})`,
+                            created_by_id: (req as any).user?.userId || null
                         }
                     });
                 }
@@ -152,6 +154,18 @@ export const getUsers = async (req: Request, res: Response) => {
                     }
                 }
             };
+        } else if (filter === 'UPCOMING_EXPIRY') {
+            const andThreeDays = new Date();
+            andThreeDays.setDate(andThreeDays.getDate() + 3);
+            where.subscriptions = {
+                some: {
+                    status: 'ACTIVE',
+                    end_date: {
+                        gte: new Date(),
+                        lte: andThreeDays
+                    }
+                }
+            };
         }
 
         if (status) {
@@ -199,6 +213,7 @@ export const getUsers = async (req: Request, res: Response) => {
                 fee_ledger: {
                     select: { amount: true, transaction_type: true }
                 },
+                created_by: { select: { name: true } },
                 attendances: {
                     where: {
                         date: {
@@ -259,17 +274,20 @@ export const getUsers = async (req: Request, res: Response) => {
             // Remove large ledger array from response to save bandwidth
             const { fee_ledger, ...userWithoutLedger } = user;
 
+            if (filter === 'NEGATIVE_BALANCE' && balance <= 0) return null;
+
             return {
-                ...userWithoutLedger,
+                ...user,
                 plan_name: planName,
                 subscription_status: status,
-                punch_status: punchStatus,
-                todays_attendance_id: attendance?.id,
                 balance,
                 total_debits: totalDebits,
-                total_credits: totalCredits
+                total_credits: totalCredits,
+                todays_attendance_id: user.attendances[0]?.id || null,
+                punch_status: user.attendances[0]?.is_present ? (user.attendances[0]?.out_time ? 'OUT' : 'IN') : 'NONE',
+                created_by_name: (user as any).created_by?.name || 'System'
             };
-        });
+        }).filter(u => u !== null);
 
         res.json(enhancedUsers);
     } catch (error) {
@@ -415,7 +433,7 @@ export const updateUser = async (req: Request, res: Response) => {
         const updateData: any = {
             name,
             phone,
-            email: email && email.trim() !== '' ? email : null,
+            ...(email !== undefined && { email: email && email.trim() !== '' ? email : null }),
             role,
             group_id: group_id ? parseInt(group_id) : null,
             age: age ? parseInt(age) : null, // Fix: Use 'age' properly if it was missing 
@@ -566,36 +584,34 @@ export const deleteUser = async (req: Request, res: Response) => {
         //     }
         // }
 
+        if (!targetUser.is_active) {
+            return res.status(400).json({ error: 'User is already inactive.' });
+        }
+
         await prisma.$transaction(async (tx) => {
-            // 1. Delete Financial & Attendance Records
-            await tx.userFine.deleteMany({ where: { user_id: userId } });
-            await tx.attendance.deleteMany({ where: { user_id: userId } });
+            // Soft Delete: Just set is_active = false
+            // We do NOT delete financial records or attendance history to preserve data integrity.
 
-            // Delete child ledgers
-            await tx.feeLedger.deleteMany({ where: { user_id: userId } });
+            // Optional: We could clear the push token or session data here if we had it.
 
-            // await tx.subscription.deleteMany({ where: { user_id: userId } }); // Cascades now
-            await tx.teamPlayer.deleteMany({ where: { user_id: userId } });
-
-            // Note: We are NOT deleting BallEvent, Match Awards etc. 
-            // If user has match history, this might still fail, which is good for data integrity.
-
-            // 2. Delete User
-            await tx.user.delete({
+            await tx.user.update({
                 where: { id: userId },
+                data: { is_active: false }
             });
         });
 
         // AUDIT LOG
         const performedBy = (req as any).user?.userId || 1;
-        await AuditService.logAction('USER', userId, 'DELETE', performedBy, {
+        await AuditService.logAction('USER', userId, 'UPDATE', performedBy, {
             name: targetUser.name,
             email: targetUser.email,
             phone: targetUser.phone,
-            role: targetUser.role
+            role: targetUser.role,
+            action: 'DEACTIVATE',
+            note: 'User deactivated (Soft Delete)'
         });
 
-        res.json({ message: 'User and related data deleted successfully' });
+        res.json({ message: 'User deactivated successfully' });
     } catch (error: any) {
         console.error('Error deleting user:', error);
         if (error.code === 'P2003') {

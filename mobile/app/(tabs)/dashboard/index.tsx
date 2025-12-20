@@ -1,35 +1,51 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
-import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button } from 'react-native-paper';
+import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button, Divider } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import apiService from '../../../services/api.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-
 import { AuthService } from '../../../services/auth.service';
-
 import HeaderProfile from '../../../components/HeaderProfile';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function DashboardScreen() {
     const theme = useTheme();
     const router = useRouter();
+    const { user: authUser } = useAuth(); // Use Context
+    const [user, setUser] = useState<any>(authUser); // Init with context user
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [financials, setFinancials] = useState<any>(null);
     const [attendance, setAttendance] = useState<any>(null);
-    const [userRole, setUserRole] = useState<string>('NORMAL');
+    const [userRole, setUserRole] = useState<string>(authUser?.role || 'NORMAL');
 
     const loadData = async () => {
         try {
             setLoading(true);
-            const user = await AuthService.getUser();
-            setUserRole(user?.role || 'NORMAL');
+            const currentUser = authUser || await AuthService.getUser(); // Fallback
 
-            const queryParams = (user?.role === 'NORMAL') ? `?userId=${user.id}` : '';
+            if (!currentUser) {
+                setLoading(false);
+                return;
+            }
+
+            setUserRole(currentUser.role || 'NORMAL');
+
+            // Refresh user details to get latest punch status
+            try {
+                const freshUser = await apiService.request(`/api/users/${currentUser.id}`, { skipLoader: true });
+                setUser(freshUser);
+            } catch (ignore) {
+                setUser(currentUser); // Fallback to auth user if fetch fails
+                console.log("Fresh user fetch failed, using auth user");
+            }
+
+            const queryParams = (currentUser?.role === 'NORMAL') ? `?userId=${currentUser.id}` : '';
 
             const [finData, attData] = await Promise.all([
-                apiService.request(`/api/analytics/financial-summary${queryParams}`),
-                apiService.request(`/api/analytics/attendance-stats${queryParams}`)
+                apiService.request(`/api/analytics/financial-summary${queryParams}`, { skipLoader: true }),
+                apiService.request(`/api/analytics/attendance-stats${queryParams}`, { skipLoader: true })
             ]);
             setFinancials(finData);
             setAttendance(attData);
@@ -81,6 +97,60 @@ export default function DashboardScreen() {
                 <ActivityIndicator size="large" style={styles.loader} />
             ) : (
                 <>
+                    {/* NORMAL USER: Personal Status Card */}
+                    {userRole === 'NORMAL' && user && (
+                        <Card style={[styles.card, { backgroundColor: user.punch_status === 'IN' ? '#e8f5e9' : '#ffebee', marginBottom: 16 }]}>
+                            <Card.Content>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <View>
+                                        <Text variant="titleLarge" style={{ fontWeight: 'bold' }}>
+                                            {user.punch_status === 'IN' ? 'You are CHECKED IN' : 'You are CHECKED OUT'}
+                                        </Text>
+                                        <Text variant="bodyMedium" style={{ color: 'gray' }}>
+                                            {user.punch_status === 'IN' ? 'Enjoy your time at the turf!' : 'See you next time!'}
+                                        </Text>
+                                    </View>
+                                    <Avatar.Icon
+                                        size={48}
+                                        icon={user.punch_status === 'IN' ? 'clock-check' : 'clock-out'}
+                                        color="white"
+                                        style={{ backgroundColor: user.punch_status === 'IN' ? '#4CAF50' : '#F44336' }}
+                                    />
+                                </View>
+
+                                <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                                    <Button
+                                        mode="contained"
+                                        style={{ flex: 1, backgroundColor: user.punch_status === 'IN' ? '#F44336' : '#4CAF50' }}
+                                        onPress={async () => {
+                                            try {
+                                                if (user.punch_status === 'IN') {
+                                                    await apiService.checkOut(user.id);
+                                                } else {
+                                                    await apiService.checkIn(user.id);
+                                                }
+                                                loadData(); // Refresh to show new status
+                                            } catch (error) {
+                                                console.error(error);
+                                                alert('Punch failed');
+                                            }
+                                        }}
+                                    >
+                                        {user.punch_status === 'IN' ? 'Check Out' : 'Check In'}
+                                    </Button>
+                                    <Button
+                                        mode="contained-tonal"
+                                        style={{ flex: 1 }}
+                                        icon="account-details"
+                                        onPress={() => router.push(`/management/user/${user.id}`)}
+                                    >
+                                        My Details
+                                    </Button>
+                                </View>
+                            </Card.Content>
+                        </Card>
+                    )}
+
                     {/* Live Status Card - Only for Management */}
                     {/* Live Studio Status - Detailed Breakdown */}
                     {userRole !== 'NORMAL' && attendance && (
@@ -129,20 +199,21 @@ export default function DashboardScreen() {
                                     </TouchableOpacity>
                                 </View>
 
-                                {/* Breakdown by User Type - Clickable */}
-                                {attendance.breakdown_by_type?.map((item: any, index: number) => (
-                                    <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center' }}>
+                                {attendance.breakdown_by_role?.map((item: any, index: number) => (
+                                    <View key={`role-${index}`} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center', borderBottomWidth: index === attendance.breakdown_by_role.length - 1 ? 0 : 0.5, borderBottomColor: '#eee', paddingBottom: 8 }}>
                                         <TouchableOpacity
-                                            onPress={() => router.push(`/ users ? user_type = ${item.type} `)}
+                                            onPress={() => router.push(`/users?role=${item.role}`)}
                                             style={{ flex: 1 }}
                                         >
-                                            <Text style={{ fontWeight: '500', textTransform: 'capitalize' }}>{item.type || 'Unknown'}</Text>
+                                            <Text style={{ fontWeight: 'bold', color: '#1565c0', textTransform: 'capitalize' }}>
+                                                {item.role.replace('_', ' ')}
+                                            </Text>
                                         </TouchableOpacity>
                                         <View style={{ flexDirection: 'row', gap: 15 }}>
-                                            <TouchableOpacity onPress={() => router.push(`/ users ? user_type = ${item.type}& punch_status=IN`)}>
+                                            <TouchableOpacity onPress={() => router.push(`/users?role=${item.role}&punch_status=IN`)}>
                                                 <Text style={{ color: '#2e7d32', fontWeight: 'bold' }}>IN: {item.in}</Text>
                                             </TouchableOpacity>
-                                            <TouchableOpacity onPress={() => router.push(`/ users ? user_type = ${item.type}& punch_status=OUT`)}>
+                                            <TouchableOpacity onPress={() => router.push(`/users?role=${item.role}&punch_status=OUT`)}>
                                                 <Text style={{ color: '#c62828', fontWeight: 'bold' }}>OUT: {item.out}</Text>
                                             </TouchableOpacity>
                                         </View>
@@ -157,7 +228,7 @@ export default function DashboardScreen() {
                         <Card style={[styles.card, { marginBottom: 16 }]}>
                             <Card.Title title="Alerts & Actions" left={(props) => <MaterialCommunityIcons {...props} name="bell-ring" color="#f57c00" />} />
                             <Card.Content style={{ gap: 10 }}>
-                                {attendance?.expired_monthly_count > 0 ? (
+                                {attendance?.expired_monthly_count > 0 && (
                                     <Button
                                         mode="contained-tonal"
                                         icon="account-clock"
@@ -167,7 +238,30 @@ export default function DashboardScreen() {
                                     >
                                         {attendance.expired_monthly_count} Users Expired (Monthly)
                                     </Button>
-                                ) : (
+                                )}
+                                {attendance?.upcoming_expirations_count > 0 && (
+                                    <Button
+                                        mode="contained-tonal"
+                                        icon="calendar-clock"
+                                        buttonColor="#E3F2FD"
+                                        textColor="#1565C0"
+                                        onPress={() => router.push('/users?filter=UPCOMING_EXPIRY')}
+                                    >
+                                        {attendance.upcoming_expirations_count} Plans Expiring Soon
+                                    </Button>
+                                )}
+                                {attendance?.outstanding_balance_count > 0 && (
+                                    <Button
+                                        mode="contained-tonal"
+                                        icon="cash-multiple"
+                                        buttonColor="#FFEBEE"
+                                        textColor="#C62828"
+                                        onPress={() => router.push('/users?filter=NEGATIVE_BALANCE')}
+                                    >
+                                        {attendance.outstanding_balance_count} Users with Outstanding Balance
+                                    </Button>
+                                )}
+                                {(!attendance?.expired_monthly_count && !attendance?.upcoming_expirations_count && !attendance?.outstanding_balance_count) && (
                                     <Text style={{ color: 'gray', fontStyle: 'italic' }}>No active alerts.</Text>
                                 )}
                             </Card.Content>
@@ -199,39 +293,55 @@ export default function DashboardScreen() {
                     <Card style={styles.card}>
                         <Card.Content>
                             <View style={styles.cardHeader}>
-                                <Text variant="titleMedium" style={styles.cardTitle}>Financial Summary</Text>
+                                <Text variant="titleMedium" style={styles.cardTitle}>
+                                    {userRole === 'NORMAL' ? 'My Financials' : 'Financial Summary'}
+                                </Text>
                                 <MaterialCommunityIcons name="finance" size={24} color={theme.colors.primary} />
                             </View>
 
                             <View style={styles.statRow}>
+                                {userRole !== 'NORMAL' ? (
+                                    <View style={styles.statItem}>
+                                        <Text variant="labelMedium" style={styles.statLabel}>Income</Text>
+                                        <Text variant="titleLarge" style={[styles.statValue, { color: 'green' }]}>
+                                            {formatCurrency(financials?.total_income)}
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <View style={styles.statItem}>
+                                        <Text variant="labelMedium" style={styles.statLabel}>Total Paid</Text>
+                                        <Text variant="titleLarge" style={[styles.statValue, { color: 'green' }]}>
+                                            {formatCurrency(financials?.total_charges)}
+                                        </Text>
+                                    </View>
+                                )}
+
                                 <View style={styles.statItem}>
-                                    <Text variant="labelMedium" style={styles.statLabel}>Income</Text>
-                                    <Text variant="titleLarge" style={[styles.statValue, { color: 'green' }]}>
-                                        {formatCurrency(financials?.total_income)}
+                                    <Text variant="labelMedium" style={styles.statLabel}>
+                                        {userRole === 'NORMAL' ? 'Outstanding' : 'Expenses'}
                                     </Text>
-                                </View>
-                                <View style={styles.statItem}>
-                                    <Text variant="labelMedium" style={styles.statLabel}>{userRole === 'NORMAL' ? 'My Payments' : 'Expenses'}</Text>
-                                    <Text variant="titleLarge" style={[styles.statValue, { color: 'red' }]}>
-                                        {formatCurrency(userRole === 'NORMAL' ? financials?.total_charges : financials?.total_expenses)}
+                                    <Text variant="titleLarge" style={[styles.statValue, { color: userRole === 'NORMAL' ? 'orange' : 'red' }]}>
+                                        {formatCurrency(userRole === 'NORMAL' ? financials?.outstanding_balance : financials?.total_expenses)}
                                     </Text>
                                 </View>
                             </View>
 
-                            <View style={[styles.statRow, { marginTop: 16 }]}>
-                                <View style={styles.statItem}>
-                                    <Text variant="labelMedium" style={styles.statLabel}>Net Profit</Text>
-                                    <Text variant="titleLarge" style={[styles.statValue, { color: theme.colors.primary }]}>
-                                        {formatCurrency(financials?.net_profit)}
-                                    </Text>
+                            {userRole !== 'NORMAL' && (
+                                <View style={[styles.statRow, { marginTop: 16 }]}>
+                                    <View style={styles.statItem}>
+                                        <Text variant="labelMedium" style={styles.statLabel}>Net Profit</Text>
+                                        <Text variant="titleLarge" style={[styles.statValue, { color: theme.colors.primary }]}>
+                                            {formatCurrency(financials?.net_profit)}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.statItem}>
+                                        <Text variant="labelMedium" style={styles.statLabel}>Outstanding</Text>
+                                        <Text variant="titleLarge" style={[styles.statValue, { color: 'orange' }]}>
+                                            {formatCurrency(financials?.outstanding_balance)}
+                                        </Text>
+                                    </View>
                                 </View>
-                                <View style={styles.statItem}>
-                                    <Text variant="labelMedium" style={styles.statLabel}>Outstanding</Text>
-                                    <Text variant="titleLarge" style={[styles.statValue, { color: 'orange' }]}>
-                                        {formatCurrency(financials?.outstanding_balance)}
-                                    </Text>
-                                </View>
-                            </View>
+                            )}
                         </Card.Content>
                     </Card>
 

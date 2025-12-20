@@ -22,9 +22,9 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-        await AuthService.login(email, password);
-        router.replace('/(tabs)/dashboard');
-      } catch (error: any) {
+      await AuthService.login(email, password);
+      router.replace('/(tabs)/dashboard');
+    } catch (error: any) {
       alert(error.message || 'Login Failed');
     } finally {
       setLoading(false);
@@ -34,7 +34,7 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <TouchableWithoutFeedback onPress={Platform.OS === 'web' ? undefined : Keyboard.dismiss} accessible={false}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.inner}

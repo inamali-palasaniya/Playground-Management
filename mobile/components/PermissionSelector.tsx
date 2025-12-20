@@ -6,6 +6,7 @@ import apiService from '../services/api.service';
 
 interface PermissionItem {
     module_name: string;
+    can_view: boolean;
     can_add: boolean;
     can_edit: boolean;
     can_delete: boolean;
@@ -23,10 +24,10 @@ export const PermissionSelector = ({ permissions, onChange, readonly = false }: 
     const theme = useTheme();
 
     const getPermission = (module: string) => {
-        return permissions.find(p => p.module_name === module) || { module_name: module, can_add: false, can_edit: false, can_delete: false };
+        return permissions.find(p => p.module_name === module) || { module_name: module, can_view: false, can_add: false, can_edit: false, can_delete: false };
     };
 
-    const togglePermission = (module: string, type: 'can_add' | 'can_edit' | 'can_delete') => {
+    const togglePermission = (module: string, type: 'can_view' | 'can_add' | 'can_edit' | 'can_delete') => {
         if (readonly) return;
         const current = getPermission(module);
         const newValue = !current[type];

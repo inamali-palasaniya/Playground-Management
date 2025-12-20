@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { Modal, Portal, Text, Button, RadioButton, Menu, Divider } from 'react-native-paper';
+import { Modal, Portal, Text, Button, RadioButton, Divider } from 'react-native-paper';
+import SelectPlayerModal from './SelectPlayerModal';
 
 interface MatchSetupProps {
     visible: boolean;
@@ -8,22 +9,34 @@ interface MatchSetupProps {
     teamA: any;
     teamB: any;
     onStart: (data: any) => void;
+    initialData?: any;
 }
 
-export default function MatchSetupModal({ visible, onDismiss, teamA, teamB, onStart }: MatchSetupProps) {
-    const [tossWinner, setTossWinner] = useState<number | null>(null);
-    const [tossDecision, setTossDecision] = useState<string>('BAT');
-    
-    // Players (We need full lists passed down or fetched. Assuming passed for now to keep it simple, or we fetch here)
-    // Actually, fetching here is safest. But for UI mock, let's assume teamA and teamB have players.
-    const [striker, setStriker] = useState<any>(null);
-    const [nonStriker, setNonStriker] = useState<any>(null);
-    const [bowler, setBowler] = useState<any>(null);
+export default function MatchSetupModal({ visible, onDismiss, teamA, teamB, onStart, initialData }: MatchSetupProps) {
+    const [tossWinner, setTossWinner] = React.useState<number | null>(null);
+    const [tossDecision, setTossDecision] = React.useState<string>('BAT');
 
-    // Menus
-    const [strikerMenu, setStrikerMenu] = useState(false);
-    const [nonStrikerMenu, setNonStrikerMenu] = useState(false);
-    const [bowlerMenu, setBowlerMenu] = useState(false);
+    const [striker, setStriker] = React.useState<any>(null);
+    const [nonStriker, setNonStriker] = React.useState<any>(null);
+    const [bowler, setBowler] = React.useState<any>(null);
+
+    React.useEffect(() => {
+        if (visible && initialData) {
+            setTossWinner(initialData.toss_winner_id);
+            setTossDecision(initialData.toss_decision || 'BAT');
+
+            // Find full player objects from teams
+            const allPlayers = [...(teamA?.players || []), ...(teamB?.players || [])];
+            setStriker(allPlayers.find(p => (p.user?.id || p.id) === initialData.current_striker_id));
+            setNonStriker(allPlayers.find(p => (p.user?.id || p.id) === initialData.current_non_striker_id));
+            setBowler(allPlayers.find(p => (p.user?.id || p.id) === initialData.current_bowler_id));
+        }
+    }, [visible, initialData]);
+
+    // Modals
+    const [strikerModal, setStrikerModal] = React.useState(false);
+    const [nonStrikerModal, setNonStrikerModal] = React.useState(false);
+    const [bowlerModal, setBowlerModal] = React.useState(false);
 
     const getBattingTeam = () => {
         if (!tossWinner) return null;
@@ -42,9 +55,9 @@ export default function MatchSetupModal({ visible, onDismiss, teamA, teamB, onSt
         onStart({
             tossWinnerId: tossWinner,
             tossDecision,
-            strikerId: striker.id,
-            nonStrikerId: nonStriker.id,
-            bowlerId: bowler.id
+            strikerId: striker.user?.id || striker.user_id || striker.id,
+            nonStrikerId: nonStriker.user?.id || nonStriker.user_id || nonStriker.id,
+            bowlerId: bowler.user?.id || bowler.user_id || bowler.id
         });
     };
 
@@ -62,12 +75,12 @@ export default function MatchSetupModal({ visible, onDismiss, teamA, teamB, onSt
                         <RadioButton.Group onValueChange={(v) => setTossWinner(parseInt(v))} value={tossWinner?.toString() || ''}>
                             <View style={styles.radioRow}>
                                 <View style={styles.radioItem}>
-                                    <RadioButton value={teamA?.id.toString()} />
-                                    <Text>{teamA?.name}</Text>
+                                    <RadioButton value={teamA?.id?.toString() || '1'} />
+                                    <Text>{teamA?.name || 'Team A'}</Text>
                                 </View>
                                 <View style={styles.radioItem}>
-                                    <RadioButton value={teamB?.id.toString()} />
-                                    <Text>{teamB?.name}</Text>
+                                    <RadioButton value={teamB?.id?.toString() || '2'} />
+                                    <Text>{teamB?.name || 'Team B'}</Text>
                                 </View>
                             </View>
                         </RadioButton.Group>
@@ -86,42 +99,61 @@ export default function MatchSetupModal({ visible, onDismiss, teamA, teamB, onSt
                     {tossWinner && (
                         <>
                             <Text variant="titleMedium">Opening Batsmen ({battingTeam?.name})</Text>
-                            <Menu
-                                visible={strikerMenu}
-                                onDismiss={() => setStrikerMenu(false)}
-                                anchor={<Button mode="outlined" onPress={() => setStrikerMenu(true)} style={styles.input}>{striker ? striker.user.name : 'Select Striker'}</Button>}
+                            <Button
+                                mode="outlined"
+                                onPress={() => setStrikerModal(true)}
+                                style={styles.input}
+                                icon="plus-circle-outline"
                             >
-                                {battingTeam?.players.map((p: any) => (
-                                    <Menu.Item key={p.id} onPress={() => { setStriker(p); setStrikerMenu(false); }} title={p.user.name} />
-                                ))}
-                            </Menu>
+                                {striker ? (striker.user?.name || striker.name) : 'Select Striker'}
+                            </Button>
 
-                            <Menu
-                                visible={nonStrikerMenu}
-                                onDismiss={() => setNonStrikerMenu(false)}
-                                anchor={<Button mode="outlined" onPress={() => setNonStrikerMenu(true)} style={styles.input}>{nonStriker ? nonStriker.user.name : 'Select Non-Striker'}</Button>}
+                            <Button
+                                mode="outlined"
+                                onPress={() => setNonStrikerModal(true)}
+                                style={styles.input}
+                                icon="plus-circle-outline"
                             >
-                                {battingTeam?.players.map((p: any) => (
-                                    <Menu.Item key={p.id} onPress={() => { setNonStriker(p); setNonStrikerMenu(false); }} title={p.user.name} />
-                                ))}
-                            </Menu>
+                                {nonStriker ? (nonStriker.user?.name || nonStriker.name) : 'Select Non-Striker'}
+                            </Button>
 
                             <Text variant="titleMedium" style={{ marginTop: 10 }}>Opening Bowler ({bowlingTeam?.name})</Text>
-                            <Menu
-                                visible={bowlerMenu}
-                                onDismiss={() => setBowlerMenu(false)}
-                                anchor={<Button mode="outlined" onPress={() => setBowlerMenu(true)} style={styles.input}>{bowler ? bowler.user.name : 'Select Bowler'}</Button>}
+                            <Button
+                                mode="outlined"
+                                onPress={() => setBowlerModal(true)}
+                                style={styles.input}
+                                icon="plus-circle-outline"
                             >
-                                {bowlingTeam?.players.map((p: any) => (
-                                    <Menu.Item key={p.id} onPress={() => { setBowler(p); setBowlerMenu(false); }} title={p.user.name} />
-                                ))}
-                            </Menu>
+                                {bowler ? (bowler.user?.name || bowler.name) : 'Select Bowler'}
+                            </Button>
+
+                            <SelectPlayerModal
+                                visible={strikerModal}
+                                onDismiss={() => setStrikerModal(false)}
+                                title="Select Striker"
+                                players={battingTeam?.players || []}
+                                onSelect={(p) => { setStriker(p); setStrikerModal(false); }}
+                            />
+                            <SelectPlayerModal
+                                visible={nonStrikerModal}
+                                onDismiss={() => setNonStrikerModal(false)}
+                                title="Select Non-Striker"
+                                players={battingTeam?.players || []}
+                                onSelect={(p) => { setNonStriker(p); setNonStrikerModal(false); }}
+                            />
+                            <SelectPlayerModal
+                                visible={bowlerModal}
+                                onDismiss={() => setBowlerModal(false)}
+                                title="Select Bowler"
+                                players={bowlingTeam?.players || []}
+                                onSelect={(p) => { setBowler(p); setBowlerModal(false); }}
+                            />
                         </>
                     )}
 
-                    <Button 
-                        mode="contained" 
-                        onPress={handleStart} 
+                    <Button
+                        mode="contained"
+                        onPress={handleStart}
                         style={{ marginTop: 20 }}
                         disabled={!tossWinner || !striker || !nonStriker || !bowler}
                     >

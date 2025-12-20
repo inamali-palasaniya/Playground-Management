@@ -24,23 +24,23 @@ export default function SelectPlayerModal({ visible, onDismiss, title, players, 
         <Portal>
             <Modal visible={visible} onDismiss={onDismiss} contentContainerStyle={styles.container}>
                 <Text variant="headlineSmall" style={{ marginBottom: 15, textAlign: 'center' }}>{title}</Text>
-                
+
                 <ScrollView style={{ maxHeight: 300 }}>
                     <RadioButton.Group onValueChange={(v) => setSelectedId(parseInt(v))} value={selectedId?.toString() || ''}>
                         {players.map((p) => (
-                            <RadioButton.Item 
-                                key={p.id} 
-                                label={p.user.name} 
-                                value={p.id.toString()} 
+                            <RadioButton.Item
+                                key={p.id}
+                                label={p?.name || p?.user?.name || 'Unknown Player'}
+                                value={p?.id?.toString() || Math.random().toString()}
                                 style={styles.item}
                             />
                         ))}
                     </RadioButton.Group>
                 </ScrollView>
 
-                <Button 
-                    mode="contained" 
-                    onPress={handleConfirm} 
+                <Button
+                    mode="contained"
+                    onPress={handleConfirm}
                     style={{ marginTop: 20 }}
                     disabled={!selectedId}
                 >

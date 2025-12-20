@@ -1,4 +1,4 @@
-import { Slot, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { PaperProvider, MD3LightTheme, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Component, type ErrorInfo, type ReactNode, useEffect, useState } from 'react';
@@ -43,58 +43,12 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
     }
 }
 
+import { AuthProvider, useAuth } from '../context/AuthContext';
+
 function AuthProtection({ children }: { children: ReactNode }) {
-    const segments = useSegments();
-    const router = useRouter();
-    const [isReady, setIsReady] = useState(false);
+    const { user, isLoading } = useAuth();
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const token = await AuthService.getToken();
-                const isLogin = segments[0] === 'login';
-
-                console.log("Auth Check: Token present?", !!token, "Current Segment:", segments[0]);
-
-                if (token) {
-                    // Validate token by ensuring we can fetch user details. 
-                    // If this fails with 403, the api interceptor will catch it and trigger logout.
-                    try {
-                        // We assume apiService is available. 
-                        // Using a lightweight call or just relying on the next API call to fail.
-                        // Ideally, we have a verify endpoint. For now, we rely on the interceptor.
-                    } catch (err) {
-                        // Error handling handled by interceptor
-                    }
-                }
-
-                if (!token && !isLogin) {
-                    router.replace('/login');
-                } else if (token && isLogin) {
-                    router.replace('/(tabs)/dashboard');
-                }
-            } catch (e) {
-                console.error("Auth check failed", e);
-            } finally {
-                setIsReady(true);
-            }
-        };
-
-        checkAuth();
-
-        // Listen for session expiry (401/403 from API)
-        const unsubscribe = AuthService.subscribeToAuthExpired(async () => {
-            console.log("Session expired. Logging out...");
-            await AuthService.logout();
-            router.replace('/login');
-        });
-
-        return () => {
-            unsubscribe();
-        };
-    }, [segments]);
-
-    if (!isReady) {
+    if (isLoading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" />
@@ -111,21 +65,23 @@ const styles = StyleSheet.create({
     error: { color: 'red' }
 });
 
-console.log("[Debug] _layout.tsx loaded");
-
 export default function Layout() {
-    console.log("[Debug] Rendering Layout");
     return (
         <ErrorBoundary>
             <SafeAreaProvider>
                 <PaperProvider theme={theme}>
-                    <AuthProtection>
-                        <GlobalLoader />
-                        <Slot />
-                    </AuthProtection>
+                    <AuthProvider>
+                        <AuthProtection>
+                            <GlobalLoader />
+                            <Stack screenOptions={{ headerShown: false }}>
+                                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                                <Stack.Screen name="login" options={{ headerShown: false }} />
+                                <Stack.Screen name="management" options={{ headerShown: false }} />
+                            </Stack>
+                        </AuthProtection>
+                    </AuthProvider>
                 </PaperProvider>
             </SafeAreaProvider>
         </ErrorBoundary>
     );
 }
-

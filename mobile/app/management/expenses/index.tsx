@@ -1,14 +1,10 @@
-import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, FlatList, Alert } from 'react-native';
-import { Appbar, useTheme, Card, Text, FAB, ActivityIndicator, IconButton } from 'react-native-paper';
-import { useRouter, useFocusEffect } from 'expo-router';
-import apiService from '../../../services/api.service';
-import { format } from 'date-fns';
-import AuditLogDialog from '../../components/AuditLogDialog';
+import { useAuth } from '../../../context/AuthContext';
+import { AuthService } from '../../../services/auth.service';
 
 export default function ExpenseListScreen() {
     const router = useRouter();
     const theme = useTheme();
+    const { user } = useAuth();
     const [expenses, setExpenses] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [auditVisible, setAuditVisible] = useState(false);
@@ -29,11 +25,19 @@ export default function ExpenseListScreen() {
 
     useFocusEffect(
         useCallback(() => {
+            if (!AuthService.hasPermission(user, 'expense', 'view')) {
+                Alert.alert('Access Denied', 'You do not have permission to view this module.', [{ text: 'Go Back', onPress: () => router.back() }]);
+                return;
+            }
             loadExpenses();
-        }, [])
+        }, [user])
     );
 
     const handleDelete = (id: number) => {
+        if (!AuthService.hasPermission(user, 'expense', 'delete')) {
+            Alert.alert('Permission Denied', 'You cannot delete expenses.');
+            return;
+        }
         Alert.alert('Delete Expense', 'Are you sure?', [
             { text: 'Cancel' },
             {
@@ -52,22 +56,33 @@ export default function ExpenseListScreen() {
     };
 
     const renderItem = ({ item }: { item: any }) => (
-        <Card style={styles.card} onPress={() => router.push({ pathname: '/management/expenses/add-expense', params: { id: item.id } })}>
+        <Card style={styles.card} onPress={() => {
+            if (AuthService.hasPermission(user, 'expense', 'edit')) {
+                router.push({ pathname: '/management/expenses/add-expense', params: { id: item.id } });
+            }
+        }}>
             <Card.Content style={styles.cardContent}>
                 <View style={{ flex: 1 }}>
                     <Text variant="titleMedium">{item.category}</Text>
-                    <Text variant="bodySmall">{format(new Date(item.date), 'dd MMM yyyy')}</Text>
+                    <Text variant="bodySmall" style={{ color: theme.colors.primary }}>{format(new Date(item.date), 'dd MMM yyyy')}</Text>
                     {item.notes && <Text variant="bodySmall" numberOfLines={1} style={{ color: 'gray' }}>{item.notes}</Text>}
+                    <Text variant="bodySmall" style={{ color: '#888', fontStyle: 'italic', marginTop: 2 }}>
+                        By: {item.created_by?.name || 'N/A'} • {item.createdAt ? format(new Date(item.createdAt), 'HH:mm') : ''}
+                    </Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', flexDirection: 'row', gap: 0 }}>
                     <Text variant="titleMedium" style={{ color: '#d32f2f', fontWeight: 'bold', marginRight: 10 }}>₹{item.amount}</Text>
-                    <IconButton icon="history" size={20} iconColor="#607D8B" onPress={() => { setAuditEntityId(item.id); setAuditVisible(true); }} />
-                    <IconButton icon="pencil" size={20} iconColor="#1976d2" onPress={() => router.push({ pathname: '/management/expenses/add-expense', params: { id: item.id } })} />
-                    <IconButton icon="delete" size={20} iconColor="red" onPress={() => handleDelete(item.id)} />
+                    {AuthService.hasPermission(user, 'expense', 'view') && <IconButton icon="history" size={20} iconColor="#607D8B" onPress={() => { setAuditEntityId(item.id); setAuditVisible(true); }} />}
+                    {AuthService.hasPermission(user, 'expense', 'edit') && <IconButton icon="pencil" size={20} iconColor="#1976d2" onPress={() => router.push({ pathname: '/management/expenses/add-expense', params: { id: item.id } })} />}
+                    {AuthService.hasPermission(user, 'expense', 'delete') && <IconButton icon="delete" size={20} iconColor="red" onPress={() => handleDelete(item.id)} />}
                 </View>
             </Card.Content>
         </Card>
     );
+
+    if (!AuthService.hasPermission(user, 'expense', 'view')) {
+        return <View style={styles.centered}><Text>Access Denied</Text></View>;
+    }
 
     return (
         <View style={styles.container}>
@@ -88,12 +103,14 @@ export default function ExpenseListScreen() {
                 />
             )}
 
-            <FAB
-                icon="plus"
-                style={styles.fab}
-                label="Add Expense"
-                onPress={() => router.push('/management/expenses/add-expense')}
-            />
+            {AuthService.hasPermission(user, 'expense', 'add') && (
+                <FAB
+                    icon="plus"
+                    style={styles.fab}
+                    label="Add Expense"
+                    onPress={() => router.push('/management/expenses/add-expense')}
+                />
+            )}
 
             <AuditLogDialog
                 visible={auditVisible}

@@ -30,6 +30,7 @@ export type FeeLedgerAvgAggregateOutputType = {
   id: number | null
   user_id: number | null
   amount: number | null
+  created_by_id: number | null
   parent_ledger_id: number | null
 }
 
@@ -37,6 +38,7 @@ export type FeeLedgerSumAggregateOutputType = {
   id: number | null
   user_id: number | null
   amount: number | null
+  created_by_id: number | null
   parent_ledger_id: number | null
 }
 
@@ -51,6 +53,7 @@ export type FeeLedgerMinAggregateOutputType = {
   is_paid: boolean | null
   notes: string | null
   createdAt: Date | null
+  created_by_id: number | null
   parent_ledger_id: number | null
 }
 
@@ -65,6 +68,7 @@ export type FeeLedgerMaxAggregateOutputType = {
   is_paid: boolean | null
   notes: string | null
   createdAt: Date | null
+  created_by_id: number | null
   parent_ledger_id: number | null
 }
 
@@ -79,6 +83,7 @@ export type FeeLedgerCountAggregateOutputType = {
   is_paid: number
   notes: number
   createdAt: number
+  created_by_id: number
   parent_ledger_id: number
   _all: number
 }
@@ -88,6 +93,7 @@ export type FeeLedgerAvgAggregateInputType = {
   id?: true
   user_id?: true
   amount?: true
+  created_by_id?: true
   parent_ledger_id?: true
 }
 
@@ -95,6 +101,7 @@ export type FeeLedgerSumAggregateInputType = {
   id?: true
   user_id?: true
   amount?: true
+  created_by_id?: true
   parent_ledger_id?: true
 }
 
@@ -109,6 +116,7 @@ export type FeeLedgerMinAggregateInputType = {
   is_paid?: true
   notes?: true
   createdAt?: true
+  created_by_id?: true
   parent_ledger_id?: true
 }
 
@@ -123,6 +131,7 @@ export type FeeLedgerMaxAggregateInputType = {
   is_paid?: true
   notes?: true
   createdAt?: true
+  created_by_id?: true
   parent_ledger_id?: true
 }
 
@@ -137,6 +146,7 @@ export type FeeLedgerCountAggregateInputType = {
   is_paid?: true
   notes?: true
   createdAt?: true
+  created_by_id?: true
   parent_ledger_id?: true
   _all?: true
 }
@@ -238,6 +248,7 @@ export type FeeLedgerGroupByOutputType = {
   is_paid: boolean
   notes: string | null
   createdAt: Date
+  created_by_id: number | null
   parent_ledger_id: number | null
   _count: FeeLedgerCountAggregateOutputType | null
   _avg: FeeLedgerAvgAggregateOutputType | null
@@ -275,7 +286,9 @@ export type FeeLedgerWhereInput = {
   is_paid?: Prisma.BoolFilter<"FeeLedger"> | boolean
   notes?: Prisma.StringNullableFilter<"FeeLedger"> | string | null
   createdAt?: Prisma.DateTimeFilter<"FeeLedger"> | Date | string
+  created_by_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
   parent_ledger_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
+  created_by?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   parent_ledger?: Prisma.XOR<Prisma.FeeLedgerNullableScalarRelationFilter, Prisma.FeeLedgerWhereInput> | null
   child_ledger?: Prisma.FeeLedgerListRelationFilter
@@ -292,7 +305,9 @@ export type FeeLedgerOrderByWithRelationInput = {
   is_paid?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  created_by_id?: Prisma.SortOrderInput | Prisma.SortOrder
   parent_ledger_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  created_by?: Prisma.UserOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
   parent_ledger?: Prisma.FeeLedgerOrderByWithRelationInput
   child_ledger?: Prisma.FeeLedgerOrderByRelationAggregateInput
@@ -312,7 +327,9 @@ export type FeeLedgerWhereUniqueInput = Prisma.AtLeast<{
   is_paid?: Prisma.BoolFilter<"FeeLedger"> | boolean
   notes?: Prisma.StringNullableFilter<"FeeLedger"> | string | null
   createdAt?: Prisma.DateTimeFilter<"FeeLedger"> | Date | string
+  created_by_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
   parent_ledger_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
+  created_by?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   parent_ledger?: Prisma.XOR<Prisma.FeeLedgerNullableScalarRelationFilter, Prisma.FeeLedgerWhereInput> | null
   child_ledger?: Prisma.FeeLedgerListRelationFilter
@@ -329,6 +346,7 @@ export type FeeLedgerOrderByWithAggregationInput = {
   is_paid?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  created_by_id?: Prisma.SortOrderInput | Prisma.SortOrder
   parent_ledger_id?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.FeeLedgerCountOrderByAggregateInput
   _avg?: Prisma.FeeLedgerAvgOrderByAggregateInput
@@ -351,6 +369,7 @@ export type FeeLedgerScalarWhereWithAggregatesInput = {
   is_paid?: Prisma.BoolWithAggregatesFilter<"FeeLedger"> | boolean
   notes?: Prisma.StringNullableWithAggregatesFilter<"FeeLedger"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"FeeLedger"> | Date | string
+  created_by_id?: Prisma.IntNullableWithAggregatesFilter<"FeeLedger"> | number | null
   parent_ledger_id?: Prisma.IntNullableWithAggregatesFilter<"FeeLedger"> | number | null
 }
 
@@ -363,6 +382,7 @@ export type FeeLedgerCreateInput = {
   is_paid?: boolean
   notes?: string | null
   createdAt?: Date | string
+  created_by?: Prisma.UserCreateNestedOneWithoutCreated_ledgersInput
   user: Prisma.UserCreateNestedOneWithoutFee_ledgerInput
   parent_ledger?: Prisma.FeeLedgerCreateNestedOneWithoutChild_ledgerInput
   child_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutParent_ledgerInput
@@ -379,6 +399,7 @@ export type FeeLedgerUncheckedCreateInput = {
   is_paid?: boolean
   notes?: string | null
   createdAt?: Date | string
+  created_by_id?: number | null
   parent_ledger_id?: number | null
   child_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutParent_ledgerInput
 }
@@ -392,6 +413,7 @@ export type FeeLedgerUpdateInput = {
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by?: Prisma.UserUpdateOneWithoutCreated_ledgersNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutFee_ledgerNestedInput
   parent_ledger?: Prisma.FeeLedgerUpdateOneWithoutChild_ledgerNestedInput
   child_ledger?: Prisma.FeeLedgerUpdateManyWithoutParent_ledgerNestedInput
@@ -408,6 +430,7 @@ export type FeeLedgerUncheckedUpdateInput = {
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   child_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutParent_ledgerNestedInput
 }
@@ -423,6 +446,7 @@ export type FeeLedgerCreateManyInput = {
   is_paid?: boolean
   notes?: string | null
   createdAt?: Date | string
+  created_by_id?: number | null
   parent_ledger_id?: number | null
 }
 
@@ -448,6 +472,7 @@ export type FeeLedgerUncheckedUpdateManyInput = {
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
@@ -477,6 +502,7 @@ export type FeeLedgerCountOrderByAggregateInput = {
   is_paid?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  created_by_id?: Prisma.SortOrder
   parent_ledger_id?: Prisma.SortOrder
 }
 
@@ -484,6 +510,7 @@ export type FeeLedgerAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  created_by_id?: Prisma.SortOrder
   parent_ledger_id?: Prisma.SortOrder
 }
 
@@ -498,6 +525,7 @@ export type FeeLedgerMaxOrderByAggregateInput = {
   is_paid?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  created_by_id?: Prisma.SortOrder
   parent_ledger_id?: Prisma.SortOrder
 }
 
@@ -512,6 +540,7 @@ export type FeeLedgerMinOrderByAggregateInput = {
   is_paid?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  created_by_id?: Prisma.SortOrder
   parent_ledger_id?: Prisma.SortOrder
 }
 
@@ -519,6 +548,7 @@ export type FeeLedgerSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   user_id?: Prisma.SortOrder
   amount?: Prisma.SortOrder
+  created_by_id?: Prisma.SortOrder
   parent_ledger_id?: Prisma.SortOrder
 }
 
@@ -529,10 +559,24 @@ export type FeeLedgerCreateNestedManyWithoutUserInput = {
   connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
 }
 
+export type FeeLedgerCreateNestedManyWithoutCreated_byInput = {
+  create?: Prisma.XOR<Prisma.FeeLedgerCreateWithoutCreated_byInput, Prisma.FeeLedgerUncheckedCreateWithoutCreated_byInput> | Prisma.FeeLedgerCreateWithoutCreated_byInput[] | Prisma.FeeLedgerUncheckedCreateWithoutCreated_byInput[]
+  connectOrCreate?: Prisma.FeeLedgerCreateOrConnectWithoutCreated_byInput | Prisma.FeeLedgerCreateOrConnectWithoutCreated_byInput[]
+  createMany?: Prisma.FeeLedgerCreateManyCreated_byInputEnvelope
+  connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+}
+
 export type FeeLedgerUncheckedCreateNestedManyWithoutUserInput = {
   create?: Prisma.XOR<Prisma.FeeLedgerCreateWithoutUserInput, Prisma.FeeLedgerUncheckedCreateWithoutUserInput> | Prisma.FeeLedgerCreateWithoutUserInput[] | Prisma.FeeLedgerUncheckedCreateWithoutUserInput[]
   connectOrCreate?: Prisma.FeeLedgerCreateOrConnectWithoutUserInput | Prisma.FeeLedgerCreateOrConnectWithoutUserInput[]
   createMany?: Prisma.FeeLedgerCreateManyUserInputEnvelope
+  connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+}
+
+export type FeeLedgerUncheckedCreateNestedManyWithoutCreated_byInput = {
+  create?: Prisma.XOR<Prisma.FeeLedgerCreateWithoutCreated_byInput, Prisma.FeeLedgerUncheckedCreateWithoutCreated_byInput> | Prisma.FeeLedgerCreateWithoutCreated_byInput[] | Prisma.FeeLedgerUncheckedCreateWithoutCreated_byInput[]
+  connectOrCreate?: Prisma.FeeLedgerCreateOrConnectWithoutCreated_byInput | Prisma.FeeLedgerCreateOrConnectWithoutCreated_byInput[]
+  createMany?: Prisma.FeeLedgerCreateManyCreated_byInputEnvelope
   connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
 }
 
@@ -550,6 +594,20 @@ export type FeeLedgerUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.FeeLedgerScalarWhereInput | Prisma.FeeLedgerScalarWhereInput[]
 }
 
+export type FeeLedgerUpdateManyWithoutCreated_byNestedInput = {
+  create?: Prisma.XOR<Prisma.FeeLedgerCreateWithoutCreated_byInput, Prisma.FeeLedgerUncheckedCreateWithoutCreated_byInput> | Prisma.FeeLedgerCreateWithoutCreated_byInput[] | Prisma.FeeLedgerUncheckedCreateWithoutCreated_byInput[]
+  connectOrCreate?: Prisma.FeeLedgerCreateOrConnectWithoutCreated_byInput | Prisma.FeeLedgerCreateOrConnectWithoutCreated_byInput[]
+  upsert?: Prisma.FeeLedgerUpsertWithWhereUniqueWithoutCreated_byInput | Prisma.FeeLedgerUpsertWithWhereUniqueWithoutCreated_byInput[]
+  createMany?: Prisma.FeeLedgerCreateManyCreated_byInputEnvelope
+  set?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  disconnect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  delete?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  update?: Prisma.FeeLedgerUpdateWithWhereUniqueWithoutCreated_byInput | Prisma.FeeLedgerUpdateWithWhereUniqueWithoutCreated_byInput[]
+  updateMany?: Prisma.FeeLedgerUpdateManyWithWhereWithoutCreated_byInput | Prisma.FeeLedgerUpdateManyWithWhereWithoutCreated_byInput[]
+  deleteMany?: Prisma.FeeLedgerScalarWhereInput | Prisma.FeeLedgerScalarWhereInput[]
+}
+
 export type FeeLedgerUncheckedUpdateManyWithoutUserNestedInput = {
   create?: Prisma.XOR<Prisma.FeeLedgerCreateWithoutUserInput, Prisma.FeeLedgerUncheckedCreateWithoutUserInput> | Prisma.FeeLedgerCreateWithoutUserInput[] | Prisma.FeeLedgerUncheckedCreateWithoutUserInput[]
   connectOrCreate?: Prisma.FeeLedgerCreateOrConnectWithoutUserInput | Prisma.FeeLedgerCreateOrConnectWithoutUserInput[]
@@ -561,6 +619,20 @@ export type FeeLedgerUncheckedUpdateManyWithoutUserNestedInput = {
   connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
   update?: Prisma.FeeLedgerUpdateWithWhereUniqueWithoutUserInput | Prisma.FeeLedgerUpdateWithWhereUniqueWithoutUserInput[]
   updateMany?: Prisma.FeeLedgerUpdateManyWithWhereWithoutUserInput | Prisma.FeeLedgerUpdateManyWithWhereWithoutUserInput[]
+  deleteMany?: Prisma.FeeLedgerScalarWhereInput | Prisma.FeeLedgerScalarWhereInput[]
+}
+
+export type FeeLedgerUncheckedUpdateManyWithoutCreated_byNestedInput = {
+  create?: Prisma.XOR<Prisma.FeeLedgerCreateWithoutCreated_byInput, Prisma.FeeLedgerUncheckedCreateWithoutCreated_byInput> | Prisma.FeeLedgerCreateWithoutCreated_byInput[] | Prisma.FeeLedgerUncheckedCreateWithoutCreated_byInput[]
+  connectOrCreate?: Prisma.FeeLedgerCreateOrConnectWithoutCreated_byInput | Prisma.FeeLedgerCreateOrConnectWithoutCreated_byInput[]
+  upsert?: Prisma.FeeLedgerUpsertWithWhereUniqueWithoutCreated_byInput | Prisma.FeeLedgerUpsertWithWhereUniqueWithoutCreated_byInput[]
+  createMany?: Prisma.FeeLedgerCreateManyCreated_byInputEnvelope
+  set?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  disconnect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  delete?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  update?: Prisma.FeeLedgerUpdateWithWhereUniqueWithoutCreated_byInput | Prisma.FeeLedgerUpdateWithWhereUniqueWithoutCreated_byInput[]
+  updateMany?: Prisma.FeeLedgerUpdateManyWithWhereWithoutCreated_byInput | Prisma.FeeLedgerUpdateManyWithWhereWithoutCreated_byInput[]
   deleteMany?: Prisma.FeeLedgerScalarWhereInput | Prisma.FeeLedgerScalarWhereInput[]
 }
 
@@ -643,6 +715,7 @@ export type FeeLedgerCreateWithoutUserInput = {
   is_paid?: boolean
   notes?: string | null
   createdAt?: Date | string
+  created_by?: Prisma.UserCreateNestedOneWithoutCreated_ledgersInput
   parent_ledger?: Prisma.FeeLedgerCreateNestedOneWithoutChild_ledgerInput
   child_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutParent_ledgerInput
 }
@@ -657,6 +730,7 @@ export type FeeLedgerUncheckedCreateWithoutUserInput = {
   is_paid?: boolean
   notes?: string | null
   createdAt?: Date | string
+  created_by_id?: number | null
   parent_ledger_id?: number | null
   child_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutParent_ledgerInput
 }
@@ -668,6 +742,45 @@ export type FeeLedgerCreateOrConnectWithoutUserInput = {
 
 export type FeeLedgerCreateManyUserInputEnvelope = {
   data: Prisma.FeeLedgerCreateManyUserInput | Prisma.FeeLedgerCreateManyUserInput[]
+  skipDuplicates?: boolean
+}
+
+export type FeeLedgerCreateWithoutCreated_byInput = {
+  type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
+  amount: number
+  date?: Date | string
+  is_paid?: boolean
+  notes?: string | null
+  createdAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutFee_ledgerInput
+  parent_ledger?: Prisma.FeeLedgerCreateNestedOneWithoutChild_ledgerInput
+  child_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutParent_ledgerInput
+}
+
+export type FeeLedgerUncheckedCreateWithoutCreated_byInput = {
+  id?: number
+  user_id: number
+  type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
+  amount: number
+  date?: Date | string
+  is_paid?: boolean
+  notes?: string | null
+  createdAt?: Date | string
+  parent_ledger_id?: number | null
+  child_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutParent_ledgerInput
+}
+
+export type FeeLedgerCreateOrConnectWithoutCreated_byInput = {
+  where: Prisma.FeeLedgerWhereUniqueInput
+  create: Prisma.XOR<Prisma.FeeLedgerCreateWithoutCreated_byInput, Prisma.FeeLedgerUncheckedCreateWithoutCreated_byInput>
+}
+
+export type FeeLedgerCreateManyCreated_byInputEnvelope = {
+  data: Prisma.FeeLedgerCreateManyCreated_byInput | Prisma.FeeLedgerCreateManyCreated_byInput[]
   skipDuplicates?: boolean
 }
 
@@ -701,7 +814,24 @@ export type FeeLedgerScalarWhereInput = {
   is_paid?: Prisma.BoolFilter<"FeeLedger"> | boolean
   notes?: Prisma.StringNullableFilter<"FeeLedger"> | string | null
   createdAt?: Prisma.DateTimeFilter<"FeeLedger"> | Date | string
+  created_by_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
   parent_ledger_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
+}
+
+export type FeeLedgerUpsertWithWhereUniqueWithoutCreated_byInput = {
+  where: Prisma.FeeLedgerWhereUniqueInput
+  update: Prisma.XOR<Prisma.FeeLedgerUpdateWithoutCreated_byInput, Prisma.FeeLedgerUncheckedUpdateWithoutCreated_byInput>
+  create: Prisma.XOR<Prisma.FeeLedgerCreateWithoutCreated_byInput, Prisma.FeeLedgerUncheckedCreateWithoutCreated_byInput>
+}
+
+export type FeeLedgerUpdateWithWhereUniqueWithoutCreated_byInput = {
+  where: Prisma.FeeLedgerWhereUniqueInput
+  data: Prisma.XOR<Prisma.FeeLedgerUpdateWithoutCreated_byInput, Prisma.FeeLedgerUncheckedUpdateWithoutCreated_byInput>
+}
+
+export type FeeLedgerUpdateManyWithWhereWithoutCreated_byInput = {
+  where: Prisma.FeeLedgerScalarWhereInput
+  data: Prisma.XOR<Prisma.FeeLedgerUpdateManyMutationInput, Prisma.FeeLedgerUncheckedUpdateManyWithoutCreated_byInput>
 }
 
 export type FeeLedgerCreateWithoutChild_ledgerInput = {
@@ -713,6 +843,7 @@ export type FeeLedgerCreateWithoutChild_ledgerInput = {
   is_paid?: boolean
   notes?: string | null
   createdAt?: Date | string
+  created_by?: Prisma.UserCreateNestedOneWithoutCreated_ledgersInput
   user: Prisma.UserCreateNestedOneWithoutFee_ledgerInput
   parent_ledger?: Prisma.FeeLedgerCreateNestedOneWithoutChild_ledgerInput
 }
@@ -728,6 +859,7 @@ export type FeeLedgerUncheckedCreateWithoutChild_ledgerInput = {
   is_paid?: boolean
   notes?: string | null
   createdAt?: Date | string
+  created_by_id?: number | null
   parent_ledger_id?: number | null
 }
 
@@ -745,6 +877,7 @@ export type FeeLedgerCreateWithoutParent_ledgerInput = {
   is_paid?: boolean
   notes?: string | null
   createdAt?: Date | string
+  created_by?: Prisma.UserCreateNestedOneWithoutCreated_ledgersInput
   user: Prisma.UserCreateNestedOneWithoutFee_ledgerInput
   child_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutParent_ledgerInput
 }
@@ -760,6 +893,7 @@ export type FeeLedgerUncheckedCreateWithoutParent_ledgerInput = {
   is_paid?: boolean
   notes?: string | null
   createdAt?: Date | string
+  created_by_id?: number | null
   child_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutParent_ledgerInput
 }
 
@@ -793,6 +927,7 @@ export type FeeLedgerUpdateWithoutChild_ledgerInput = {
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by?: Prisma.UserUpdateOneWithoutCreated_ledgersNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutFee_ledgerNestedInput
   parent_ledger?: Prisma.FeeLedgerUpdateOneWithoutChild_ledgerNestedInput
 }
@@ -808,6 +943,7 @@ export type FeeLedgerUncheckedUpdateWithoutChild_ledgerInput = {
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
@@ -837,6 +973,21 @@ export type FeeLedgerCreateManyUserInput = {
   is_paid?: boolean
   notes?: string | null
   createdAt?: Date | string
+  created_by_id?: number | null
+  parent_ledger_id?: number | null
+}
+
+export type FeeLedgerCreateManyCreated_byInput = {
+  id?: number
+  user_id: number
+  type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
+  amount: number
+  date?: Date | string
+  is_paid?: boolean
+  notes?: string | null
+  createdAt?: Date | string
   parent_ledger_id?: number | null
 }
 
@@ -849,6 +1000,7 @@ export type FeeLedgerUpdateWithoutUserInput = {
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by?: Prisma.UserUpdateOneWithoutCreated_ledgersNestedInput
   parent_ledger?: Prisma.FeeLedgerUpdateOneWithoutChild_ledgerNestedInput
   child_ledger?: Prisma.FeeLedgerUpdateManyWithoutParent_ledgerNestedInput
 }
@@ -863,12 +1015,57 @@ export type FeeLedgerUncheckedUpdateWithoutUserInput = {
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   child_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutParent_ledgerNestedInput
 }
 
 export type FeeLedgerUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type FeeLedgerUpdateWithoutCreated_byInput = {
+  type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutFee_ledgerNestedInput
+  parent_ledger?: Prisma.FeeLedgerUpdateOneWithoutChild_ledgerNestedInput
+  child_ledger?: Prisma.FeeLedgerUpdateManyWithoutParent_ledgerNestedInput
+}
+
+export type FeeLedgerUncheckedUpdateWithoutCreated_byInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  user_id?: Prisma.IntFieldUpdateOperationsInput | number
+  type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  child_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutParent_ledgerNestedInput
+}
+
+export type FeeLedgerUncheckedUpdateManyWithoutCreated_byInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  user_id?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
   transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
@@ -891,6 +1088,7 @@ export type FeeLedgerCreateManyParent_ledgerInput = {
   is_paid?: boolean
   notes?: string | null
   createdAt?: Date | string
+  created_by_id?: number | null
 }
 
 export type FeeLedgerUpdateWithoutParent_ledgerInput = {
@@ -902,6 +1100,7 @@ export type FeeLedgerUpdateWithoutParent_ledgerInput = {
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by?: Prisma.UserUpdateOneWithoutCreated_ledgersNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutFee_ledgerNestedInput
   child_ledger?: Prisma.FeeLedgerUpdateManyWithoutParent_ledgerNestedInput
 }
@@ -917,6 +1116,7 @@ export type FeeLedgerUncheckedUpdateWithoutParent_ledgerInput = {
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   child_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutParent_ledgerNestedInput
 }
 
@@ -931,6 +1131,7 @@ export type FeeLedgerUncheckedUpdateManyWithoutParent_ledgerInput = {
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 
@@ -975,7 +1176,9 @@ export type FeeLedgerSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   is_paid?: boolean
   notes?: boolean
   createdAt?: boolean
+  created_by_id?: boolean
   parent_ledger_id?: boolean
+  created_by?: boolean | Prisma.FeeLedger$created_byArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   parent_ledger?: boolean | Prisma.FeeLedger$parent_ledgerArgs<ExtArgs>
   child_ledger?: boolean | Prisma.FeeLedger$child_ledgerArgs<ExtArgs>
@@ -993,7 +1196,9 @@ export type FeeLedgerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   is_paid?: boolean
   notes?: boolean
   createdAt?: boolean
+  created_by_id?: boolean
   parent_ledger_id?: boolean
+  created_by?: boolean | Prisma.FeeLedger$created_byArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   parent_ledger?: boolean | Prisma.FeeLedger$parent_ledgerArgs<ExtArgs>
 }, ExtArgs["result"]["feeLedger"]>
@@ -1009,7 +1214,9 @@ export type FeeLedgerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   is_paid?: boolean
   notes?: boolean
   createdAt?: boolean
+  created_by_id?: boolean
   parent_ledger_id?: boolean
+  created_by?: boolean | Prisma.FeeLedger$created_byArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   parent_ledger?: boolean | Prisma.FeeLedger$parent_ledgerArgs<ExtArgs>
 }, ExtArgs["result"]["feeLedger"]>
@@ -1025,21 +1232,25 @@ export type FeeLedgerSelectScalar = {
   is_paid?: boolean
   notes?: boolean
   createdAt?: boolean
+  created_by_id?: boolean
   parent_ledger_id?: boolean
 }
 
-export type FeeLedgerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "type" | "transaction_type" | "payment_method" | "amount" | "date" | "is_paid" | "notes" | "createdAt" | "parent_ledger_id", ExtArgs["result"]["feeLedger"]>
+export type FeeLedgerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "type" | "transaction_type" | "payment_method" | "amount" | "date" | "is_paid" | "notes" | "createdAt" | "created_by_id" | "parent_ledger_id", ExtArgs["result"]["feeLedger"]>
 export type FeeLedgerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  created_by?: boolean | Prisma.FeeLedger$created_byArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   parent_ledger?: boolean | Prisma.FeeLedger$parent_ledgerArgs<ExtArgs>
   child_ledger?: boolean | Prisma.FeeLedger$child_ledgerArgs<ExtArgs>
   _count?: boolean | Prisma.FeeLedgerCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type FeeLedgerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  created_by?: boolean | Prisma.FeeLedger$created_byArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   parent_ledger?: boolean | Prisma.FeeLedger$parent_ledgerArgs<ExtArgs>
 }
 export type FeeLedgerIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  created_by?: boolean | Prisma.FeeLedger$created_byArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   parent_ledger?: boolean | Prisma.FeeLedger$parent_ledgerArgs<ExtArgs>
 }
@@ -1047,6 +1258,7 @@ export type FeeLedgerIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
 export type $FeeLedgerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "FeeLedger"
   objects: {
+    created_by: Prisma.$UserPayload<ExtArgs> | null
     user: Prisma.$UserPayload<ExtArgs>
     parent_ledger: Prisma.$FeeLedgerPayload<ExtArgs> | null
     child_ledger: Prisma.$FeeLedgerPayload<ExtArgs>[]
@@ -1062,6 +1274,7 @@ export type $FeeLedgerPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     is_paid: boolean
     notes: string | null
     createdAt: Date
+    created_by_id: number | null
     parent_ledger_id: number | null
   }, ExtArgs["result"]["feeLedger"]>
   composites: {}
@@ -1457,6 +1670,7 @@ readonly fields: FeeLedgerFieldRefs;
  */
 export interface Prisma__FeeLedgerClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  created_by<T extends Prisma.FeeLedger$created_byArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FeeLedger$created_byArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   parent_ledger<T extends Prisma.FeeLedger$parent_ledgerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FeeLedger$parent_ledgerArgs<ExtArgs>>): Prisma.Prisma__FeeLedgerClient<runtime.Types.Result.GetResult<Prisma.$FeeLedgerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   child_ledger<T extends Prisma.FeeLedger$child_ledgerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FeeLedger$child_ledgerArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FeeLedgerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1499,6 +1713,7 @@ export interface FeeLedgerFieldRefs {
   readonly is_paid: Prisma.FieldRef<"FeeLedger", 'Boolean'>
   readonly notes: Prisma.FieldRef<"FeeLedger", 'String'>
   readonly createdAt: Prisma.FieldRef<"FeeLedger", 'DateTime'>
+  readonly created_by_id: Prisma.FieldRef<"FeeLedger", 'Int'>
   readonly parent_ledger_id: Prisma.FieldRef<"FeeLedger", 'Int'>
 }
     
@@ -1893,6 +2108,25 @@ export type FeeLedgerDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Limit how many FeeLedgers to delete.
    */
   limit?: number
+}
+
+/**
+ * FeeLedger.created_by
+ */
+export type FeeLedger$created_byArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
 }
 
 /**

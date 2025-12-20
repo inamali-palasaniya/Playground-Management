@@ -1,5 +1,7 @@
 import { API_BASE_URL, API_ENDPOINTS } from '../constants/api';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import { loaderService } from './loader.service';
 
 interface Match {
@@ -74,25 +76,35 @@ class ApiService {
     // ... (existing imports)
 
     // public for direct usage if needed
-    public async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    public async request<T>(endpoint: string, options?: RequestInit & { skipLoader?: boolean }): Promise<T> {
         // Add loader control
-        loaderService.show();
+        if (!options?.skipLoader) {
+            loaderService.show();
+        }
 
         try {
             const url = `${API_BASE_URL}${endpoint}`;
             console.log('API Request:', url);
 
             // Auto-inject token
-            const token = await SecureStore.getItemAsync('user_token');
+            let token;
+            if (Platform.OS === 'web') {
+                token = await AsyncStorage.getItem('user_token');
+            } else {
+                token = await SecureStore.getItemAsync('user_token');
+            }
             const scrollAuthHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            // Extract custom options to avoid passing them to fetch
+            const { skipLoader, ...fetchOptions } = options || {};
 
             const response = await fetch(url, {
                 headers: {
                     'Content-Type': 'application/json',
                     ...scrollAuthHeaders,
-                    ...(options?.headers ? (options.headers as Record<string, string>) : {}),
+                    ...(fetchOptions?.headers ? (fetchOptions.headers as Record<string, string>) : {}),
                 } as HeadersInit,
-                ...options,
+                ...fetchOptions,
             });
 
             console.log('API Response Status:', response.status);
@@ -128,17 +140,17 @@ class ApiService {
                 customError.status = response.status;
                 customError.body = errorText;
 
-                loaderService.hide(); // Hide before throw
+                if (!options?.skipLoader) loaderService.hide(); // Hide before throw
                 throw customError;
             }
 
             const data = await response.json();
             console.log('API Response Data:', data);
 
-            loaderService.hide();
+            if (!options?.skipLoader) loaderService.hide();
             return data;
         } catch (error: any) {
-            loaderService.hide();
+            if (!options?.skipLoader) loaderService.hide();
             console.warn('API request failed:', error.message);
             // Re-throw so caller handles it, but now with .status property if it was HTTP error
             throw error;
@@ -291,7 +303,7 @@ class ApiService {
         if (startDate) params.append('startDate', startDate);
         if (endDate) params.append('endDate', endDate);
         const query = params.toString() ? `?${params.toString()}` : '';
-        return this.request<any[]>(`/api/attendance/user/${userId}${query}`);
+        return this.request<any[]>(`/api/attendance/user/${userId}${query}`, { skipLoader: true });
     }
 
     async getAttendanceByDate(date: string): Promise<any[]> {
@@ -321,7 +333,7 @@ class ApiService {
 
     // Fine endpoints
     async getFineRules(): Promise<any[]> {
-        return this.request<any[]>('/api/masters/fines');
+        return this.request<any[]>('/api/fines/rules');
     }
 
     async getFineRuleById(id: number): Promise<any> {
@@ -350,7 +362,7 @@ class ApiService {
     }
 
     async applyFine(user_id: number, rule_id: number): Promise<any> {
-        return this.request<any>('/api/finance/fine', {
+        return this.request<any>('/api/fines/apply', {
             method: 'POST',
             body: JSON.stringify({ user_id, rule_id }),
         });
@@ -414,7 +426,7 @@ class ApiService {
 
     async getUserLedger(userId: number, startDate?: string, endDate?: string): Promise<any[]> {
         // Direct map to getUserFinancials ledger
-        return this.request<any>(`/api/finance/user/${userId}`).then(data => data.ledger);
+        return this.request<any>(`/api/finance/user/${userId}`, { skipLoader: true }).then(data => data.ledger);
     }
 
     async updateLedgerEntry(id: number, data: any): Promise<any> {

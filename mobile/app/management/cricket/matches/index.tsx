@@ -55,7 +55,16 @@ export default function MatchListScreen() {
     };
 
     const renderItem = ({ item }: { item: any }) => (
-        <Card style={styles.card} onPress={() => router.push({ pathname: '/management/cricket/scorer', params: { matchId: item.id } })}>
+        <Card
+            style={styles.card}
+            onPress={() => {
+                if (item.status === 'COMPLETED') {
+                    router.push(`/(tabs)/scoring/live/${item.id}`);
+                } else {
+                    router.push({ pathname: '/management/cricket/scorer', params: { matchId: item.id } });
+                }
+            }}
+        >
             <Card.Title
                 title={`${item.team_a?.name || 'TBA'} vs ${item.team_b?.name || 'TBA'}`}
                 subtitle={`Tournament: ${item.tournament?.name || 'General'} | Overs: ${item.overs}`}
@@ -79,9 +88,14 @@ export default function MatchListScreen() {
                 )}
             />
             <Card.Content>
-                <Text variant="bodySmall" style={{ color: 'gray' }}>
-                    {format(new Date(item.start_time), 'PP p')}
-                </Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text variant="bodySmall" style={{ color: 'gray' }}>
+                        {format(new Date(item.start_time), 'PP p')}
+                    </Text>
+                    <Text variant="bodySmall" style={{ color: '#888', fontStyle: 'italic' }}>
+                        By: {item.created_by?.name || 'N/A'}
+                    </Text>
+                </View>
             </Card.Content>
         </Card>
     );
@@ -89,7 +103,7 @@ export default function MatchListScreen() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
-                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.BackAction onPress={() => router.replace('/management/cricket')} />
                 <Appbar.Content title="Matches" />
                 <Appbar.Action icon="refresh" onPress={loadMatches} />
             </Appbar.Header>

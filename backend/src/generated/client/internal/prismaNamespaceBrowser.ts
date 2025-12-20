@@ -113,7 +113,9 @@ export const UserScalarFieldEnum = {
   password: 'password',
   age: 'age',
   user_type: 'user_type',
-  is_active: 'is_active'
+  is_active: 'is_active',
+  createdAt: 'createdAt',
+  created_by_id: 'created_by_id'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -157,7 +159,8 @@ export const AttendanceScalarFieldEnum = {
   in_time: 'in_time',
   location_lat: 'location_lat',
   location_lng: 'location_lng',
-  out_time: 'out_time'
+  out_time: 'out_time',
+  created_by_id: 'created_by_id'
 } as const
 
 export type AttendanceScalarFieldEnum = (typeof AttendanceScalarFieldEnum)[keyof typeof AttendanceScalarFieldEnum]
@@ -174,6 +177,7 @@ export const FeeLedgerScalarFieldEnum = {
   is_paid: 'is_paid',
   notes: 'notes',
   createdAt: 'createdAt',
+  created_by_id: 'created_by_id',
   parent_ledger_id: 'parent_ledger_id'
 } as const
 
@@ -210,7 +214,9 @@ export const ExpenseScalarFieldEnum = {
   category: 'category',
   amount: 'amount',
   date: 'date',
-  notes: 'notes'
+  notes: 'notes',
+  createdAt: 'createdAt',
+  created_by_id: 'created_by_id'
 } as const
 
 export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
@@ -222,7 +228,9 @@ export const TournamentScalarFieldEnum = {
   game_id: 'game_id',
   start_date: 'start_date',
   end_date: 'end_date',
-  man_of_the_series_id: 'man_of_the_series_id'
+  man_of_the_series_id: 'man_of_the_series_id',
+  createdAt: 'createdAt',
+  created_by_id: 'created_by_id'
 } as const
 
 export type TournamentScalarFieldEnum = (typeof TournamentScalarFieldEnum)[keyof typeof TournamentScalarFieldEnum]
@@ -231,7 +239,9 @@ export type TournamentScalarFieldEnum = (typeof TournamentScalarFieldEnum)[keyof
 export const TeamScalarFieldEnum = {
   id: 'id',
   name: 'name',
-  tournament_id: 'tournament_id'
+  tournament_id: 'tournament_id',
+  createdAt: 'createdAt',
+  created_by_id: 'created_by_id'
 } as const
 
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
@@ -260,7 +270,13 @@ export const MatchScalarFieldEnum = {
   toss_decision: 'toss_decision',
   winning_team_id: 'winning_team_id',
   result_description: 'result_description',
-  man_of_the_match_id: 'man_of_the_match_id'
+  man_of_the_match_id: 'man_of_the_match_id',
+  current_striker_id: 'current_striker_id',
+  current_non_striker_id: 'current_non_striker_id',
+  current_bowler_id: 'current_bowler_id',
+  current_batting_team_id: 'current_batting_team_id',
+  createdAt: 'createdAt',
+  created_by_id: 'created_by_id'
 } as const
 
 export type MatchScalarFieldEnum = (typeof MatchScalarFieldEnum)[keyof typeof MatchScalarFieldEnum]

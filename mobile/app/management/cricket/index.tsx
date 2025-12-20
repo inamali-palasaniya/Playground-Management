@@ -64,7 +64,7 @@ export default function CricketDashboard() {
             title: 'Live Scorer',
             subtitle: 'Dark Mode Scoring',
             icon: 'scoreboard',
-            route: '/management/cricket/scorer',
+            route: '/management/cricket/matches',
             color: '#FF5722'
         }
     ];
@@ -72,7 +72,7 @@ export default function CricketDashboard() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <Appbar.Header elevated style={{ backgroundColor: 'white' }}>
-                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.BackAction onPress={() => router.replace('/(tabs)/dashboard')} />
                 <Appbar.Content title="Cricket Manager" titleStyle={{ fontWeight: 'bold' }} />
             </Appbar.Header>
 
@@ -109,7 +109,13 @@ export default function CricketDashboard() {
                         <Card
                             key={match.id}
                             style={styles.matchCard}
-                            onPress={() => router.push({ pathname: '/management/cricket/matches', params: { id: match.id } })}
+                            onPress={() => {
+                                if (match.status === 'COMPLETED') {
+                                    router.push(`/(tabs)/scoring/live/${match.id}`);
+                                } else {
+                                    router.push({ pathname: '/management/cricket/scorer', params: { matchId: match.id } });
+                                }
+                            }}
                         >
                             <Card.Content style={styles.matchContent}>
                                 <View style={styles.teamInfo}>

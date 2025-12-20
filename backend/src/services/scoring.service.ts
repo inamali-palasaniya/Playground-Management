@@ -7,8 +7,8 @@ interface BallEventData {
     ballNumber: number;
     bowlerId: number;
     strikerId: number;
-    nonStrikerId: number;
-    battingTeamId: number;
+    nonStrikerId?: number;
+    battingTeamId?: number;
     runsScored: number;
     isWicket: boolean;
     wicketType?: string;

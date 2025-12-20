@@ -58,7 +58,14 @@ export default function TournamentListScreen() {
         >
             <Card.Title
                 title={item.name}
-                subtitle={`Starts: ${format(new Date(item.start_date || new Date()), 'dd MMM yyyy')}`}
+                subtitle={
+                    <View>
+                        <Text variant="bodySmall" style={{ color: 'gray' }}>Starts: {format(new Date(item.start_date || new Date()), 'dd MMM yyyy')}</Text>
+                        <Text variant="bodySmall" style={{ color: '#888', fontStyle: 'italic', marginTop: 2 }}>
+                            By: {item.created_by?.name || 'N/A'}
+                        </Text>
+                    </View>
+                }
                 right={(props) => (
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Chip

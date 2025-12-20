@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import { View, StyleSheet, ScrollView, useWindowDimensions, Alert, Platform } from 'react-native';
 import { Text, Avatar, Button, Card, useTheme, DataTable, FAB, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Menu, Divider } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -10,6 +11,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Linking } from 'react-native';
 import { PermissionSelector } from '../../../components/PermissionSelector';
 import { generateReceipt } from '../../../utils/receiptGenerator';
+import { useAuth } from '../../../context/AuthContext';
 
 // --- Sub-Components for Tabs ---
 
@@ -62,7 +64,7 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
     );
 };
 
-const FineRoute = ({ userId }: { userId: number }) => {
+const FineRoute = ({ userId, isFocused, userRole }: { userId: number, isFocused: boolean, userRole?: string }) => {
     const [fines, setFines] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
@@ -100,6 +102,9 @@ const FineRoute = ({ userId }: { userId: number }) => {
                                         <Text variant="titleMedium">{item.transaction_type} - {item.type}</Text>
                                         <Text variant="bodySmall">{format(new Date(item.date), 'dd MMM yyyy')}</Text>
                                         <Text>₹{item.amount}</Text>
+                                        <Text variant="bodySmall" style={{ color: '#8b8b8b', fontStyle: 'italic' }}>
+                                            By: {item.created_by?.name || 'Admin'}
+                                        </Text>
                                     </View>
                                     <IconButton icon="delete" iconColor="red" onPress={() => handleDelete(item.id)} />
                                 </View>
@@ -108,12 +113,14 @@ const FineRoute = ({ userId }: { userId: number }) => {
                     ))
                 )}
             </ScrollView>
-            <FAB icon="plus" color="white" style={styles.fab} onPress={() => router.push({ pathname: '/management/apply-fine', params: { userId } })} label="Apply Fine" />
+            {isFocused && (userRole !== 'NORMAL') && (
+                <FAB icon="plus" color="white" style={styles.fab} onPress={() => router.push({ pathname: '/management/apply-fine', params: { userId } })} label="Apply Fine" visible={isFocused} />
+            )}
         </View>
     );
 };
 
-const LedgerRoute = ({ userId }: { userId: number }) => {
+const LedgerRoute = ({ userId, isFocused, userRole }: { userId: number, isFocused: boolean, userRole?: string }) => {
     const [ledger, setLedger] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [fabOpen, setFabOpen] = useState(false);
@@ -215,9 +222,6 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
     ledger.forEach(item => {
         if (item.parent_ledger_id && ledgerMap.has(item.parent_ledger_id)) {
             ledgerMap.get(item.parent_ledger_id).children.push(ledgerMap.get(item.id));
-        } else if (!item.parent_ledger_id) {
-            // Potentially a root item (Debit or Unlinked Credit)
-            // But wait, if an item IS a child, we shouldn't add it to rootItems yet?
         }
     });
 
@@ -244,7 +248,9 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
                                         <Text variant="titleMedium">{item.type.replace('_', ' ')} <Text style={{ fontSize: 12, color: 'gray' }}>#{item.id}</Text></Text>
                                         <Text variant="bodySmall">{format(new Date(item.date), 'dd MMM yyyy')}</Text>
                                         {item.notes && <Text variant="bodySmall" style={{ color: 'gray' }}>{item.notes}</Text>}
-
+                                        <Text variant="bodySmall" style={{ color: '#8b8b8b', fontStyle: 'italic', marginTop: 2 }}>
+                                            By: {item.created_by?.name || 'Admin'}
+                                        </Text>
                                         {/* Children (Payments) */}
                                         {item.children && item.children.length > 0 && (
                                             <View style={{ marginTop: 8, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#eee' }}>
@@ -268,7 +274,7 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
 
                                         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                                             {/* Pay Button for Unpaid Debits */}
-                                            {!item.is_paid && item.transaction_type === 'DEBIT' && (
+                                            {!item.is_paid && item.transaction_type === 'DEBIT' && userRole !== 'NORMAL' && (
                                                 <Button
                                                     mode="contained"
                                                     compact
@@ -289,9 +295,9 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
                                                 </Button>
                                             )}
 
-                                            <IconButton icon="pencil" size={18} onPress={() => handleEditStart(item)} />
+                                            {userRole !== 'NORMAL' && <IconButton icon="pencil" size={18} onPress={() => handleEditStart(item)} />}
                                             <IconButton icon="file-document-outline" size={18} iconColor="#1565c0" onPress={() => handleReceipt(item)} />
-                                            <IconButton icon="delete" size={18} iconColor="red" onPress={() => handleDelete(item.id)} />
+                                            {userRole !== 'NORMAL' && <IconButton icon="delete" size={18} iconColor="red" onPress={() => handleDelete(item.id)} />}
                                         </View>
                                     </View>
                                 </View>
@@ -300,33 +306,36 @@ const LedgerRoute = ({ userId }: { userId: number }) => {
                     ))
                 )}
             </ScrollView>
-            <Portal>
-                <FAB.Group
-                    open={fabOpen}
-                    visible={true} // Add a state for this if needed, or just true if it's the active tab
-                    icon={fabOpen ? 'close' : 'plus'}
-                    actions={[
-                        {
-                            icon: 'cash-plus',
-                            label: 'Add Payment',
-                            onPress: () => router.push({ pathname: '/management/add-payment', params: { userId, initialTxType: 'CREDIT' } }),
-                        },
-                        {
-                            icon: 'cash-minus',
-                            label: 'Add Charge',
-                            onPress: () => router.push({ pathname: '/management/add-payment', params: { userId, initialTxType: 'DEBIT' } }),
-                        },
-                    ]}
-                    onStateChange={({ open }) => setFabOpen(open)}
-                    style={{ paddingBottom: 60 }}
-                />
-            </Portal>
+            {userRole !== 'NORMAL' && (
+                <Portal>
+                    <FAB.Group
+                        open={fabOpen}
+                        visible={isFocused} // Only visible when screen is focused
+                        icon={fabOpen ? 'close' : 'plus'}
+                        actions={[
+                            {
+                                icon: 'cash-plus',
+                                label: 'Add Payment',
+                                onPress: () => router.push({ pathname: '/management/add-payment', params: { userId, initialTxType: 'CREDIT' } }),
+                            },
+                            {
+                                icon: 'cash-minus',
+                                label: 'Add Charge',
+                                onPress: () => router.push({ pathname: '/management/add-payment', params: { userId, initialTxType: 'DEBIT' } }),
+                            },
+                        ]}
+                        onStateChange={({ open }) => setFabOpen(open)}
+                        style={{ paddingBottom: 60 }}
+                    />
+                </Portal>
+            )}
         </View>
     );
 };
 
 
-const AttendanceRoute = ({ userId, onUpdate }: { userId: number, onUpdate?: () => void }) => {
+const AttendanceRoute = ({ userId, isFocused, onUpdate, userRole }: { userId: number, isFocused: boolean, onUpdate?: () => void, userRole?: string }) => {
+    const isNormalUser = userRole === 'NORMAL';
     const [attendance, setAttendance] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -347,7 +356,7 @@ const AttendanceRoute = ({ userId, onUpdate }: { userId: number, onUpdate?: () =
     const [pickerTarget, setPickerTarget] = useState<'checkin' | 'edit_in' | 'edit_out'>('checkin');
 
     const loadAttendance = () => {
-        apiService.getUserAttendance(userId)
+        apiService.getUserAttendance(userId) // Skip loader here? Maybe not, it's tab content.
             .then((data: any) => setAttendance(data))
             .catch(console.error)
             .finally(() => setLoading(false));
@@ -473,7 +482,7 @@ const AttendanceRoute = ({ userId, onUpdate }: { userId: number, onUpdate?: () =
                             <DataTable.Title>In</DataTable.Title>
                             <DataTable.Title>Out</DataTable.Title>
                             <DataTable.Title numeric>Fee</DataTable.Title>
-                            <DataTable.Title numeric>Actions</DataTable.Title>
+                            {!isNormalUser && <DataTable.Title numeric>Actions</DataTable.Title>}
                         </DataTable.Header>
                         {attendance.map((record) => (
                             <DataTable.Row key={record.id}>
@@ -481,49 +490,54 @@ const AttendanceRoute = ({ userId, onUpdate }: { userId: number, onUpdate?: () =
                                 <DataTable.Cell>{record.in_time ? format(new Date(record.in_time), 'HH:mm') : '-'}</DataTable.Cell>
                                 <DataTable.Cell>{record.out_time ? format(new Date(record.out_time), 'HH:mm') : '-'}</DataTable.Cell>
                                 <DataTable.Cell numeric>₹{record.daily_fee_charged || 0}</DataTable.Cell>
-                                <DataTable.Cell numeric>
-                                    <View style={{ flexDirection: 'row' }}>
-                                        <IconButton icon="pencil" size={18} onPress={() => handleEditStart(record)} />
-                                        <IconButton icon="delete" size={18} iconColor="red" onPress={() => {
-                                            Alert.alert('Delete', 'Delete attendance?', [
-                                                { text: 'Cancel' },
-                                                {
-                                                    text: 'Delete', style: 'destructive', onPress: async () => {
-                                                        try {
-                                                            await apiService.deleteAttendance(record.id);
-                                                            loadAttendance();
-                                                            if (onUpdate) onUpdate();
-                                                            Alert.alert('Success', 'Attendance deleted');
-                                                        } catch (e: any) {
-                                                            console.error(e);
-                                                            if (e.status === 403 || (e.body && e.body.includes('Forbidden'))) { // Check for RBAC error
-                                                                Alert.alert('Permission Denied', 'Only Management can delete attendance.');
-                                                            } else {
-                                                                Alert.alert('Error', 'Failed to delete attendance');
+                                {!isNormalUser && (
+                                    <DataTable.Cell numeric>
+                                        <View style={{ flexDirection: 'row' }}>
+                                            <IconButton icon="pencil" size={18} onPress={() => handleEditStart(record)} />
+                                            <IconButton icon="delete" size={18} iconColor="red" onPress={() => {
+                                                Alert.alert('Delete', 'Delete attendance?', [
+                                                    { text: 'Cancel' },
+                                                    {
+                                                        text: 'Delete', style: 'destructive', onPress: async () => {
+                                                            try {
+                                                                await apiService.deleteAttendance(record.id);
+                                                                loadAttendance();
+                                                                if (onUpdate) onUpdate();
+                                                                Alert.alert('Success', 'Attendance deleted');
+                                                            } catch (e: any) {
+                                                                console.error(e);
+                                                                if (e.status === 403 || (e.body && e.body.includes('Forbidden'))) { // Check for RBAC error
+                                                                    Alert.alert('Permission Denied', 'Only Management can delete attendance.');
+                                                                } else {
+                                                                    Alert.alert('Error', 'Failed to delete attendance');
+                                                                }
                                                             }
                                                         }
                                                     }
-                                                }
-                                            ]);
-                                        }} />
-                                    </View>
-                                </DataTable.Cell>
+                                                ]);
+                                            }} />
+                                        </View>
+                                    </DataTable.Cell>
+                                )}
                             </DataTable.Row>
                         ))}
                     </DataTable>
                 )}
             </ScrollView>
 
-            <FAB
-                color="white"
-                icon="account-clock"
-                label="Manual Check-In"
-                style={styles.fab}
-                onPress={() => {
-                    setCheckInDate(new Date());
-                    setShowCheckInDialog(true);
-                }}
-            />
+            {isFocused && (
+                <FAB
+                    color="white"
+                    icon="account-clock"
+                    label="Manual Check-In"
+                    style={styles.fab}
+                    onPress={() => {
+                        setCheckInDate(new Date());
+                        setShowCheckInDialog(true);
+                    }}
+                    visible={isFocused}
+                />
+            )}
 
             {/* Check In Dialog */}
             <Portal>
@@ -618,6 +632,8 @@ export default function UserDetailScreen() {
     const { id } = useLocalSearchParams();
     const theme = useTheme();
     const router = useRouter();
+    const { user: currentUser } = useAuth();
+    const isFocused = useIsFocused();
     const layout = useWindowDimensions();
     const [user, setUser] = useState<any>(null);
     const [index, setIndex] = useState(0);
@@ -680,22 +696,22 @@ export default function UserDetailScreen() {
     }, [id]);
 
     const renderScene = ({ route }: any) => {
+        const currentUserRole = currentUser?.role || 'NORMAL';
         switch (route.key) {
             case 'ledger':
-                return <LedgerRoute userId={Number(id)} />;
+                return <LedgerRoute userId={Number(id)} isFocused={isFocused} userRole={currentUserRole} />;
             case 'fine':
-                return <FineRoute userId={Number(id)} />;
+                return <FineRoute userId={Number(id)} isFocused={isFocused} userRole={currentUserRole} />;
             case 'attendance':
-                return <AttendanceRoute userId={Number(id)} onUpdate={refreshUser} />;
+                return <AttendanceRoute userId={Number(id)} isFocused={isFocused} onUpdate={() => {
+                    apiService.getUserById(Number(id)).then(setUser);
+                }} />;
             case 'permissions':
-                // Only Management can edit permissions? And maybe not Super Admin if target is Super Admin (backend blocks).
-                // Frontend check:
-                const canEditPermissions = true;
                 return <PermissionsRoute
                     userId={Number(id)}
-                    permissions={user?.permissions}
-                    onUpdate={refreshUser}
-                    canEdit={canEditPermissions}
+                    permissions={user?.permissions || []}
+                    onUpdate={() => apiService.getUserById(Number(id)).then(setUser)}
+                    canEdit={currentUserRole === 'MANAGEMENT' || currentUserRole === 'SUPER_ADMIN'}
                     userRole={user?.role}
                 />;
             default:
@@ -722,17 +738,19 @@ export default function UserDetailScreen() {
                             {user.name}
                         </Text>
 
-                        {/* Professional Menu Action */}
-                        <View style={{ flexDirection: 'row' }}>
-                            <Menu
-                                visible={menuVisible}
-                                onDismiss={closeMenu}
-                                anchor={<IconButton icon="dots-vertical" onPress={openMenu} />}
-                            >
-                                <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Payment" leadingIcon="cash-plus" />
-                                <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Charge" leadingIcon="cash-minus" />
-                            </Menu>
-                        </View>
+                        {/* Professional Menu Action - HIDDEN FOR NORMAL USERS */}
+                        {currentUser?.role !== 'NORMAL' && (
+                            <View style={{ flexDirection: 'row' }}>
+                                <Menu
+                                    visible={menuVisible}
+                                    onDismiss={closeMenu}
+                                    anchor={<IconButton icon="dots-vertical" onPress={openMenu} />}
+                                >
+                                    <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Payment" leadingIcon="cash-plus" />
+                                    <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Charge" leadingIcon="cash-minus" />
+                                </Menu>
+                            </View>
+                        )}
                     </View>
 
                     {/* Avatar & Role */}
@@ -784,43 +802,43 @@ export default function UserDetailScreen() {
                         />
                     </View>
 
-                    {/* Status Toggle */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-                        <Text style={{ marginRight: 8 }}>Status:</Text>
-                        {user.role === 'SUPER_ADMIN' ? (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e8f5e9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}>
-                                <MaterialCommunityIcons name="check-circle" size={16} color="green" />
-                                <Text style={{ marginLeft: 4, color: 'green', fontWeight: 'bold' }}>Active</Text>
-                            </View>
-                        ) : (
-                            <>
-                                <Button
-                                    mode={user.is_active ? 'contained' : 'outlined'}
-                                    compact
-                                    buttonColor={user.is_active ? 'green' : undefined}
-                                    textColor={user.is_active ? 'white' : 'gray'}
-                                    onPress={() => {
-                                        apiService.updateUser(user.id, { is_active: true } as any).then(() => refreshUser()).catch(e => Alert.alert('Error', 'Update failed'));
-                                    }}
-                                    style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
-                                >
-                                    Active
-                                </Button>
-                                <Button
-                                    mode={!user.is_active ? 'contained' : 'outlined'}
-                                    compact
-                                    buttonColor={!user.is_active ? 'red' : undefined}
-                                    textColor={!user.is_active ? 'white' : 'gray'}
-                                    onPress={() => {
-                                        apiService.updateUser(user.id, { is_active: false } as any).then(() => refreshUser()).catch(e => Alert.alert('Error', 'Update failed'));
-                                    }}
-                                    style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
-                                >
-                                    Inactive
-                                </Button>
-                            </>
-                        )}
-                    </View>
+                </View>
+                {/* Status Toggle */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+                    <Text style={{ marginRight: 8 }}>Status:</Text>
+                    {user.role === 'SUPER_ADMIN' ? (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e8f5e9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}>
+                            <MaterialCommunityIcons name="check-circle" size={16} color="green" />
+                            <Text style={{ marginLeft: 4, color: 'green', fontWeight: 'bold' }}>Active</Text>
+                        </View>
+                    ) : (
+                        <>
+                            <Button
+                                mode={user.is_active ? 'contained' : 'outlined'}
+                                compact
+                                buttonColor={user.is_active ? 'green' : undefined}
+                                textColor={user.is_active ? 'white' : 'gray'}
+                                onPress={() => {
+                                    apiService.updateUser(user.id, { is_active: true } as any).then(() => refreshUser()).catch(e => Alert.alert('Error', 'Update failed'));
+                                }}
+                                style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+                            >
+                                Active
+                            </Button>
+                            <Button
+                                mode={!user.is_active ? 'contained' : 'outlined'}
+                                compact
+                                buttonColor={!user.is_active ? 'red' : undefined}
+                                textColor={!user.is_active ? 'white' : 'gray'}
+                                onPress={() => {
+                                    apiService.updateUser(user.id, { is_active: false } as any).then(() => refreshUser()).catch(e => Alert.alert('Error', 'Update failed'));
+                                }}
+                                style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
+                            >
+                                Inactive
+                            </Button>
+                        </>
+                    )}
 
                     {/* EXPIRED Banner */}
                     {user.subscription_status === 'EXPIRED' && (
@@ -938,7 +956,6 @@ export default function UserDetailScreen() {
                 </View>
             </View>
 
-            {/* Tabs Filling Remaining Space */}
             <View style={{ flex: 1 }}>
                 <TabView
                     navigationState={{ index, routes }}
@@ -948,7 +965,7 @@ export default function UserDetailScreen() {
                     renderTabBar={props => <TabBar {...props} indicatorStyle={{ backgroundColor: theme.colors.primary }} style={{ backgroundColor: 'white' }} activeColor="black" inactiveColor="gray" />}
                 />
             </View>
-        </View>
+        </View >
     );
 }
 

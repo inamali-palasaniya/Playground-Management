@@ -3,10 +3,14 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { View, StyleSheet, Platform } from 'react-native';
 import HeaderProfile from '../../components/HeaderProfile';
 import { useTheme } from 'react-native-paper';
+import { useAuth } from '../../context/AuthContext';
 
 export default function TabLayout() {
     const router = useRouter();
     const theme = useTheme();
+    const { user } = useAuth();
+
+    const isNormalUser = user?.role === 'NORMAL';
 
     return (
         <Tabs screenOptions={{
@@ -25,6 +29,7 @@ export default function TabLayout() {
                 name="users"
                 options={{
                     title: 'Users',
+                    href: isNormalUser ? null : '/(tabs)/users',
                     tabBarIcon: ({ color, size }) => (
                         <View style={{ alignItems: 'center', justifyContent: 'center', top: 15 }}>
                             <MaterialCommunityIcons name="account-group" size={30} color={color} />

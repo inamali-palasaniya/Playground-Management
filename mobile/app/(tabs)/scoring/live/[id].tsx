@@ -1,29 +1,29 @@
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, StyleSheet, ScrollView, Alert, Dimensions, ImageBackground } from 'react-native';
-import { Text, Button, Card, Divider, ActivityIndicator, IconButton, Surface } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, Alert, Dimensions } from 'react-native';
+import { Text, Button, Card, Divider, ActivityIndicator, IconButton, Surface, Avatar } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { io, Socket } from 'socket.io-client';
 import apiService from '../../../../services/api.service';
 import { StatusBar } from 'expo-status-bar';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { format } from 'date-fns';
 
 const { width } = Dimensions.get('window');
-const API_URL = process.env.EXPO_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000'; // Socket URL base
+const API_URL = process.env.EXPO_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000';
 
 export default function LiveMatchScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const [match, setMatch] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [liveScore, setLiveScore] = useState<any>(null); // To store real-time score
     const socketRef = useRef<Socket | null>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     const fetchMatchDetails = async () => {
         try {
             const data = await apiService.getMatchById(Number(id));
             setMatch(data);
-            // Initialize live score from current match state if available
-            // For now, assuming match data has some score info, or we start fresh.
         } catch (error) {
             console.error('Error fetching match:', error);
             Alert.alert('Error', 'Failed to load match details');
@@ -32,64 +32,43 @@ export default function LiveMatchScreen() {
         }
     };
 
-
-    const submitBall = async (runs: number, isWicket: boolean) => {
+    const checkAdmin = async () => {
         try {
-            // For MVP: picking first available players if context not set
-            // In full app, use selected bowler/striker
-            const bowlerId = match.team_b?.players?.[0]?.user?.id || 1;
-            const strikerId = match.team_a?.players?.[0]?.user?.id || 2;
-
-            await apiService.request(`/api/matches/${id}/ball-event`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    match_id: Number(id),
-                    runs_scored: runs,
-                    is_wicket: isWicket,
-                    bowler_id: bowlerId,
-                    striker_id: strikerId,
-                    over_number: 0,
-                    ball_number: 0,
-                    extras: 0
-                })
-            });
-        } catch (error: any) {
-            console.error('Scoring failed', error);
-            Alert.alert('Error', 'Failed to record score.');
+            const user = await apiService.request<any>('/api/auth/me');
+            setIsAdmin(user?.role !== 'NORMAL');
+        } catch (e) {
+            setIsAdmin(false);
         }
     };
 
+    useEffect(() => {
+        checkAdmin();
+    }, []);
+
+    const calculateScore = (events: any[]) => {
+        if (!events) return { score: 0, wickets: 0, balls: 0 };
+        const currentInnings = match?.current_innings || 1;
+        return events.reduce((acc, curr) => {
+            if (curr.innings === currentInnings) {
+                acc.score += (curr.runs_scored || 0) + (curr.extras || 0);
+                if (curr.is_wicket) acc.wickets += 1;
+                if (curr.is_valid_ball) acc.balls += 1;
+            }
+            return acc;
+        }, { score: 0, wickets: 0, balls: 0 });
+    };
+
+    const stats = calculateScore(match?.ball_events);
+    const overs = `${Math.floor(stats.balls / 6)}.${stats.balls % 6}`;
+
     useFocusEffect(
         useCallback(() => {
-            console.log('Focus: Connecting Socket');
-            // Fetch initial data
             fetchMatchDetails();
-
-            // Connect Socket
             const socket = io(API_URL);
             socketRef.current = socket;
-
-            socket.on('connect', () => {
-                console.log('Socket Connected');
-                socket.emit('join_match', id);
-            });
-
-            socket.on('score_update', (data) => {
-                console.log('Live Score Update:', data);
-                // Update local state with new ball event
-                // In a real app, calculate full score from this delta or fetch fresh summary
-                // For "WOW" effect, we'll flash an update
-                setLiveScore((prev: any) => ({
-                    ...prev,
-                    lastEvent: data,
-                    totalRuns: (prev?.totalRuns || match?.runs || 0) + data.runs_scored + data.extras
-                }));
-                // Also re-fetch full details to be safe for sync
-                fetchMatchDetails();
-            });
-
+            socket.on('connect', () => socket.emit('join_match', id));
+            socket.on('score_update', () => fetchMatchDetails());
             return () => {
-                console.log('Blur: Disconnecting Socket');
                 if (socket) {
                     socket.emit('leave_match', id);
                     socket.disconnect();
@@ -99,110 +78,87 @@ export default function LiveMatchScreen() {
         }, [id])
     );
 
-    if (loading) {
-        return (
-            <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#6200ee" />
-            </View>
-        );
-    }
+    if (loading) return (
+        <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color="#1a237e" />
+        </View>
+    );
 
-    if (!match) {
-        return (
-            <View style={styles.centerContainer}>
-                <Text>Match not found</Text>
-            </View>
-        );
-    }
+    if (!match) return (
+        <View style={styles.centerContainer}>
+            <Text>Match not found</Text>
+            <Button mode="contained" onPress={() => router.back()} style={{ marginTop: 20 }}>Go Back</Button>
+        </View>
+    );
 
     return (
         <View style={styles.container}>
             <StatusBar style="light" />
-            <LinearGradient
-                colors={['#141E30', '#243B55']}
-                style={styles.headerGradient}
-            >
+            <LinearGradient colors={['#1a237e', '#0d47a1']} style={styles.headerGradient}>
                 <View style={styles.headerContent}>
                     <IconButton icon="arrow-left" iconColor="white" onPress={() => router.back()} />
-                    <Text variant="titleLarge" style={styles.headerTitle}>
-                        {match.tournament?.name || 'Tournament Match'}
-                    </Text>
-                    <View style={{ width: 48 }} />
+                    <Text variant="titleLarge" style={styles.headerTitle}>{match.tournament?.name || 'Match Details'}</Text>
+                    {isAdmin && match.status !== 'COMPLETED' ? (
+                        <IconButton icon="pencil" iconColor="white" onPress={() => router.push({ pathname: '/management/cricket/scorer', params: { matchId: id } })} />
+                    ) : <View style={{ width: 48 }} />}
                 </View>
 
-                {/* Scoreboard Card */}
                 <Surface style={styles.scoreBoard} elevation={4}>
+                    <View style={styles.statusBadge}>
+                        <Text style={styles.statusBadgeText}>{match.status}</Text>
+                    </View>
+
                     <View style={styles.teamRow}>
                         <View style={styles.teamInfo}>
-                            <Text variant="headlineSmall" style={styles.teamName}>{match.team_a?.name}</Text>
-                            <Text variant="titleMedium" style={styles.teamScore}>
-                                {match.team_a_score || '0/0'} <Text style={styles.overs}>(0.0)</Text>
-                            </Text>
+                            <Avatar.Text size={48} label={match.team_a?.name?.[0]?.toUpperCase() || 'A'} />
+                            <Text variant="titleSmall" style={styles.teamName} numberOfLines={1}>{match.team_a?.name}</Text>
                         </View>
-                        <Text style={styles.vs}>VS</Text>
+
+                        <View style={styles.scoreInfo}>
+                            <Text variant="displaySmall" style={styles.mainScore}>{stats.score}/{stats.wickets}</Text>
+                            <Text variant="titleMedium" style={styles.oversText}>Overs: {overs} / {match.overs}</Text>
+                        </View>
+
                         <View style={[styles.teamInfo, { alignItems: 'flex-end' }]}>
-                            <Text variant="headlineSmall" style={styles.teamName}>{match.team_b?.name}</Text>
-                            <Text variant="titleMedium" style={styles.teamScore}>
-                                {match.team_b_score || '0/0'} <Text style={styles.overs}>(0.0)</Text>
-                            </Text>
+                            <Avatar.Text size={48} label={match.team_b?.name?.[0]?.toUpperCase() || 'B'} />
+                            <Text variant="titleSmall" style={[styles.teamName, { textAlign: 'right' }]} numberOfLines={1}>{match.team_b?.name}</Text>
                         </View>
                     </View>
 
                     <Divider style={styles.divider} />
-
-                    <View style={styles.statusRow}>
-                        <Text style={styles.statusText}>{match.status === 'LIVE' ? '🔴 LIVE' : match.status}</Text>
-                        <Text style={styles.statusText}>{match.toss_result || 'Toss TBD'}</Text>
-                    </View>
-
-                    {liveScore?.lastEvent && (
-                        <LinearGradient colors={['#FFD700', '#FFA500']} style={styles.lastEventPopup}>
-                            <Text style={styles.eventText}>
-                                {liveScore.lastEvent.runs_scored} Runs! {liveScore.lastEvent.is_wicket ? 'WICKET!' : ''}
-                            </Text>
-                        </LinearGradient>
-                    )}
+                    <Text style={styles.tossText}>
+                        {match.toss_winner_id ? `${match.toss_winner_id === match.team_a_id ? match.team_a?.name : match.team_b?.name} won toss & elected to ${match.toss_decision}` : 'Toss Pending'}
+                    </Text>
                 </Surface>
             </LinearGradient>
 
             <ScrollView style={styles.content}>
-                {/* Batting/Bowling Stats would go here similar to CrickHeroes */}
                 <Card style={styles.card}>
-                    <Card.Title title="Live Commentary" left={(props) => <IconButton {...props} icon="microphone" />} />
+                    <Card.Title
+                        title="Match Info"
+                        left={(props) => <MaterialCommunityIcons name="information" size={24} color="#1a237e" />}
+                    />
                     <Card.Content>
-                        <Text variant="bodyMedium">Waiting for next ball...</Text>
-                        {/* Map commentary list here */}
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Venue:</Text>
+                            <Text style={styles.infoValue}>{match.venue || 'Main Turf'}</Text>
+                        </View>
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Date:</Text>
+                            <Text style={styles.infoValue}>{format(new Date(match.start_time), 'PPp')}</Text>
+                        </View>
                     </Card.Content>
                 </Card>
 
-                {/* Admin/Scorer Controls (if user is admin, check role) */}
-                {/* Scoring Controls */}
-                {match.status === 'LIVE' && (
-                    <Card style={[styles.card, { marginTop: 10, backgroundColor: '#fff' }]}>
-                        <Card.Title title="Scoring Console" subtitle="Quick Score" />
-                        <Card.Content>
-                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-                                {[0, 1, 2, 3, 4, 6].map((run) => (
-                                    <Button
-                                        key={run}
-                                        mode="contained"
-                                        onPress={() => submitBall(run, false)}
-                                        style={{ minWidth: 50, margin: 4 }}
-                                    >
-                                        {run}
-                                    </Button>
-                                ))}
-                                <Button
-                                    mode="contained"
-                                    buttonColor="#F44336"
-                                    onPress={() => submitBall(0, true)}
-                                    style={{ minWidth: 60, margin: 4 }}
-                                >
-                                    OUT
-                                </Button>
-                            </View>
-                        </Card.Content>
-                    </Card>
+                {isAdmin && match.status !== 'COMPLETED' && (
+                    <Button
+                        mode="contained"
+                        icon="scoreboard"
+                        style={styles.scoreButton}
+                        onPress={() => router.push({ pathname: '/management/cricket/scorer', params: { matchId: id } })}
+                    >
+                        GO TO SCORER
+                    </Button>
                 )}
             </ScrollView>
         </View>
@@ -210,31 +166,11 @@ export default function LiveMatchScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f0f2f5',
-    },
-    centerContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    headerGradient: {
-        paddingTop: 50,
-        paddingBottom: 80, // Space for scoreboard overlap
-        borderBottomLeftRadius: 30,
-        borderBottomRightRadius: 30,
-    },
-    headerContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 10,
-    },
-    headerTitle: {
-        color: 'white',
-        fontWeight: 'bold',
-    },
+    container: { flex: 1, backgroundColor: '#f0f2f5' },
+    centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    headerGradient: { paddingTop: 50, paddingBottom: 100, borderBottomLeftRadius: 30, borderBottomRightRadius: 30 },
+    headerContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 },
+    headerTitle: { color: 'white', fontWeight: 'bold' },
     scoreBoard: {
         position: 'absolute',
         bottom: -60,
@@ -243,73 +179,27 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderRadius: 20,
         padding: 20,
-        alignItems: 'center', // Center content if needed
-    },
-    teamRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
         alignItems: 'center',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4
     },
-    teamInfo: {
-        flex: 1,
-    },
-    teamName: {
-        fontWeight: 'bold',
-        color: '#1a1a1a',
-    },
-    teamScore: {
-        color: '#333',
-        fontWeight: 'bold',
-        marginTop: 5,
-    },
-    overs: {
-        fontSize: 14,
-        color: '#666',
-        fontWeight: 'normal',
-    },
-    vs: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#888',
-        marginHorizontal: 10,
-    },
-    divider: {
-        width: '100%',
-        marginVertical: 15,
-        backgroundColor: '#eee',
-    },
-    statusRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-    },
-    statusText: {
-        fontSize: 12,
-        color: '#666',
-        fontWeight: '600',
-        textTransform: 'uppercase',
-    },
-    content: {
-        marginTop: 70, // Push content down below scoreboard
-        padding: 20,
-    },
-    card: {
-        marginBottom: 20,
-        backgroundColor: 'white',
-    },
-    lastEventPopup: {
-        marginTop: 10,
-        paddingHorizontal: 20,
-        paddingVertical: 5,
-        borderRadius: 15,
-    },
-    eventText: {
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    scoreButton: {
-        marginTop: 10,
-        marginBottom: 30,
-    }
+    statusBadge: { backgroundColor: '#e8f5e9', paddingHorizontal: 10, paddingVertical: 2, borderRadius: 10, marginBottom: 10 },
+    statusBadgeText: { fontSize: 10, color: '#2e7d32', fontWeight: 'bold' },
+    teamRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center' },
+    teamInfo: { flex: 1, alignItems: 'center' },
+    scoreInfo: { flex: 1.5, alignItems: 'center' },
+    teamName: { fontWeight: 'bold', color: '#1a1a1a', marginTop: 8, fontSize: 12 },
+    mainScore: { fontWeight: 'bold', color: '#1a237e' },
+    oversText: { color: '#666' },
+    divider: { width: '100%', marginVertical: 15, backgroundColor: '#eee', height: 1 },
+    tossText: { fontSize: 12, color: '#666', fontStyle: 'italic', textAlign: 'center' },
+    content: { marginTop: 80, padding: 20 },
+    card: { marginBottom: 20, backgroundColor: 'white', borderRadius: 12 },
+    infoRow: { flexDirection: 'row', marginBottom: 8 },
+    infoLabel: { width: 80, color: 'gray', fontWeight: 'bold' },
+    infoValue: { flex: 1, color: '#333' },
+    scoreButton: { marginTop: 20, borderRadius: 8, paddingVertical: 4 }
 });

@@ -33,8 +33,8 @@ export const createMatch = async (req: Request, res: Response) => {
 
             // Validate Teams belong to this tournament (optional but good practice)
             if (teamA.tournament_id !== finalTournamentId || teamB.tournament_id !== finalTournamentId) {
-            // Warn or Block? For now, we allow cross-tournament games or just warn. 
-            // Stricter: return res.status(400).json({ error: 'Teams must belong to the selected tournament' });
+                // Warn or Block? For now, we allow cross-tournament games or just warn. 
+                // Stricter: return res.status(400).json({ error: 'Teams must belong to the selected tournament' });
             }
         }
 
@@ -60,101 +60,103 @@ export const createMatch = async (req: Request, res: Response) => {
                 });
             }
             finalTournamentId = defaultTournament.id;
-      }
+        }
 
-      const match = await prisma.match.create({
-          data: {
-              tournament_id: finalTournamentId,
-              team_a_id: teamAId,
-              team_b_id: teamBId,
-            start_time: new Date(start_time),
-            overs: overs ? parseInt(overs) : 20,
-            status: 'SCHEDULED',
-        },
-        include: {
-            tournament: true,
-            team_a: { select: { id: true, name: true } },
-            team_b: { select: { id: true, name: true } },
-        },
-    });
+        const match = await prisma.match.create({
+            data: {
+                tournament_id: finalTournamentId,
+                team_a_id: teamAId,
+                team_b_id: teamBId,
+                start_time: new Date(start_time),
+                overs: overs ? parseInt(overs) : 20,
+                status: 'SCHEDULED',
+                created_by_id: (req as any).user?.userId || null,
+            },
+            include: {
+                tournament: true,
+                team_a: { select: { id: true, name: true } },
+                team_b: { select: { id: true, name: true } },
+            },
+        });
 
-      res.status(201).json(match);
-  } catch (error) {
-      console.error('Error creating match:', error);
+        res.status(201).json(match);
+    } catch (error) {
+        console.error('Error creating match:', error);
         res.status(500).json({ error: 'Failed to create match', details: error instanceof Error ? error.message : String(error) });
-  }
+    }
 };
 
 export const getMatches = async (req: Request, res: Response) => {
     try {
-      const { tournament_id, status } = req.query;
+        const { tournament_id, status } = req.query;
 
-      const where: any = {};
-      if (tournament_id) where.tournament_id = parseInt(tournament_id as string);
-      if (status) where.status = status;
+        const where: any = {};
+        if (tournament_id) where.tournament_id = parseInt(tournament_id as string);
+        if (status) where.status = status;
 
-      const matches = await prisma.match.findMany({
-        where,
-        include: {
-          tournament: true,
-          team_a: true,
-          team_b: true,
-        },
-        orderBy: { start_time: 'desc' },
-    });
+        const matches = await prisma.match.findMany({
+            where,
+            include: {
+                tournament: true,
+                team_a: true,
+                team_b: true,
+                created_by: { select: { name: true } },
+            },
+            orderBy: { start_time: 'desc' },
+        });
 
-      res.json(matches);
-  } catch (error) {
-      console.error('Error fetching matches:', error);
+        res.json(matches);
+    } catch (error) {
+        console.error('Error fetching matches:', error);
         res.status(500).json({ error: 'Failed to fetch matches', details: error instanceof Error ? error.message : String(error) });
-  }
+    }
 };
 
 export const getMatchById = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
-      const match = await prisma.match.findUnique({
-        where: { id: parseInt(id) },
-        include: {
-            tournament: true,
-            team_a: {
-                include: {
-                    players: {
-                        include: {
-                            user: { select: { id: true, name: true } },
+        const match = await prisma.match.findUnique({
+            where: { id: parseInt(id) },
+            include: {
+                tournament: true,
+                team_a: {
+                    include: {
+                        players: {
+                            include: {
+                                user: { select: { id: true, name: true } },
+                            },
                         },
                     },
                 },
-            },
-            team_b: {
-                include: {
-                    players: {
-                        include: {
-                            user: { select: { id: true, name: true } },
+                team_b: {
+                    include: {
+                        players: {
+                            include: {
+                                user: { select: { id: true, name: true } },
+                            },
                         },
                     },
                 },
-            },
-            ball_events: {
-                include: {
-                    bowler: { select: { id: true, name: true } },
-                    striker: { select: { id: true, name: true } },
+                ball_events: {
+                    include: {
+                        bowler: { select: { id: true, name: true } },
+                        striker: { select: { id: true, name: true } },
+                    },
+                    orderBy: [{ over_number: 'asc' }, { ball_number: 'asc' }],
                 },
-                orderBy: [{ over_number: 'asc' }, { ball_number: 'asc' }],
             },
-        },
-    });
+        });
 
-      if (!match) {
-          return res.status(404).json({ error: 'Match not found' });
-      }
+        if (!match) {
+            return res.status(404).json({ error: 'Match not found' });
+        }
 
-      res.json(match);
-  } catch (error) {
-      console.error('Error fetching match:', error);
-      res.status(500).json({ error: 'Failed to fetch match' });
-  }
+        res.json(match);
+    } catch (error) {
+        console.error('Error fetching match:', error);
+        res.status(500).json({ error: 'Failed to fetch match' });
+    }
 };
 
 // Generic Match Update (Status, Toss, Result)
@@ -168,17 +170,33 @@ export const updateMatch = async (req: Request, res: Response) => {
             winning_team_id,
             result_description,
             current_innings,
-            is_completed
+            is_completed,
+            current_striker_id,
+            current_non_striker_id,
+            current_bowler_id,
+            current_batting_team_id
         } = req.body;
 
         const data: any = {};
         if (status) data.status = status;
-        if (toss_winner_id) data.toss_winner_id = parseInt(toss_winner_id);
+        if (toss_winner_id) data.toss_winner_id = Number(toss_winner_id);
         if (toss_decision) data.toss_decision = toss_decision;
-        if (winning_team_id) data.winning_team_id = parseInt(winning_team_id);
+        if (winning_team_id) data.winning_team_id = Number(winning_team_id);
         if (result_description) data.result_description = result_description;
-        if (current_innings) data.current_innings = parseInt(current_innings);
+        if (current_innings) data.current_innings = Number(current_innings);
         if (is_completed !== undefined) data.is_completed = is_completed;
+
+        if (current_striker_id) data.current_striker_id = Number(current_striker_id);
+        if (current_non_striker_id) data.current_non_striker_id = Number(current_non_striker_id);
+        if (current_bowler_id) data.current_bowler_id = Number(current_bowler_id);
+        if (current_batting_team_id) data.current_batting_team_id = Number(current_batting_team_id);
+
+        // Remove NaN values if any
+        Object.keys(data).forEach(key => {
+            if (typeof data[key] === 'number' && isNaN(data[key])) {
+                delete data[key];
+            }
+        });
 
         const match = await prisma.match.update({
             where: { id: parseInt(id) },
@@ -223,7 +241,7 @@ export const recordBallEvent = async (req: Request, res: Response) => {
             ballNumber: parseInt(ball_number),
             bowlerId: parseInt(bowler_id),
             strikerId: parseInt(striker_id),
-            nonStrikerId: non_striker_id ? parseInt(non_striker_id) : 0, // 0 or handle null if optional
+            nonStrikerId: non_striker_id ? parseInt(non_striker_id) : undefined, // Maps to null in Prisma if optional
             battingTeamId: parseInt(batting_team_id),
             runsScored: runs_scored ? parseInt(runs_scored) : 0,
             isWicket: is_wicket || false,
@@ -308,5 +326,18 @@ export const getLiveScore = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error getting live score:', error);
         res.status(500).json({ error: 'Failed to get live score' });
+    }
+};
+
+export const deleteMatch = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        await prisma.match.delete({
+            where: { id: parseInt(id) }
+        });
+        res.json({ message: 'Match deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting match:', error);
+        res.status(500).json({ error: 'Failed to delete match' });
     }
 };

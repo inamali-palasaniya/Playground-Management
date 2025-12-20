@@ -5,9 +5,8 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET is not defined in environment variables');
+  console.error('CRITICAL: JWT_SECRET is not defined in environment variables. Authentication will fail.');
 }
-
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -34,6 +33,10 @@ export const register = async (req: Request, res: Response) => {
         role: role || 'NORMAL',
       },
     });
+
+    if (!JWT_SECRET) {
+      return res.status(500).json({ error: 'Server configuration error (JWT_SECRET)' });
+    }
 
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
@@ -66,7 +69,9 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
-    // if (!user.is_active) check removed as schema lacks field
+    if (user.is_active === false) {
+      return res.status(403).json({ error: 'Your account is inactive. Please contact the administrator.' });
+    }
 
 
     if (!user.password) {
@@ -81,6 +86,10 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
+    if (!JWT_SECRET) {
+      return res.status(500).json({ error: 'Server configuration error (JWT_SECRET)' });
+    }
+
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       JWT_SECRET,
@@ -91,5 +100,22 @@ export const login = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getMe = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    console.error('getMe error:', error);
+    res.status(500).json({ error: 'Failed to fetch user' });
   }
 };
