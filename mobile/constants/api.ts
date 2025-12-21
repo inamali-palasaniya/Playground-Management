@@ -4,6 +4,10 @@ const getBaseUrl = () => {
     // 1. Development (Expo Go) - Dynamically determine IP
     // Prioritize this so .env doesn't break local testing
     if (__DEV__) {
+        // For web, localhost is usually more reliable
+        if (require('react-native').Platform.OS === 'web') {
+            return 'http://localhost:3000';
+        }
         const hostUri = Constants.expoConfig?.hostUri;
         const ip = hostUri ? hostUri.split(':')[0] : 'localhost';
         return `http://${ip}:3000`;

@@ -99,6 +99,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }, [user, segments, isLoading]);
 
+    // Handle session expiration
+    useEffect(() => {
+        const unsubscribe = AuthService.subscribeToAuthExpired(() => {
+            console.log('Session expired, logging out...');
+            logout();
+        });
+        return () => unsubscribe();
+    }, []);
+
     return (
         <AuthContext.Provider value={{ user, isLoading, refreshUser, logout }}>
             {children}
