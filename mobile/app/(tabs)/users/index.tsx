@@ -63,6 +63,7 @@ export default function PeopleScreen() {
     const [menuPunch, setMenuPunch] = useState(false);
     const [menuType, setMenuType] = useState(false);
     const [menuPlan, setMenuPlan] = useState(false);
+    const [menuFinance, setMenuFinance] = useState(false);
 
     const [currentUser, setCurrentUser] = useState<any>(null);
 
@@ -96,7 +97,8 @@ export default function PeopleScreen() {
                 let queryString = `?dummy=1`;
 
                 // Dashboard Helpers (Legacy & Deep Links)
-                if (activeFilter === 'EXPIRED') queryString += `&filter=EXPIRED`;
+                // Dashboard Helpers & Generic Filter
+                if (activeFilter) queryString += `&filter=${activeFilter}`;
 
                 // Main Filters
                 if (selectedGroup) queryString += `&group_id=${selectedGroup.id}`;
@@ -457,7 +459,6 @@ export default function PeopleScreen() {
                                 ))}
                             </Menu>
 
-                            {/* Plan Filter */}
                             <Menu
                                 visible={menuPlan}
                                 onDismiss={() => setMenuPlan(false)}
@@ -480,10 +481,33 @@ export default function PeopleScreen() {
                                 ))}
                             </Menu>
 
-                            {/* Legacy "Expired" Chip (if triggered from Dashboard) */}
-                            {activeFilter === 'EXPIRED' && (
-                                <Chip icon="close" onPress={() => setActiveFilter(null)} style={{ backgroundColor: '#ffcdd2', marginRight: 8 }}>Expired Only</Chip>
-                            )}
+                            {/* Financial Filter */}
+                            <Menu
+                                visible={menuFinance}
+                                onDismiss={() => setMenuFinance(false)}
+                                anchor={
+                                    <Chip
+                                        mode="outlined"
+                                        icon="cash"
+                                        onPress={() => setMenuFinance(true)}
+                                        selected={!!activeFilter && (activeFilter === 'NEGATIVE_BALANCE' || activeFilter === 'SETTLED' || activeFilter === 'EXPIRED')}
+                                        style={styles.filterChip}
+                                        showSelectedOverlay
+                                    >
+                                        {activeFilter === 'NEGATIVE_BALANCE' ? 'Due Only' :
+                                            activeFilter === 'SETTLED' ? 'Settled' :
+                                                activeFilter === 'EXPIRED' ? 'Expired' : 'Finance'}
+                                    </Chip>
+                                }
+                            >
+                                <Menu.Item onPress={() => { setActiveFilter(null); setMenuFinance(false); }} title="All Financials" />
+                                <Menu.Item onPress={() => { setActiveFilter('NEGATIVE_BALANCE'); setMenuFinance(false); }} title="Due Only" />
+                                <Menu.Item onPress={() => { setActiveFilter('SETTLED'); setMenuFinance(false); }} title="Settled / Paid" />
+                                <Menu.Item onPress={() => { setActiveFilter('EXPIRED'); setMenuFinance(false); }} title="Expired Plan" />
+                            </Menu>
+
+                            {/* Legacy "Expired" Chip (if triggered from Dashboard) -> Now handled in Finance Menu, but keeping optional visual indicator or removing if redundant */}
+                            {/* Removing redundant chip as it's now in Finance Menu */}
 
                         </ScrollView>
                     </View>

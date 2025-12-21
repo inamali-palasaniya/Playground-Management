@@ -5,11 +5,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../../../services/api.service';
 import { io, Socket } from 'socket.io-client';
+import { AuthService } from '../../../../services/auth.service';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000';
 import MatchSetupModal from './MatchSetupModal';
 import SelectPlayerModal from './SelectPlayerModal';
 import SettingsModal from './SettingsModal';
+import EndMatchModal from './EndMatchModal';
 
 export default function ScorerScreen() {
     const { matchId } = useLocalSearchParams();
@@ -17,6 +19,15 @@ export default function ScorerScreen() {
     const [match, setMatch] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const socketRef = React.useRef<Socket | null>(null);
+    const [canScore, setCanScore] = useState(false);
+    const [endMatchVisible, setEndMatchVisible] = useState(false);
+
+    useEffect(() => {
+        AuthService.getUser().then(user => {
+            const hasPerm = AuthService.hasPermission(user, 'cricket_scoring', 'edit');
+            setCanScore(hasPerm);
+        });
+    }, []);
 
     // Theme Colors for Night Mode (Moved up for availability in early returns)
     const bgColor = '#121212';
@@ -228,6 +239,29 @@ export default function ScorerScreen() {
                 is_valid_ball: ballValid
             };
 
+            // Validation: Check if Overs Limit Reached (Before sending?)
+            // actually we check current state. If we are already at max overs, we shouldn't allow this.
+            // But we might be on last ball.
+            // Let's check: if (matchState.overs >= match.overs) ...
+            if (match.overs && matchState.overs >= match.overs) {
+                Alert.alert('Innings Ended', 'Maximum overs reached.');
+                return;
+            }
+
+            // Wicket Logic Pre-Check for "All Out"
+            if (isWicket) {
+                const totalPlayers = battingTeamPlayers.length;
+                const currentWickets = matchState.wickets + 1;
+                // If only 1 player remains (who is non-striker), they can't bat alone.
+                // So if wickets == totalPlayers - 1, it is All Out.
+                if (currentWickets >= totalPlayers - 1) {
+                    Alert.alert('All Out', 'Innings ended (All Out).');
+                    // Proceed to record the wicket, but DO NOT show batsman selection.
+                    // And maybe mark innings as closed in backend? 
+                    // For now, we record it, but suppress the modal.
+                }
+            }
+
             await apiService.recordBallEvent(match.id, payload);
 
             // Automatic Striker Swap for odd runs
@@ -242,17 +276,44 @@ export default function ScorerScreen() {
             }
 
             if (ballValid && matchState.currentBall === 5) {
-                setBowlerSelectionVisible(true);
+                // Check if this was the last over
+                const nextOver = matchState.currentOver + 1;
+                if (match.overs && nextOver >= match.overs) {
+                    Alert.alert('Innings Ended', 'Maximum overs reached.');
+                    // Ends match/innings automatically or user handles it? 
+                    // We just don't show bowler selection if match is over.
+                } else {
+                    setBowlerSelectionVisible(true);
+                }
             }
             if (isWicket) {
-                setBatsmanSelectionVisible(true);
+                const totalPlayers = battingTeamPlayers.length;
+                const newWickets = matchState.wickets + 1;
+                // If wickets == totalPlayers - 1, we are all out.
+                if (newWickets < totalPlayers - 1) {
+                    setBatsmanSelectionVisible(true);
+                } else {
+                    // All Out - maybe notify user?
+                    // Alert.alert("Innings Ended", "Team is All Out");
+                }
             }
 
             loadMatch();
 
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            Alert.alert('Error', 'Failed to record ball');
+            let message = 'Failed to record ball';
+            if (error.body) {
+                try {
+                    const parsed = JSON.parse(error.body);
+                    if (parsed.error) message = parsed.error;
+                } catch (e) {
+                    message = String(error.body);
+                }
+            } else if (error.message) {
+                message = error.message;
+            }
+            Alert.alert('Validation Error', message);
         }
     };
 
@@ -315,12 +376,30 @@ export default function ScorerScreen() {
 
     const runRate = matchState.balls > 0 ? ((matchState.score / matchState.balls) * 6).toFixed(2) : "0.00";
 
+    const handleFinishMatch = async (result: any) => {
+        try {
+            await apiService.updateMatch(Number(matchId), {
+                status: 'COMPLETED',
+                is_completed: true,
+                winning_team_id: result.winning_team_id === '0' ? null : result.winning_team_id,
+                man_of_the_match_id: result.man_of_the_match_id,
+                result_description: result.winning_team_id === '0'
+                    ? 'Match Drawn'
+                    : `${result.winning_team_id === match.team_a_id ? match.team_a.name : match.team_b.name} Won`
+            });
+            setEndMatchVisible(false);
+            router.replace({ pathname: '/management/cricket/analytics/[id]', params: { id: matchId } });
+        } catch (error) {
+            Alert.alert('Error', 'Failed to end match');
+        }
+    };
+
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
             <Appbar.Header style={{ backgroundColor: bgColor }} elevated={false}>
                 <Appbar.BackAction color={textColor} onPress={() => router.replace('/management/cricket')} />
                 <Appbar.Content title="Live Scorer" titleStyle={{ color: textColor }} />
-                <Appbar.Action icon="undo" color={textColor} onPress={handleUndo} />
+                <Appbar.Action icon="undo" color={textColor} onPress={handleUndo} disabled={!canScore} />
                 <Appbar.Action icon="cog" color={textColor} onPress={() => setSettingsVisible(true)} />
             </Appbar.Header>
 
@@ -414,8 +493,8 @@ export default function ScorerScreen() {
                         {[0, 1, 2, 3, 4, 6].map(run => (
                             <TouchableOpacity
                                 key={run}
-                                style={[styles.runBtn, { backgroundColor: run === 4 || run === 6 ? '#03DAC6' : '#333' }]}
-                                onPress={() => handleBall(run)}
+                                style={[styles.runBtn, { backgroundColor: run === 4 || run === 6 ? '#03DAC6' : '#333', opacity: !canScore ? 0.5 : 1 }]}
+                                onPress={() => canScore && handleBall(run)}
                             >
                                 <Text style={{ fontSize: 22, color: run === 4 || run === 6 ? 'black' : 'white', fontWeight: 'bold' }}>{run}</Text>
                             </TouchableOpacity>
@@ -429,8 +508,8 @@ export default function ScorerScreen() {
                     </View>
                     <View style={styles.row}>
                         <Button mode="text" textColor="gray" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'BYE')} style={styles.actionBtn}>BYE</Button>
-                        <Button mode="text" textColor="gray" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'LB')} style={styles.actionBtn}>LEG BYE</Button>
-                        <Button mode="text" textColor="orange" labelStyle={{ fontSize: 11 }} onPress={() => setSetupVisible(true)} style={styles.actionBtn}>SETUP</Button>
+                        <Button mode="text" textColor="gray" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'LB')} style={styles.actionBtn} disabled={!canScore}>LEG BYE</Button>
+                        <Button mode="text" textColor="orange" labelStyle={{ fontSize: 11 }} onPress={() => setSetupVisible(true)} style={styles.actionBtn} disabled={!canScore}>SETUP</Button>
                     </View>
                 </View>
 
@@ -449,16 +528,28 @@ export default function ScorerScreen() {
                     visible={bowlerSelectionVisible}
                     onDismiss={() => setBowlerSelectionVisible(false)}
                     title="Select Next Bowler"
-                    players={bowlingTeamPlayers}
+                    players={bowlingTeamPlayers.filter(p => p.id !== matchState.bowlerId)}
                     onSelect={async (p) => {
+                        // Validate Bowler Team
+                        const battingTeamId = match?.current_batting_team_id;
+                        if (battingTeamId) {
+                            const battingTeam = battingTeamId === match?.team_a_id ? match?.team_a : match?.team_b;
+                            const isInBatting = battingTeam?.players?.find((bp: any) => (bp.user?.id || bp.id) === p.id);
+                            if (isInBatting) {
+                                Alert.alert('Invalid Bowler', 'Bowler cannot be from the batting team.');
+                                return;
+                            }
+                        }
+
                         setMatchState(prev => ({ ...prev, bowlerId: p.id }));
                         setBowlerSelectionVisible(false);
                         try {
                             await apiService.updateMatch(Number(matchId), {
                                 current_bowler_id: p.id
                             });
-                        } catch (e) {
+                        } catch (e: any) {
                             console.error("Failed to persist bowler change", e);
+                            Alert.alert('Error', e.body ? JSON.parse(e.body).error : 'Failed to update bowler');
                         }
                     }}
                 />
@@ -467,16 +558,24 @@ export default function ScorerScreen() {
                     visible={batsmanSelectionVisible}
                     onDismiss={() => setBatsmanSelectionVisible(false)}
                     title="Select New Batsman"
-                    players={battingTeamPlayers}
+                    // Filter out existing striker/non-striker just in case
+                    players={battingTeamPlayers.filter(p => p.id !== matchState.strikerId && p.id !== matchState.nonStrikerId)}
                     onSelect={async (p) => {
+                        // Validate Striker != NonStriker
+                        if (p.id === matchState.nonStrikerId) {
+                            Alert.alert('Invalid Selection', 'Striker cannot be the same as Non-Striker.');
+                            return;
+                        }
+
                         setMatchState(prev => ({ ...prev, strikerId: p.id }));
                         setBatsmanSelectionVisible(false);
                         try {
                             await apiService.updateMatch(Number(matchId), {
                                 current_striker_id: p.id
                             });
-                        } catch (e) {
+                        } catch (e: any) {
                             console.error("Failed to persist batsman change", e);
+                            Alert.alert('Error', e.body ? JSON.parse(e.body).error : 'Failed to update batsman');
                         }
                     }}
                 />
@@ -486,6 +585,22 @@ export default function ScorerScreen() {
                     onDismiss={() => setSettingsVisible(false)}
                     settings={settings}
                     onUpdateSettings={setSettings}
+                    onEndMatch={() => {
+                        setSettingsVisible(false);
+                        setEndMatchVisible(true);
+                    }}
+                />
+
+                <EndMatchModal
+                    visible={endMatchVisible}
+                    onDismiss={() => setEndMatchVisible(false)}
+                    onEnd={handleFinishMatch}
+                    teamA={match?.team_a}
+                    teamB={match?.team_b}
+                    players={[...(match?.team_a?.players || []), ...(match?.team_b?.players || [])].map(p => ({
+                        id: p.user?.id || p.id,
+                        name: p.user?.name || p.name
+                    }))}
                 />
             </View>
         </SafeAreaView>

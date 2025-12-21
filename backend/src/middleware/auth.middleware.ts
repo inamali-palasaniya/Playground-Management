@@ -1,10 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  console.error('CRITICAL: JWT_SECRET is not defined in environment variables. Authentication will fail.');
-}
+
 
 export interface AuthRequest extends Request {
   user?: {
@@ -16,7 +13,6 @@ export interface AuthRequest extends Request {
 
 import prisma from '../utils/prisma.js';
 
-// Remove local instantiation
 // const prisma = new PrismaClient();
 
 export const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -28,7 +24,9 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
   }
 
   try {
+    const JWT_SECRET = process.env.JWT_SECRET;
     if (!JWT_SECRET) {
+      console.error('CRITICAL: JWT_SECRET missing during token verification.');
       return res.status(500).json({ error: 'Server configuration error (JWT_SECRET)' });
     }
     const verified = jwt.verify(token, JWT_SECRET) as any;

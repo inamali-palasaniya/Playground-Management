@@ -107,7 +107,7 @@ model Attendance {
   out_time          DateTime?
   created_by_id     Int?
   created_by        User?     @relation("AttendanceCreator", fields: [created_by_id], references: [id])
-  user              User      @relation(fields: [user_id], references: [id])
+  user              User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
 
   @@index([user_id])
@@ -127,7 +127,7 @@ model FeeLedger {
   createdAt        DateTime        @default(now())
   created_by_id Int?
   created_by    User?      @relation("LedgerCreator", fields: [created_by_id], references: [id])
-  user          User       @relation(fields: [user_id], references: [id])
+  user          User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
   
   parent_ledger_id Int?
   parent_ledger    FeeLedger?  @relation("LedgerHierarchy", fields: [parent_ledger_id], references: [id])
@@ -156,7 +156,7 @@ model UserFine {
   amount_charged Float
   createdAt      DateTime @default(now())
   rule           FineRule @relation(fields: [rule_id], references: [id])
-  user           User     @relation(fields: [user_id], references: [id])
+  user           User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([user_id])
   @@index([rule_id])
@@ -200,7 +200,7 @@ model Team {
   matches_batting Match[]      @relation("CurrentBattingTeam")
   createdAt     DateTime   @default(now())
   created_by_id Int?
-  tournament    Tournament   @relation(fields: [tournament_id], references: [id])
+  tournament    Tournament   @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
   players       TeamPlayer[]
   created_by    User?      @relation("TeamCreator", fields: [created_by_id], references: [id])
 }
@@ -274,9 +274,9 @@ model BallEvent {
   is_valid_ball   Boolean  @default(true)
   timestamp       DateTime @default(now())
 
-  bowler          User     @relation("Bowler", fields: [bowler_id], references: [id])
+  bowler          User     @relation("Bowler", fields: [bowler_id], references: [id], onDelete: Cascade)
   match           Match    @relation(fields: [match_id], references: [id], onDelete: Cascade)
-  striker         User     @relation("Striker", fields: [striker_id], references: [id])
+  striker         User     @relation("Striker", fields: [striker_id], references: [id], onDelete: Cascade)
   non_striker     User?    @relation("NonStriker", fields: [non_striker_id], references: [id])
 }
 
@@ -284,6 +284,7 @@ model Permission {
   id          Int     @id @default(autoincrement())
   user_id     Int
   module_name String
+  can_view    Boolean @default(false)
   can_add     Boolean @default(false)
   can_edit    Boolean @default(false)
   can_delete  Boolean @default(false)

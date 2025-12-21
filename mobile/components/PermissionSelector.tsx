@@ -60,7 +60,7 @@ export const PermissionSelector = ({ permissions, onChange, readonly = false }: 
             <IconButton
                 icon={isActive ? iconName.replace('-outline', '') : iconName}
                 iconColor={color}
-                size={30}
+                size={26}
                 onPress={() => togglePermission(module, type)}
                 disabled={readonly}
             />

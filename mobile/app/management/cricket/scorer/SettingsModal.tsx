@@ -7,9 +7,10 @@ interface SettingsModalProps {
     onDismiss: () => void;
     settings: any;
     onUpdateSettings: (newSettings: any) => void;
+    onEndMatch: () => void;
 }
 
-export default function SettingsModal({ visible, onDismiss, settings, onUpdateSettings }: SettingsModalProps) {
+export default function SettingsModal({ visible, onDismiss, settings, onUpdateSettings, onEndMatch }: SettingsModalProps) {
     const theme = useTheme();
 
     const toggleRebowl = () => {
@@ -34,6 +35,9 @@ export default function SettingsModal({ visible, onDismiss, settings, onUpdateSe
                             </View>
                             <Switch value={settings.rebowlWideOrNoBall} onValueChange={toggleRebowl} color={theme.colors.primary} />
                         </View>
+                        <Button mode="contained" buttonColor="#d32f2f" onPress={onEndMatch} style={{ marginTop: 20 }}>
+                            End Match
+                        </Button>
                     </Card.Content>
                     <Card.Actions>
                         <Button onPress={onDismiss}>Done</Button>

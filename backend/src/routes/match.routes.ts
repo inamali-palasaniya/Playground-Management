@@ -7,13 +7,9 @@ import {
     recordBallEvent,
     getLiveScore,
     undoLastBall,
-    deleteMatch
-} from '../controllers/match.controller.js';
-
-import {
-    setManOfTheMatch,
+    deleteMatch,
     getMatchStats
-} from '../controllers/match-analytics.controller.js';
+} from '../controllers/match.controller.js';
 
 const router = Router();
 
@@ -28,7 +24,6 @@ router.delete('/:id/undo', undoLastBall);
 router.delete('/:id', deleteMatch);
 
 // Analytics
-router.put('/:id/awards', setManOfTheMatch);
 router.get('/:id/stats', getMatchStats);
 
 export default router;
