@@ -252,6 +252,15 @@ export const recordBallEvent = async (req: Request, res: Response) => {
         });
 
         res.status(201).json(ballEvent);
+
+        // Emit update via Socket.IO
+        try {
+            const { getIO } = require('../server');
+            const io = getIO();
+            if (io) {
+                io.to(`match_${match_id}`).emit('score_update', { type: 'BALL', data: ballEvent });
+            }
+        } catch (e) { console.error('Socket emit failed:', e); }
     } catch (error) {
         console.error('Error recording ball event:', error);
         res.status(500).json({ error: 'Failed to record ball event' });
@@ -279,6 +288,17 @@ export const undoLastBall = async (req: Request, res: Response) => {
         });
 
         res.json({ message: 'Last ball undone successfully' });
+
+        // Emit update via Socket.IO
+        try {
+            const { getIO } = require('../server');
+            const io = getIO();
+            if (io) {
+                io.to(`match_${id}`).emit('score_update', { type: 'UNDO', matchId: id });
+            }
+        } catch (e) {
+            console.error('Socket emit failed:', e);
+        }
 
     } catch (error) {
         console.error('Error undoing last ball:', error);

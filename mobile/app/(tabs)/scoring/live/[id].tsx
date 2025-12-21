@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, StyleSheet, ScrollView, Alert, Dimensions } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, Dimensions, Animated, Easing } from 'react-native';
 import { Text, Button, Card, Divider, ActivityIndicator, IconButton, Surface, Avatar } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { io, Socket } from 'socket.io-client';
@@ -19,10 +19,12 @@ export default function LiveMatchScreen() {
     const [loading, setLoading] = useState(true);
     const socketRef = useRef<Socket | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [animationType, setAnimationType] = useState<'4' | '6' | 'W' | null>(null);
+    const scaleAnim = useRef(new Animated.Value(0)).current;
 
-    const fetchMatchDetails = async () => {
+    const fetchMatchDetails = async (skipLoader = false) => {
         try {
-            const data = await apiService.getMatchById(Number(id));
+            const data = await apiService.getMatchById(Number(id), { skipLoader });
             setMatch(data);
         } catch (error) {
             console.error('Error fetching match:', error);
@@ -61,13 +63,34 @@ export default function LiveMatchScreen() {
     const stats = calculateScore(match?.ball_events);
     const overs = `${Math.floor(stats.balls / 6)}.${stats.balls % 6}`;
 
+    useEffect(() => {
+        if (animationType) {
+            Animated.sequence([
+                Animated.timing(scaleAnim, { toValue: 1, duration: 500, useNativeDriver: true, easing: Easing.bounce }),
+                Animated.delay(1500),
+                Animated.timing(scaleAnim, { toValue: 0, duration: 300, useNativeDriver: true })
+            ]).start(() => setAnimationType(null));
+        }
+    }, [animationType]);
+
     useFocusEffect(
         useCallback(() => {
-            fetchMatchDetails();
+            fetchMatchDetails(); // Initial load with loader
             const socket = io(API_URL);
             socketRef.current = socket;
             socket.on('connect', () => socket.emit('join_match', id));
-            socket.on('score_update', () => fetchMatchDetails());
+
+            socket.on('score_update', (payload: any) => {
+                fetchMatchDetails(true); // Skip loader on update
+
+                if (payload?.type === 'BALL' && payload.data) {
+                    const { runs_scored, is_wicket } = payload.data;
+                    if (is_wicket) setAnimationType('W');
+                    else if (runs_scored === 6) setAnimationType('6');
+                    else if (runs_scored === 4) setAnimationType('4');
+                }
+            });
+
             return () => {
                 if (socket) {
                     socket.emit('leave_match', id);
@@ -161,7 +184,20 @@ export default function LiveMatchScreen() {
                     </Button>
                 )}
             </ScrollView>
-        </View>
+
+            {/* Animation Overlay */}
+            {
+                animationType && (
+                    <View style={styles.animationOverlay} pointerEvents="none">
+                        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                            <Text style={styles.animationText}>
+                                {animationType === '6' ? '🎆 6 🎆' : animationType === '4' ? '🏏 4 🏏' : '🧨 WICKET 🧨'}
+                            </Text>
+                        </Animated.View>
+                    </View>
+                )
+            }
+        </View >
     );
 }
 
@@ -196,10 +232,25 @@ const styles = StyleSheet.create({
     oversText: { color: '#666' },
     divider: { width: '100%', marginVertical: 15, backgroundColor: '#eee', height: 1 },
     tossText: { fontSize: 12, color: '#666', fontStyle: 'italic', textAlign: 'center' },
-    content: { marginTop: 80, padding: 20 },
+    content: { marginTop: 100, padding: 20 },
     card: { marginBottom: 20, backgroundColor: 'white', borderRadius: 12 },
     infoRow: { flexDirection: 'row', marginBottom: 8 },
     infoLabel: { width: 80, color: 'gray', fontWeight: 'bold' },
     infoValue: { flex: 1, color: '#333' },
-    scoreButton: { marginTop: 20, borderRadius: 8, paddingVertical: 4 }
+    scoreButton: { marginTop: 20, borderRadius: 8, paddingVertical: 4 },
+    animationOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        zIndex: 1000
+    },
+    animationText: {
+        fontSize: 64,
+        fontWeight: 'bold',
+        color: '#FFD700',
+        textShadowColor: 'rgba(0,0,0,0.75)',
+        textShadowOffset: { width: 2, height: 2 },
+        textShadowRadius: 10
+    }
 });

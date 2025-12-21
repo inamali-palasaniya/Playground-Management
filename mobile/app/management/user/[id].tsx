@@ -12,6 +12,7 @@ import { Linking } from 'react-native';
 import { PermissionSelector } from '../../../components/PermissionSelector';
 import { generateReceipt } from '../../../utils/receiptGenerator';
 import { useAuth } from '../../../context/AuthContext';
+import { AuthService } from '../../../services/auth.service';
 
 // --- Sub-Components for Tabs ---
 
@@ -64,7 +65,7 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
     );
 };
 
-const FineRoute = ({ userId, isFocused, userRole }: { userId: number, isFocused: boolean, userRole?: string }) => {
+const FineRoute = ({ userId, isFocused, currentUser }: { userId: number, isFocused: boolean, currentUser: any }) => {
     const [fines, setFines] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
@@ -90,6 +91,9 @@ const FineRoute = ({ userId, isFocused, userRole }: { userId: number, isFocused:
         ]);
     };
 
+    const canDelete = AuthService.hasPermission(currentUser, 'charge', 'delete'); // Fines are charges
+    const canAdd = AuthService.hasPermission(currentUser, 'charge', 'add');
+
     return (
         <View style={{ flex: 1 }}>
             <ScrollView style={styles.tabContent}>
@@ -106,21 +110,21 @@ const FineRoute = ({ userId, isFocused, userRole }: { userId: number, isFocused:
                                             By: {item.created_by?.name || 'Admin'}
                                         </Text>
                                     </View>
-                                    <IconButton icon="delete" iconColor="red" onPress={() => handleDelete(item.id)} />
+                                    {canDelete && <IconButton icon="delete" iconColor="red" onPress={() => handleDelete(item.id)} />}
                                 </View>
                             </Card.Content>
                         </Card>
                     ))
                 )}
             </ScrollView>
-            {isFocused && (userRole !== 'NORMAL') && (
+            {isFocused && canAdd && (
                 <FAB icon="plus" color="white" style={styles.fab} onPress={() => router.push({ pathname: '/management/apply-fine', params: { userId } })} label="Apply Fine" visible={isFocused} />
             )}
         </View>
     );
 };
 
-const LedgerRoute = ({ userId, isFocused, userRole }: { userId: number, isFocused: boolean, userRole?: string }) => {
+const LedgerRoute = ({ userId, isFocused, currentUser }: { userId: number, isFocused: boolean, currentUser: any }) => {
     const [ledger, setLedger] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [fabOpen, setFabOpen] = useState(false);
@@ -232,97 +236,107 @@ const LedgerRoute = ({ userId, isFocused, userRole }: { userId: number, isFocuse
         }
     });
 
+    // Generic permissions for ledger actions
+    const canAddPayment = AuthService.hasPermission(currentUser, 'payment', 'add');
+    const canAddCharge = AuthService.hasPermission(currentUser, 'charge', 'add');
+
     return (
         <View style={{ flex: 1 }}>
             <ScrollView style={styles.tabContent}>
                 {ledger.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No ledger records.</Text> : (
-                    rootItems.map((item) => (
-                        <Card
-                            key={item.id}
-                            style={[styles.ledgerCard, { borderLeftColor: item.is_paid ? 'green' : 'red', borderLeftWidth: 4 }]}
-                            onPress={() => router.push({ pathname: '/management/ledger/[id]', params: { id: item.id, userId } })}
-                        >
-                            <Card.Content>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                    <View style={{ flex: 1 }}>
-                                        <Text variant="titleMedium">{item.type.replace('_', ' ')} <Text style={{ fontSize: 12, color: 'gray' }}>#{item.id}</Text></Text>
-                                        <Text variant="bodySmall">{format(new Date(item.date), 'dd MMM yyyy')}</Text>
-                                        {item.notes && <Text variant="bodySmall" style={{ color: 'gray' }}>{item.notes}</Text>}
-                                        <Text variant="bodySmall" style={{ color: '#8b8b8b', fontStyle: 'italic', marginTop: 2 }}>
-                                            By: {item.created_by?.name || 'Admin'}
-                                        </Text>
-                                        {/* Children (Payments) */}
-                                        {item.children && item.children.length > 0 && (
-                                            <View style={{ marginTop: 8, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#eee' }}>
-                                                {item.children.map((child: any) => (
-                                                    <View key={child.id} style={{ marginBottom: 4 }}>
-                                                        <Text variant="bodySmall" style={{ color: 'green' }}>
-                                                            Paid ₹{child.amount} on {format(new Date(child.date), 'dd MMM')} <Text style={{ fontSize: 10, color: '#ccc' }}>PMT-{child.id}</Text>
-                                                        </Text>
-                                                    </View>
-                                                ))}
-                                            </View>
-                                        )}
-                                    </View>
-                                    <View style={{ alignItems: 'flex-end' }}>
-                                        <Text variant="titleMedium" style={{ color: item.type === 'PAYMENT' || item.transaction_type === 'CREDIT' ? 'green' : 'black' }}>
-                                            {item.transaction_type === 'CREDIT' ? '-' : '+'}₹{item.amount}
-                                        </Text>
-                                        <Text variant="labelSmall" style={{ color: item.is_paid ? 'green' : 'red' }}>
-                                            {item.is_paid ? 'PAID' : 'UNPAID'}
-                                        </Text>
+                    rootItems.map((item) => {
+                        const isPayment = item.type === 'PAYMENT' || item.transaction_type === 'CREDIT';
+                        const canEdit = AuthService.hasPermission(currentUser, isPayment ? 'payment' : 'charge', 'edit');
+                        const canDelete = AuthService.hasPermission(currentUser, isPayment ? 'payment' : 'charge', 'delete');
 
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                                            {/* Pay Button for Unpaid Debits */}
-                                            {!item.is_paid && item.transaction_type === 'DEBIT' && userRole !== 'NORMAL' && (
-                                                <Button
-                                                    mode="contained"
-                                                    compact
-                                                    labelStyle={{ fontSize: 10, marginVertical: 2, color: 'white' }}
-                                                    style={{ marginRight: 8, height: 24 }}
-                                                    onPress={() => router.push({
-                                                        pathname: '/management/add-payment',
-                                                        params: {
-                                                            userId,
-                                                            userName: 'User',
-                                                            linkedChargeId: item.id,
-                                                            linkedAmount: item.amount,
-                                                            linkedType: item.type === 'SUBSCRIPTION' ? 'SUBSCRIPTION' : 'PAYMENT'
-                                                        }
-                                                    })}
-                                                >
-                                                    Pay
-                                                </Button>
+                        return (
+                            <Card
+                                key={item.id}
+                                style={[styles.ledgerCard, { borderLeftColor: item.is_paid ? 'green' : 'red', borderLeftWidth: 4 }]}
+                                onPress={() => router.push({ pathname: '/management/ledger/[id]', params: { id: item.id, userId } })}
+                            >
+                                <Card.Content>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                        <View style={{ flex: 1 }}>
+                                            <Text variant="titleMedium">{item.type.replace('_', ' ')} <Text style={{ fontSize: 12, color: 'gray' }}>#{item.id}</Text></Text>
+                                            <Text variant="bodySmall">{format(new Date(item.date), 'dd MMM yyyy')}</Text>
+                                            {item.notes && <Text variant="bodySmall" style={{ color: 'gray' }}>{item.notes}</Text>}
+                                            <Text variant="bodySmall" style={{ color: '#8b8b8b', fontStyle: 'italic', marginTop: 2 }}>
+                                                By: {item.created_by?.name || 'Admin'}
+                                            </Text>
+                                            {/* Children (Payments) */}
+                                            {item.children && item.children.length > 0 && (
+                                                <View style={{ marginTop: 8, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#eee' }}>
+                                                    {item.children.map((child: any) => (
+                                                        <View key={child.id} style={{ marginBottom: 4 }}>
+                                                            <Text variant="bodySmall" style={{ color: 'green' }}>
+                                                                Paid ₹{child.amount} on {format(new Date(child.date), 'dd MMM')} <Text style={{ fontSize: 10, color: '#ccc' }}>PMT-{child.id}</Text>
+                                                            </Text>
+                                                        </View>
+                                                    ))}
+                                                </View>
                                             )}
+                                        </View>
+                                        <View style={{ alignItems: 'flex-end' }}>
+                                            <Text variant="titleMedium" style={{ color: item.type === 'PAYMENT' || item.transaction_type === 'CREDIT' ? 'green' : 'black' }}>
+                                                {item.transaction_type === 'CREDIT' ? '-' : '+'}₹{item.amount}
+                                            </Text>
+                                            <Text variant="labelSmall" style={{ color: item.is_paid ? 'green' : 'red' }}>
+                                                {item.is_paid ? 'PAID' : 'UNPAID'}
+                                            </Text>
 
-                                            {userRole !== 'NORMAL' && <IconButton icon="pencil" size={18} onPress={() => handleEditStart(item)} />}
-                                            <IconButton icon="file-document-outline" size={18} iconColor="#1565c0" onPress={() => handleReceipt(item)} />
-                                            {userRole !== 'NORMAL' && <IconButton icon="delete" size={18} iconColor="red" onPress={() => handleDelete(item.id)} />}
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                                                {/* Pay Button for Unpaid Debits */}
+                                                {!item.is_paid && item.transaction_type === 'DEBIT' && canAddPayment && (
+                                                    <Button
+                                                        mode="contained"
+                                                        compact
+                                                        labelStyle={{ fontSize: 10, marginVertical: 2, color: 'white' }}
+                                                        style={{ marginRight: 8, height: 24 }}
+                                                        onPress={() => router.push({
+                                                            pathname: '/management/add-payment',
+                                                            params: {
+                                                                userId,
+                                                                userName: 'User',
+                                                                linkedChargeId: item.id,
+                                                                linkedAmount: item.amount,
+                                                                linkedType: item.type === 'SUBSCRIPTION' ? 'SUBSCRIPTION' : 'PAYMENT'
+                                                            }
+                                                        })}
+                                                    >
+                                                        Pay
+                                                    </Button>
+                                                )}
+
+                                                {canEdit && <IconButton icon="pencil" size={18} onPress={() => handleEditStart(item)} />}
+                                                <IconButton icon="file-document-outline" size={18} iconColor="#1565c0" onPress={() => handleReceipt(item)} />
+                                                {canDelete && <IconButton icon="delete" size={18} iconColor="red" onPress={() => handleDelete(item.id)} />}
+                                            </View>
                                         </View>
                                     </View>
-                                </View>
-                            </Card.Content>
-                        </Card>
-                    ))
+                                </Card.Content>
+                            </Card>
+                        )
+                    })
                 )}
             </ScrollView>
-            {userRole !== 'NORMAL' && (
+            {(canAddPayment || canAddCharge) && (
                 <Portal>
                     <FAB.Group
                         open={fabOpen}
                         visible={isFocused} // Only visible when screen is focused
                         icon={fabOpen ? 'close' : 'plus'}
                         actions={[
-                            {
+                            ...(canAddPayment ? [{
                                 icon: 'cash-plus',
                                 label: 'Add Payment',
                                 onPress: () => router.push({ pathname: '/management/add-payment', params: { userId, initialTxType: 'CREDIT' } }),
-                            },
-                            {
+                            }] : []),
+                            ...(canAddCharge ? [{
                                 icon: 'cash-minus',
                                 label: 'Add Charge',
                                 onPress: () => router.push({ pathname: '/management/add-payment', params: { userId, initialTxType: 'DEBIT' } }),
-                            },
+                            }] : []),
                         ]}
                         onStateChange={({ open }) => setFabOpen(open)}
                         style={{ paddingBottom: 60 }}
@@ -334,8 +348,8 @@ const LedgerRoute = ({ userId, isFocused, userRole }: { userId: number, isFocuse
 };
 
 
-const AttendanceRoute = ({ userId, isFocused, onUpdate, userRole }: { userId: number, isFocused: boolean, onUpdate?: () => void, userRole?: string }) => {
-    const isNormalUser = userRole === 'NORMAL';
+const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser }: { userId: number, isFocused: boolean, onUpdate?: () => void, currentUser: any }) => {
+    const isNormalUser = currentUser?.role === 'NORMAL';
     const [attendance, setAttendance] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -482,7 +496,7 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, userRole }: { userId: nu
                             <DataTable.Title>In</DataTable.Title>
                             <DataTable.Title>Out</DataTable.Title>
                             <DataTable.Title numeric>Fee</DataTable.Title>
-                            {!isNormalUser && <DataTable.Title numeric>Actions</DataTable.Title>}
+                            {(AuthService.hasPermission(currentUser, 'user', 'edit') || AuthService.hasPermission(currentUser, 'user', 'delete')) && <DataTable.Title numeric>Actions</DataTable.Title>}
                         </DataTable.Header>
                         {attendance.map((record) => (
                             <DataTable.Row key={record.id}>
@@ -490,11 +504,11 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, userRole }: { userId: nu
                                 <DataTable.Cell>{record.in_time ? format(new Date(record.in_time), 'HH:mm') : '-'}</DataTable.Cell>
                                 <DataTable.Cell>{record.out_time ? format(new Date(record.out_time), 'HH:mm') : '-'}</DataTable.Cell>
                                 <DataTable.Cell numeric>₹{record.daily_fee_charged || 0}</DataTable.Cell>
-                                {!isNormalUser && (
+                                {(AuthService.hasPermission(currentUser, 'user', 'edit') || AuthService.hasPermission(currentUser, 'user', 'delete')) && (
                                     <DataTable.Cell numeric>
                                         <View style={{ flexDirection: 'row' }}>
-                                            <IconButton icon="pencil" size={18} onPress={() => handleEditStart(record)} />
-                                            <IconButton icon="delete" size={18} iconColor="red" onPress={() => {
+                                            {AuthService.hasPermission(currentUser, 'user', 'edit') && <IconButton icon="pencil" size={18} onPress={() => handleEditStart(record)} />}
+                                            {AuthService.hasPermission(currentUser, 'user', 'delete') && <IconButton icon="delete" size={18} iconColor="red" onPress={() => {
                                                 Alert.alert('Delete', 'Delete attendance?', [
                                                     { text: 'Cancel' },
                                                     {
@@ -506,16 +520,12 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, userRole }: { userId: nu
                                                                 Alert.alert('Success', 'Attendance deleted');
                                                             } catch (e: any) {
                                                                 console.error(e);
-                                                                if (e.status === 403 || (e.body && e.body.includes('Forbidden'))) { // Check for RBAC error
-                                                                    Alert.alert('Permission Denied', 'Only Management can delete attendance.');
-                                                                } else {
-                                                                    Alert.alert('Error', 'Failed to delete attendance');
-                                                                }
+                                                                Alert.alert('Error', 'Failed to delete attendance');
                                                             }
                                                         }
                                                     }
                                                 ]);
-                                            }} />
+                                            }} />}
                                         </View>
                                     </DataTable.Cell>
                                 )}
@@ -699,13 +709,13 @@ export default function UserDetailScreen() {
         const currentUserRole = currentUser?.role || 'NORMAL';
         switch (route.key) {
             case 'ledger':
-                return <LedgerRoute userId={Number(id)} isFocused={isFocused} userRole={currentUserRole} />;
+                return <LedgerRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} />;
             case 'fine':
-                return <FineRoute userId={Number(id)} isFocused={isFocused} userRole={currentUserRole} />;
+                return <FineRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} />;
             case 'attendance':
                 return <AttendanceRoute userId={Number(id)} isFocused={isFocused} onUpdate={() => {
                     apiService.getUserById(Number(id)).then(setUser);
-                }} />;
+                }} currentUser={currentUser} />;
             case 'permissions':
                 return <PermissionsRoute
                     userId={Number(id)}

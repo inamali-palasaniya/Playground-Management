@@ -553,8 +553,8 @@ class ApiService {
         return this.request<any[]>(`/api/matches${query}`);
     }
 
-    async getMatchById(id: number): Promise<any> {
-        return this.request<any>(`/api/matches/${id}`);
+    async getMatchById(id: number, options?: { skipLoader?: boolean }): Promise<any> {
+        return this.request<any>(`/api/matches/${id}`, options);
     }
 
     async updateMatch(id: number, data: any): Promise<any> {

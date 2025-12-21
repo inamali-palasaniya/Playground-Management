@@ -4,6 +4,9 @@ import { Text, Button, ActivityIndicator, IconButton, useTheme, Card, Avatar, Di
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../../../services/api.service';
+import { io, Socket } from 'socket.io-client';
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000';
 import MatchSetupModal from './MatchSetupModal';
 import SelectPlayerModal from './SelectPlayerModal';
 import SettingsModal from './SettingsModal';
@@ -13,6 +16,7 @@ export default function ScorerScreen() {
     const router = useRouter();
     const [match, setMatch] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const socketRef = React.useRef<Socket | null>(null);
 
     // Theme Colors for Night Mode (Moved up for availability in early returns)
     const bgColor = '#121212';
@@ -124,10 +128,10 @@ export default function ScorerScreen() {
         }));
     };
 
-    const loadMatch = async () => {
+    const loadMatch = async (skipLoader = false) => {
         try {
-            setLoading(true);
-            const data = await apiService.getMatchById(Number(matchId));
+            if (!skipLoader) setLoading(true);
+            const data = await apiService.getMatchById(Number(matchId), { skipLoader });
             setMatch(data);
 
             if (data.status === 'SCHEDULED' && (!data.ball_events || data.ball_events.length === 0)) {
@@ -146,6 +150,15 @@ export default function ScorerScreen() {
     useEffect(() => {
         if (matchId) {
             loadMatch();
+            const socket = io(API_URL);
+            socketRef.current = socket;
+            socket.on('connect', () => socket.emit('join_match', matchId));
+            socket.on('score_update', () => loadMatch(true));
+            return () => {
+                socket.emit('leave_match', matchId);
+                socket.disconnect();
+                socketRef.current = null;
+            };
         } else {
             setLoading(false);
         }
@@ -489,10 +502,10 @@ const styles = StyleSheet.create({
     statsCard: { marginBottom: 20, borderRadius: 16 },
     playerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     controls: { paddingBottom: 20, paddingTop: 10 },
-    buttonGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginBottom: 15 },
-    runBtn: { width: '30%', height: 65, justifyContent: 'center', alignItems: 'center', borderRadius: 12, elevation: 2 },
+    buttonGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 15 },
+    runBtn: { width: '31%', height: 60, justifyContent: 'center', alignItems: 'center', borderRadius: 12, elevation: 2, marginBottom: 10 },
     row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-    actionBtn: { flex: 1, marginHorizontal: 4, borderRadius: 10 }
+    actionBtn: { flex: 1, marginHorizontal: 2, borderRadius: 8 }
 });
 
 
