@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { View, StyleSheet, ScrollView, useWindowDimensions, Alert, Platform, TouchableOpacity } from 'react-native';
 import { Text, Avatar, Button, Card, useTheme, DataTable, FAB, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Menu, Divider } from 'react-native-paper';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import apiService from '../../../services/api.service';
 import { format } from 'date-fns';
@@ -101,21 +101,20 @@ const FineRoute = ({ userId, isFocused, currentUser }: { userId: number, isFocus
                 {fines.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No fines found.</Text> : (
                     fines.map((item) => (
                         <Card key={item.id} style={styles.ledgerCard}>
-                            <Card.Content>
+                            <Card.Content style={{ paddingVertical: 8 }}>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <View>
-                                        <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>Fine</Text>
+                                    <View style={{ flex: 1 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                            <MaterialCommunityIcons name="alert-decagram" size={16} color="#d32f2f" />
+                                            <Text variant="titleSmall" style={{ fontWeight: 'bold' }}>Fine</Text>
+                                        </View>
                                         <Text variant="bodySmall" style={{ color: 'gray' }}>{format(new Date(item.date), 'dd MMM yyyy')}</Text>
-                                        <Text variant="bodyMedium" style={{ color: '#d32f2f', fontWeight: 'bold' }}>₹{item.amount}</Text>
                                         <Text variant="bodySmall" style={{ color: '#999' }}>By: {item.created_by?.name || 'Admin'}</Text>
                                     </View>
-                                    <View>
-                                        <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>Fine</Text>
-                                        <Text variant="bodySmall" style={{ color: 'gray' }}>{format(new Date(item.date), 'dd MMM yyyy')}</Text>
-                                        <Text variant="bodyMedium" style={{ color: '#d32f2f', fontWeight: 'bold' }}>₹{item.amount}</Text>
-                                        <Text variant="bodySmall" style={{ color: '#999' }}>By: {item.created_by?.name || 'Admin'}</Text>
+                                    <View style={{ alignItems: 'flex-end' }}>
+                                        <Text variant="titleMedium" style={{ color: '#d32f2f', fontWeight: 'bold' }}>₹{item.amount}</Text>
+                                        {canDelete && <IconButton icon="delete-outline" iconColor="#d32f2f" size={20} onPress={() => handleDelete(item.id)} style={{ margin: 0 }} />}
                                     </View>
-                                    {canDelete && <IconButton icon="delete-outline" iconColor="#d32f2f" size={20} onPress={() => handleDelete(item.id)} />}
                                 </View>
                             </Card.Content>
                         </Card>
@@ -496,24 +495,27 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser }: { userId:
             <ScrollView style={styles.tabContent}>
                 {attendance.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No attendance records.</Text> : (
                     <DataTable>
-                        <DataTable.Header>
+                        <DataTable.Header style={{ height: 40 }}>
                             <DataTable.Title>Date</DataTable.Title>
-                            <DataTable.Title>In</DataTable.Title>
-                            <DataTable.Title>Out</DataTable.Title>
+                            <DataTable.Title>In/Out</DataTable.Title>
                             <DataTable.Title numeric>Fee</DataTable.Title>
-                            {(AuthService.hasPermission(currentUser, 'user', 'edit') || AuthService.hasPermission(currentUser, 'user', 'delete')) && <DataTable.Title numeric>Actions</DataTable.Title>}
+                            {(AuthService.hasPermission(currentUser, 'user', 'edit') || AuthService.hasPermission(currentUser, 'user', 'delete')) && <DataTable.Title numeric>Act</DataTable.Title>}
                         </DataTable.Header>
                         {attendance.map((record) => (
-                            <DataTable.Row key={record.id}>
+                            <DataTable.Row key={record.id} style={{ height: 48 }}>
                                 <DataTable.Cell>{format(new Date(record.date), 'dd/MM')}</DataTable.Cell>
-                                <DataTable.Cell>{record.in_time ? format(new Date(record.in_time), 'HH:mm') : '-'}</DataTable.Cell>
-                                <DataTable.Cell>{record.out_time ? format(new Date(record.out_time), 'HH:mm') : '-'}</DataTable.Cell>
+                                <DataTable.Cell>
+                                    <Text style={{ fontSize: 12 }}>
+                                        {record.in_time ? format(new Date(record.in_time), 'HH:mm') : '-'}
+                                        {record.out_time ? ` / ${format(new Date(record.out_time), 'HH:mm')}` : ''}
+                                    </Text>
+                                </DataTable.Cell>
                                 <DataTable.Cell numeric>₹{record.daily_fee_charged || 0}</DataTable.Cell>
                                 {(AuthService.hasPermission(currentUser, 'user', 'edit') || AuthService.hasPermission(currentUser, 'user', 'delete')) && (
                                     <DataTable.Cell numeric>
                                         <View style={{ flexDirection: 'row' }}>
-                                            {AuthService.hasPermission(currentUser, 'user', 'edit') && <IconButton icon="pencil" size={18} onPress={() => handleEditStart(record)} />}
-                                            {AuthService.hasPermission(currentUser, 'user', 'delete') && <IconButton icon="delete" size={18} iconColor="red" onPress={() => {
+                                            {AuthService.hasPermission(currentUser, 'user', 'edit') && <IconButton icon="pencil" size={16} onPress={() => handleEditStart(record)} style={{ margin: 0 }} />}
+                                            {AuthService.hasPermission(currentUser, 'user', 'delete') && <IconButton icon="delete" size={16} iconColor="red" style={{ margin: 0 }} onPress={() => {
                                                 Alert.alert('Delete', 'Delete attendance?', [
                                                     { text: 'Cancel' },
                                                     {
@@ -737,11 +739,13 @@ export default function UserDetailScreen() {
     const [todaysAttendance, setTodaysAttendance] = useState<any>(null);
     const [loggedTime, setLoggedTime] = useState("0h 00m");
 
-    useEffect(() => {
-        if (id) {
-            apiService.getUserById(Number(id)).then((data: any) => setUser(data));
-        }
-    }, [id]);
+    useFocusEffect(
+        useCallback(() => {
+            if (id) {
+                apiService.getUserById(Number(id)).then((data: any) => setUser(data));
+            }
+        }, [id])
+    );
 
     useEffect(() => {
         if (user?.attendances && user.attendances.length > 0) {
@@ -827,32 +831,35 @@ export default function UserDetailScreen() {
                 >
                     <View style={styles.topNav}>
                         <IconButton icon="arrow-left" iconColor="white" size={24} onPress={() => router.back()} />
-                        <Text variant="titleLarge" style={{ fontWeight: 'bold', flex: 1, textAlign: 'center', color: 'white' }}>
+                        <Text variant="titleMedium" style={{ fontWeight: 'bold', flex: 1, textAlign: 'center', color: 'white' }}>
                             Profile
                         </Text>
-                        {currentUser?.role !== 'NORMAL' && (
+                        {(AuthService.hasPermission(currentUser, 'payment', 'add') || AuthService.hasPermission(currentUser, 'charge', 'add')) ? (
                             <Menu
                                 visible={menuVisible}
                                 onDismiss={closeMenu}
                                 anchor={<IconButton icon="dots-vertical" iconColor="white" onPress={openMenu} />}
                             >
-                                <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Payment" leadingIcon="cash-plus" />
-                                <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id } }) }} title="Add Charge" leadingIcon="cash-minus" />
+                                {AuthService.hasPermission(currentUser, 'payment', 'add') && (
+                                    <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id, initialTxType: 'CREDIT' } }) }} title="Add Payment" leadingIcon="cash-plus" />
+                                )}
+                                {AuthService.hasPermission(currentUser, 'charge', 'add') && (
+                                    <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id, initialTxType: 'DEBIT' } }) }} title="Add Charge" leadingIcon="cash-minus" />
+                                )}
                             </Menu>
-                        )}
-                        {currentUser?.role === 'NORMAL' && <View style={{ width: 48 }} />}
+                        ) : <View style={{ width: 48 }} />}
                     </View>
 
-                    <View style={{ alignItems: 'center', paddingBottom: 40 }}>
+                    <View style={{ alignItems: 'center', paddingBottom: 20 }}>
                         <Avatar.Text
-                            size={80}
+                            size={64}
                             label={user.name.substring(0, 2).toUpperCase()}
                             style={{ backgroundColor: 'white', elevation: 4 }}
                             color={theme.colors.primary}
                             labelStyle={{ fontWeight: 'bold' }}
                         />
-                        <Text variant="headlineSmall" style={{ color: 'white', fontWeight: 'bold', marginTop: 10 }}>{user.name}</Text>
-                        <Text variant="bodyMedium" style={{ color: 'rgba(255,255,255,0.9)' }}>{user.role === 'SUPER_ADMIN' ? 'Super Admin' : user.role || 'User'}</Text>
+                        <Text variant="titleLarge" style={{ color: 'white', fontWeight: 'bold', marginTop: 8 }}>{user.name}</Text>
+                        <Text variant="bodySmall" style={{ color: 'rgba(255,255,255,0.9)' }}>{user.role === 'SUPER_ADMIN' ? 'Super Admin' : user.role || 'User'}</Text>
                     </View>
                 </LinearGradient>
 
@@ -900,8 +907,17 @@ export default function UserDetailScreen() {
                                 compact
                                 textColor={todaysAttendance && !todaysAttendance.out_time ? "red" : "white"}
                                 buttonColor={todaysAttendance && !todaysAttendance.out_time ? "white" : theme.colors.primary}
-                                style={{ borderColor: 'red' }}
+                                style={{ borderColor: 'red', height: 32 }}
+                                labelStyle={{ fontSize: 12 }}
                                 onPress={async () => {
+                                    const canPunchOthers = AuthService.hasPermission(currentUser, 'attendance', 'add');
+                                    const isSelf = currentUser?.id === user.id;
+
+                                    if (!isSelf && !canPunchOthers) {
+                                        Alert.alert("Permission Denied", "You don't have permission to punch for other users.");
+                                        return;
+                                    }
+
                                     try {
                                         if (todaysAttendance && !todaysAttendance.out_time) {
                                             await apiService.checkOut(user.id);
@@ -930,16 +946,22 @@ export default function UserDetailScreen() {
                                 ) : (
                                     <View style={{ flexDirection: 'row', borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: '#eee' }}>
                                         <TouchableOpacity
-                                            onPress={() => apiService.updateUser(user.id, { is_active: true } as any).then(() => refreshUser())}
+                                            onPress={() => {
+                                                if (!AuthService.hasPermission(currentUser, 'user', 'edit')) return Alert.alert("Denied", "No permission to edit users.");
+                                                apiService.updateUser(user.id, { is_active: true } as any).then(() => refreshUser())
+                                            }}
                                             style={{ backgroundColor: user.is_active ? 'green' : 'white', paddingHorizontal: 12, paddingVertical: 6 }}
                                         >
-                                            <Text style={{ color: user.is_active ? 'white' : 'gray', fontSize: 12 }}>Active</Text>
+                                            <Text style={{ color: user.is_active ? 'white' : 'gray', fontSize: 11, fontWeight: 'bold' }}>Active</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            onPress={() => apiService.updateUser(user.id, { is_active: false } as any).then(() => refreshUser())}
+                                            onPress={() => {
+                                                if (!AuthService.hasPermission(currentUser, 'user', 'edit')) return Alert.alert("Denied", "No permission to edit users.");
+                                                apiService.updateUser(user.id, { is_active: false } as any).then(() => refreshUser())
+                                            }}
                                             style={{ backgroundColor: !user.is_active ? 'red' : 'white', paddingHorizontal: 12, paddingVertical: 6 }}
                                         >
-                                            <Text style={{ color: !user.is_active ? 'white' : 'gray', fontSize: 12 }}>Inactive</Text>
+                                            <Text style={{ color: !user.is_active ? 'white' : 'gray', fontSize: 11, fontWeight: 'bold' }}>Inactive</Text>
                                         </TouchableOpacity>
                                     </View>
                                 )}
@@ -958,23 +980,22 @@ export default function UserDetailScreen() {
 
                 {/* Subscription & Financial Breakdown Block */}
                 <Card style={{ marginHorizontal: 16, marginBottom: 15, backgroundColor: 'white', elevation: 2 }}>
-                    <Card.Title
-                        title="Subscription & Financials"
-                        left={(props) => <MaterialCommunityIcons {...props} name="wallet-membership" color={theme.colors.primary} />}
-                    />
-                    <Card.Content>
+                    <Card.Content style={{ paddingVertical: 10 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                            <MaterialCommunityIcons name="wallet-membership" size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
+                            <Text variant="titleSmall" style={{ fontWeight: 'bold', flex: 1 }}>Subscription & Financials</Text>
+                        </View>
                         {/* Plan Details */}
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#eee' }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
                             <View>
-                                <Text variant="labelMedium" style={{ color: 'gray' }}>Current Plan</Text>
-                                <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>
+                                <Text variant="labelSmall" style={{ color: 'gray' }}>Current Plan</Text>
+                                <Text variant="bodyMedium" style={{ fontWeight: 'bold' }}>
                                     {user.plan_name || 'Standard Plan'}
                                 </Text>
                             </View>
                             <View style={{ alignItems: 'flex-end' }}>
-                                <Text variant="labelMedium" style={{ color: 'gray' }}>Rate</Text>
-                                <Text variant="titleMedium" style={{ fontWeight: 'bold', color: theme.colors.primary }}>
-                                    {/* Assuming deposit_amount is roughly current plan rate or using logic from subscription data if available */}
+                                <Text variant="labelSmall" style={{ color: 'gray' }}>Rate</Text>
+                                <Text variant="bodyMedium" style={{ fontWeight: 'bold', color: theme.colors.primary }}>
                                     {user.subscriptions && user.subscriptions.length > 0
                                         ? `₹${user.subscriptions[0].plan?.amount || 0}/${user.subscriptions[0].plan?.frequency === 'DAILY' ? 'day' : 'month'}`
                                         : 'No Active Plan'}
@@ -984,21 +1005,21 @@ export default function UserDetailScreen() {
 
                         {/* Financial Stats Grid */}
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                            <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#eee' }}>
-                                <Text variant="labelMedium" style={{ color: 'gray' }}>Total Paid</Text>
-                                <Text variant="titleLarge" style={{ color: 'green', fontWeight: 'bold' }}>
+                            <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#f0f0f0' }}>
+                                <Text variant="labelSmall" style={{ color: 'gray' }}>Total Paid</Text>
+                                <Text variant="titleMedium" style={{ color: 'green', fontWeight: 'bold' }}>
                                     ₹{user.total_credits || 0}
                                 </Text>
                             </View>
-                            <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#eee' }}>
-                                <Text variant="labelMedium" style={{ color: 'gray' }}>Total Expenses</Text>
-                                <Text variant="titleLarge" style={{ color: '#d32f2f', fontWeight: 'bold' }}>
+                            <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#f0f0f0' }}>
+                                <Text variant="labelSmall" style={{ color: 'gray' }}>Total Expenses</Text>
+                                <Text variant="titleMedium" style={{ color: '#d32f2f', fontWeight: 'bold' }}>
                                     ₹{user.total_debits || 0}
                                 </Text>
                             </View>
                             <View style={{ flex: 1, alignItems: 'center' }}>
-                                <Text variant="labelMedium" style={{ color: 'gray' }}>{user.balance < 0 ? 'Due' : 'Advance'}</Text>
-                                <Text variant="titleLarge" style={{ color: user.balance < 0 ? 'red' : 'green', fontWeight: 'bold' }}>
+                                <Text variant="labelSmall" style={{ color: 'gray' }}>{user.balance < 0 ? 'Due' : 'Advance'}</Text>
+                                <Text variant="titleMedium" style={{ color: user.balance < 0 ? 'red' : 'green', fontWeight: 'bold' }}>
                                     ₹{Math.abs(user.balance || 0)}
                                 </Text>
                             </View>
@@ -1041,10 +1062,10 @@ const styles = StyleSheet.create({
     loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     headerGradient: {
         paddingTop: Platform.OS === 'android' ? 40 : 0,
-        paddingBottom: 40,
+        paddingBottom: 25,
         borderBottomLeftRadius: 20,
         borderBottomRightRadius: 20,
-        marginBottom: 40 // Space for floating card
+        marginBottom: 30 // Reduced space for floating card
     },
     topNav: {
         flexDirection: 'row',

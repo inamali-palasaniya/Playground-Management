@@ -7,7 +7,8 @@ import apiService from '../../../../services/api.service';
 import { io, Socket } from 'socket.io-client';
 import { AuthService } from '../../../../services/auth.service';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000';
+import { API_BASE_URL } from '../../../../constants/api';
+const API_URL = API_BASE_URL.replace('/api', '');
 import MatchSetupModal from './MatchSetupModal';
 import SelectPlayerModal from './SelectPlayerModal';
 import SettingsModal from './SettingsModal';
@@ -19,13 +20,22 @@ export default function ScorerScreen() {
     const [match, setMatch] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const socketRef = React.useRef<Socket | null>(null);
-    const [canScore, setCanScore] = useState(false);
+    const [perms, setPerms] = useState({
+        view: false,
+        add: false,
+        edit: false,
+        delete: false
+    });
     const [endMatchVisible, setEndMatchVisible] = useState(false);
 
     useEffect(() => {
         AuthService.getUser().then(user => {
-            const hasPerm = AuthService.hasPermission(user, 'cricket_scoring', 'edit');
-            setCanScore(hasPerm);
+            setPerms({
+                view: AuthService.hasPermission(user, 'cricket_scoring', 'view'),
+                add: AuthService.hasPermission(user, 'cricket_scoring', 'add'),
+                edit: AuthService.hasPermission(user, 'cricket_scoring', 'edit'),
+                delete: AuthService.hasPermission(user, 'cricket_scoring', 'delete'),
+            });
         });
     }, []);
 
@@ -334,9 +344,9 @@ export default function ScorerScreen() {
         </SafeAreaView>
     );
 
-    if (!matchId || !match) return (
+    if (!matchId || (!match && !loading)) return (
         <SafeAreaView style={[styles.container, { backgroundColor: bgColor, justifyContent: 'center', alignItems: 'center' }]}>
-            <Text style={{ color: textColor, marginBottom: 10 }}>No match selected or found</Text>
+            <Text style={{ color: textColor, marginBottom: 10 }}>Match not found (ID: {matchId || 'None'})</Text>
             <Button mode="contained" buttonColor={accentColor} textColor="black" onPress={() => router.replace('/management/cricket/matches')}>
                 Go to Matches
             </Button>
@@ -399,7 +409,7 @@ export default function ScorerScreen() {
             <Appbar.Header style={{ backgroundColor: bgColor }} elevated={false}>
                 <Appbar.BackAction color={textColor} onPress={() => router.replace('/management/cricket')} />
                 <Appbar.Content title="Live Scorer" titleStyle={{ color: textColor }} />
-                <Appbar.Action icon="undo" color={textColor} onPress={handleUndo} disabled={!canScore} />
+                <Appbar.Action icon="undo" color={textColor} onPress={handleUndo} disabled={!perms.delete} />
                 <Appbar.Action icon="cog" color={textColor} onPress={() => setSettingsVisible(true)} />
             </Appbar.Header>
 
@@ -455,6 +465,7 @@ export default function ScorerScreen() {
                                 icon="swap-horizontal"
                                 iconColor="gray"
                                 size={18}
+                                disabled={!perms.edit}
                                 onPress={async () => {
                                     const newStrikerId = matchState.nonStrikerId;
                                     const newNonStrikerId = matchState.strikerId;
@@ -482,7 +493,7 @@ export default function ScorerScreen() {
                                     {matchState.bowlerStats.wkts}-{matchState.bowlerStats.runs} ({Math.floor(matchState.bowlerStats.balls / 6)}.{matchState.bowlerStats.balls % 6})
                                 </Text>
                             </View>
-                            <Button mode="text" compact labelStyle={{ color: accentColor }} onPress={() => setBowlerSelectionVisible(true)}>Change</Button>
+                            <Button mode="text" compact labelStyle={{ color: accentColor }} onPress={() => setBowlerSelectionVisible(true)} disabled={!perms.edit}>Change</Button>
                         </View>
                     </Card.Content>
                 </Card>
@@ -493,8 +504,9 @@ export default function ScorerScreen() {
                         {[0, 1, 2, 3, 4, 6].map(run => (
                             <TouchableOpacity
                                 key={run}
-                                style={[styles.runBtn, { backgroundColor: run === 4 || run === 6 ? '#03DAC6' : '#333', opacity: !canScore ? 0.5 : 1 }]}
-                                onPress={() => canScore && handleBall(run)}
+                                style={[styles.runBtn, { backgroundColor: run === 4 || run === 6 ? '#03DAC6' : '#333', opacity: !perms.add ? 0.5 : 1 }]}
+                                onPress={() => perms.add && handleBall(run)}
+                                disabled={!perms.add}
                             >
                                 <Text style={{ fontSize: 22, color: run === 4 || run === 6 ? 'black' : 'white', fontWeight: 'bold' }}>{run}</Text>
                             </TouchableOpacity>
@@ -502,14 +514,14 @@ export default function ScorerScreen() {
                     </View>
 
                     <View style={styles.row}>
-                        <Button mode="contained" buttonColor="#CF6679" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, undefined, true)} style={styles.actionBtn}>WICKET</Button>
-                        <Button mode="outlined" textColor="#BB86FC" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'WD')} style={styles.actionBtn}>WIDE</Button>
-                        <Button mode="outlined" textColor="#BB86FC" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'NB')} style={styles.actionBtn}>NO BALL</Button>
+                        <Button mode="contained" buttonColor="#CF6679" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, undefined, true)} style={styles.actionBtn} disabled={!perms.add}>WICKET</Button>
+                        <Button mode="outlined" textColor="#BB86FC" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'WD')} style={styles.actionBtn} disabled={!perms.add}>WIDE</Button>
+                        <Button mode="outlined" textColor="#BB86FC" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'NB')} style={styles.actionBtn} disabled={!perms.add}>NO BALL</Button>
                     </View>
                     <View style={styles.row}>
-                        <Button mode="text" textColor="gray" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'BYE')} style={styles.actionBtn}>BYE</Button>
-                        <Button mode="text" textColor="gray" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'LB')} style={styles.actionBtn} disabled={!canScore}>LEG BYE</Button>
-                        <Button mode="text" textColor="orange" labelStyle={{ fontSize: 11 }} onPress={() => setSetupVisible(true)} style={styles.actionBtn} disabled={!canScore}>SETUP</Button>
+                        <Button mode="text" textColor="gray" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'BYE')} style={styles.actionBtn} disabled={!perms.add}>BYE</Button>
+                        <Button mode="text" textColor="gray" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'LB')} style={styles.actionBtn} disabled={!perms.add}>LEG BYE</Button>
+                        <Button mode="text" textColor="orange" labelStyle={{ fontSize: 11 }} onPress={() => setSetupVisible(true)} style={styles.actionBtn} disabled={!perms.edit}>SETUP</Button>
                     </View>
                 </View>
 

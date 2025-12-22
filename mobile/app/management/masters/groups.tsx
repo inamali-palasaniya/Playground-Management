@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { List, FAB, Portal, Dialog, TextInput, Button, ActivityIndicator, IconButton } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import apiService from '../../../services/api.service';
 
 export default function GroupsScreen() {
@@ -26,7 +28,11 @@ export default function GroupsScreen() {
         }
     };
 
-    useEffect(() => { loadGroups(); }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadGroups();
+        }, [])
+    );
 
     const handleOpenCreate = () => {
         setEditingId(null);

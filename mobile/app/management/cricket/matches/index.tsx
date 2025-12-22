@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, Alert } from 'react-native';
+import { View, StyleSheet, FlatList, Alert, TouchableOpacity } from 'react-native';
 import { Card, Text, FAB, ActivityIndicator, useTheme, Chip, Appbar, IconButton } from 'react-native-paper';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../../../services/api.service';
 import { format } from 'date-fns';
+import { AuthService, User } from '../../../../services/auth.service';
 
 export default function MatchListScreen() {
     const router = useRouter();
     const theme = useTheme();
     const [matches, setMatches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+    useEffect(() => {
+        AuthService.getUser().then(setCurrentUser);
+    }, []);
 
     const loadMatches = async () => {
         try {
@@ -24,9 +31,11 @@ export default function MatchListScreen() {
         }
     };
 
-    useEffect(() => {
-        loadMatches();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadMatches();
+        }, [])
+    );
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -58,10 +67,13 @@ export default function MatchListScreen() {
         <Card
             style={styles.card}
             onPress={() => {
+                const canView = AuthService.hasPermission(currentUser, 'cricket_scoring', 'view');
                 if (item.status === 'COMPLETED') {
                     router.push(`/(tabs)/scoring/live/${item.id}`);
-                } else {
+                } else if (canView) {
                     router.push({ pathname: '/management/cricket/scorer', params: { matchId: item.id } });
+                } else {
+                    Alert.alert('Permission Denied', 'You do not have view access for live scoring.');
                 }
             }}
         >
@@ -73,17 +85,21 @@ export default function MatchListScreen() {
                         <Chip style={{ backgroundColor: getStatusColor(item.status), marginRight: 4 }} textStyle={{ color: 'white', fontSize: 10 }}>
                             {item.status}
                         </Chip>
-                        <IconButton
-                            icon="pencil"
-                            size={18}
-                            onPress={() => router.push({ pathname: '/management/cricket/matches/create', params: { id: item.id } })}
-                        />
-                        <IconButton
-                            icon="delete"
-                            size={18}
-                            iconColor="red"
-                            onPress={() => handleDelete(item.id)}
-                        />
+                        {AuthService.hasPermission(currentUser, 'cricket_scoring', 'edit') && (
+                            <IconButton
+                                icon="pencil"
+                                size={18}
+                                onPress={() => router.push({ pathname: '/management/cricket/matches/create', params: { id: item.id } })}
+                            />
+                        )}
+                        {AuthService.hasPermission(currentUser, 'cricket_scoring', 'delete') && (
+                            <IconButton
+                                icon="delete"
+                                size={18}
+                                iconColor="red"
+                                onPress={() => handleDelete(item.id)}
+                            />
+                        )}
                     </View>
                 )}
             />
@@ -119,12 +135,14 @@ export default function MatchListScreen() {
                         ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>No matches scheduled.</Text>}
                     />
                 )}
-                <FAB
-                    icon="calendar-plus"
-                    style={styles.fab}
-                    label="Schedule Match"
-                    onPress={() => router.push('/management/cricket/matches/create')}
-                />
+                {AuthService.hasPermission(currentUser, 'cricket_scoring', 'add') && (
+                    <FAB
+                        icon="calendar-plus"
+                        style={styles.fab}
+                        label="Schedule Match"
+                        onPress={() => router.push('/management/cricket/matches/create')}
+                    />
+                )}
             </View>
         </SafeAreaView>
     );

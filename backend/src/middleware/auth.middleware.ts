@@ -49,8 +49,9 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
 };
 
 export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
-  if (req.user?.role !== 'MANAGEMENT') { // Matches UserRole.MANAGEMENT in Prisma
-    return res.status(403).json({ error: 'Access denied. Management role required.' });
+  const role = req.user?.role;
+  if (role !== 'MANAGEMENT' && role !== 'SUPER_ADMIN') {
+    return res.status(403).json({ error: 'Access denied. Management or Super Admin role required.' });
   }
   next();
 };

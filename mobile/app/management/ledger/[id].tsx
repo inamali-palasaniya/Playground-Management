@@ -1,8 +1,7 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, Card, Button, ActivityIndicator, IconButton, useTheme, DataTable, Divider } from 'react-native-paper';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { format } from 'date-fns';
 import apiService from '../../../services/api.service';
 import AuditLogDialog from '../../components/AuditLogDialog';
@@ -55,9 +54,11 @@ export default function LedgerDetailScreen() {
         }
     };
 
-    useEffect(() => {
-        if (id && userId) loadData();
-    }, [id, userId]);
+    useFocusEffect(
+        useCallback(() => {
+            if (id && userId) loadData();
+        }, [id, userId])
+    );
 
     // Actions
     const handleDelete = async (itemId: number, isMain: boolean = false) => {
@@ -108,7 +109,7 @@ export default function LedgerDetailScreen() {
     if (!entry) return <View style={styles.container}><Text>Entry not found</Text></View>;
 
     const isDebit = entry.transaction_type === 'DEBIT';
-    const totalPaid = children.reduce((sum, c) => sum + c.amount, 0);
+    const totalPaid = children.reduce((sum: number, c: any) => sum + c.amount, 0);
     const remaining = Math.max(0, entry.amount - totalPaid);
 
     return (
@@ -199,7 +200,7 @@ export default function LedgerDetailScreen() {
                     {children.length > 0 && (
                         <View style={{ marginTop: 10 }}>
                             <Text variant="titleMedium" style={styles.sectionTitle}>Transactions</Text>
-                            {children.map(child => (
+                            {children.map((child: any) => (
                                 <Card
                                     key={child.id}
                                     style={[styles.card, { marginTop: 5 }]}

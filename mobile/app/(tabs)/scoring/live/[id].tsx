@@ -10,7 +10,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 
 const { width } = Dimensions.get('window');
-const API_URL = process.env.EXPO_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000';
+import { API_BASE_URL } from '../../../../constants/api';
+const API_URL = API_BASE_URL.replace('/api', '');
 
 export default function LiveMatchScreen() {
     const { id } = useLocalSearchParams();
@@ -81,6 +82,7 @@ export default function LiveMatchScreen() {
             socket.on('connect', () => socket.emit('join_match', id));
 
             socket.on('score_update', (payload: any) => {
+                console.log('Socket update received:', payload?.type);
                 fetchMatchDetails(true); // Skip loader on update
 
                 if (payload?.type === 'BALL' && payload.data) {

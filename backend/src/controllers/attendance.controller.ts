@@ -235,8 +235,8 @@ export const updateAttendance = async (req: Request, res: Response) => {
   try {
     // RBAC Check
     const currentUser = (req as any).user;
-    if (!currentUser || currentUser.role !== 'MANAGEMENT') {
-      return res.status(403).json({ error: 'Forbidden: Only Management can modify attendance' });
+    if (!currentUser || (currentUser.role !== 'MANAGEMENT' && currentUser.role !== 'SUPER_ADMIN')) {
+      return res.status(403).json({ error: 'Forbidden: Only Management or Super Admin can modify attendance' });
     }
 
     const { id } = req.params;
@@ -339,7 +339,7 @@ export const deleteAttendance = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    let isAuthorized = currentUser.role === 'MANAGEMENT';
+    let isAuthorized = currentUser.role === 'MANAGEMENT' || currentUser.role === 'SUPER_ADMIN';
 
     if (!isAuthorized) {
       // Fallback: Check DB for strict/latest role if token is stale
@@ -347,13 +347,13 @@ export const deleteAttendance = async (req: Request, res: Response) => {
         where: { id: currentUser.userId },
         select: { role: true }
       });
-      if (dbUser && dbUser.role === 'MANAGEMENT') {
+      if (dbUser && (dbUser.role === 'MANAGEMENT' || dbUser.role === 'SUPER_ADMIN')) {
         isAuthorized = true;
       }
     }
 
     if (!isAuthorized) {
-      return res.status(403).json({ error: 'Forbidden: Only Management can delete attendance' });
+      return res.status(403).json({ error: 'Forbidden: Only Management or Super Admin can delete attendance' });
     }
 
     const { id } = req.params;

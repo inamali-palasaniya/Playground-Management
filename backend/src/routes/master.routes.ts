@@ -1,19 +1,24 @@
 import express from 'express';
 import { getPlans, createPlan, getFines, createFine, getGroups, createGroup, updatePlan, deletePlan, updateFine, deleteFine } from '../controllers/master.controller.js';
 
+import { authenticateToken, requireAdmin } from '../middleware/auth.middleware.js';
+
 const router = express.Router();
 
+// Apply global middleware to all master routes
+router.use(authenticateToken);
+
 router.get('/plans', getPlans);
-router.post('/plans', createPlan);
-router.put('/plans/:id', updatePlan);
-router.delete('/plans/:id', deletePlan);
+router.post('/plans', requireAdmin, createPlan);
+router.put('/plans/:id', requireAdmin, updatePlan);
+router.delete('/plans/:id', requireAdmin, deletePlan);
 
 router.get('/fines', getFines);
-router.post('/fines', createFine);
-router.put('/fines/:id', updateFine);
-router.delete('/fines/:id', deleteFine);
+router.post('/fines', requireAdmin, createFine);
+router.put('/fines/:id', requireAdmin, updateFine);
+router.delete('/fines/:id', requireAdmin, deleteFine);
 
 router.get('/groups', getGroups);
-router.post('/groups', createGroup);
+router.post('/groups', requireAdmin, createGroup);
 
 export default router;

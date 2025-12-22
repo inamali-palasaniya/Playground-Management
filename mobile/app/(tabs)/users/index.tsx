@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { View, StyleSheet, FlatList, RefreshControl, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button, Portal } from 'react-native-paper';
@@ -109,15 +109,19 @@ export default function PeopleScreen() {
                 if (selectedPlan) queryString += `&plan_id=${selectedPlan.id}`;
 
                 const usersPromise = apiService.request(`/api/users${queryString}`);
-                const groupsPromise = apiService.request('/api/groups');
-                const plansPromise = apiService.request('/api/subscription-plans');
+                const promises: Promise<any>[] = [usersPromise];
 
-                const [usersData, groupsData, plansData] = await Promise.all([usersPromise, groupsPromise, plansPromise]);
+                // Only fetch groups and plans if not already loaded
+                if (groups.length === 0) promises.push(apiService.request('/api/groups'));
+                if (plans.length === 0) promises.push(apiService.request('/api/subscription-plans'));
 
-                console.log('API returned users:', (usersData as any[])?.length, 'Sample:', (usersData as any[])?.[0]);
+                const results = await Promise.all(promises);
+                const usersData = results[0];
+                if (groups.length === 0 && results.length > 1) setGroups(results[1] as Group[]);
+                if (plans.length === 0 && results.length > 2) setPlans(results[2] as SubscriptionPlan[]);
+
+                console.log('API returned users:', (usersData as any[])?.length);
                 setUsers(usersData as User[]);
-                setGroups(groupsData as Group[]);
-                setPlans(plansData as SubscriptionPlan[]);
             }
         } catch (error) {
             console.error('Failed to load data:', error);
@@ -128,24 +132,37 @@ export default function PeopleScreen() {
         }
     };
 
-    // Reload when screen focuses or group filter changes
+    // Flag to track if params were synced once on focus
+    const [paramsSynced, setParamsSynced] = useState(false);
+
     useFocusEffect(
         useCallback(() => {
-            // Sync Params to State if provided (Deep Linking)
-            if (params.filter && params.filter !== activeFilter) setActiveFilter(params.filter as string);
-
-            // Map legacy params to new state
-            if (params.role && params.role !== selectedRole) setSelectedRole(params.role as string);
-            if (params.status && params.status !== selectedStatus) setSelectedStatus(params.status as string);
-            if (params.punch_status && params.punch_status !== selectedPunch) setSelectedPunch(params.punch_status as string);
-            if (params.user_type && params.user_type !== selectedType) setSelectedType(params.user_type as string);
-
+            if (!paramsSynced) {
+                // Sync Params to State only once per focus to avoid circular re-app
+                if (params.filter) setActiveFilter(params.filter as string);
+                if (params.role) setSelectedRole(params.role as string);
+                if (params.status) setSelectedStatus(params.status as string);
+                if (params.punch_status) setSelectedPunch(params.punch_status as string);
+                if (params.user_type) setSelectedType(params.user_type as string);
+                setParamsSynced(true);
+            }
             loadData();
+
+            return () => {
+                // We DON'T reset paramsSynced here if we want sticky filters while switching tabs,
+                // but if we want "Dashboard -> UserList" to ALWAYS apply new filters, we should reset it
+                // when we LEAVE the screen or when the params themselves change.
+            };
         }, [
             selectedGroup, selectedRole, selectedStatus, selectedPunch, selectedType, selectedPlan, activeFilter,
-            params.filter, params.role, params.status, params.punch_status, params.user_type
+            paramsSynced // Load data whenever filters or sync status change
         ])
     );
+
+    // Reset sync flag when params change externally (e.g. user clicks another dashboard count)
+    useEffect(() => {
+        setParamsSynced(false);
+    }, [params.role, params.status, params.punch_status, params.user_type, params.filter]);
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -232,44 +249,59 @@ export default function PeopleScreen() {
                 }
                 subtitleStyle={{ marginTop: -2 }}
                 left={(props) => <Avatar.Text {...props} size={40} label={item.name.substring(0, 2).toUpperCase()} />}
-                right={(props) => (
-                    <View style={{ marginRight: 8, alignItems: 'flex-end', justifyContent: 'center' }}>
-                        {currentUser?.role !== 'NORMAL' && (
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <IconButton
-                                    icon={item.punch_status === 'IN' ? 'logout' : 'login'}
-                                    mode="contained"
-                                    containerColor={item.punch_status === 'IN' ? '#FF5252' : '#4CAF50'}
-                                    iconColor="white"
-                                    size={18}
-                                    style={{ margin: 0, marginRight: 4 }}
-                                    onPress={(e) => { e.stopPropagation(); handlePunch(item); }}
-                                />
-                                <IconButton
-                                    icon="pencil"
-                                    size={18}
-                                    iconColor="#4CAF50"
-                                    style={{ margin: 0 }}
-                                    onPress={(e) => { e.stopPropagation(); router.push({ pathname: '/management/edit-user', params: { id: item.id } }); }}
-                                />
-                                <IconButton
-                                    icon="delete"
-                                    size={18}
-                                    iconColor="#F44336"
-                                    style={{ margin: 0 }}
-                                    onPress={(e) => { e.stopPropagation(); confirmDelete(item.id, item.name); }}
-                                />
-                                <IconButton
-                                    icon="history"
-                                    size={18}
-                                    iconColor="#607D8B"
-                                    style={{ margin: 0 }}
-                                    onPress={(e) => { e.stopPropagation(); setAuditEntityId(item.id); setAuditVisible(true); }}
-                                />
-                            </View>
-                        )}
-                    </View>
-                )}
+                right={(props) => {
+                    const canEdit = AuthService.hasPermission(currentUser, 'user', 'edit');
+                    const canDelete = AuthService.hasPermission(currentUser, 'user', 'delete');
+                    const canPunch = AuthService.hasPermission(currentUser, 'attendance', 'add');
+                    const canAudit = AuthService.hasPermission(currentUser, 'audit', 'view');
+
+                    return (
+                        <View style={{ marginRight: 8, alignItems: 'flex-end', justifyContent: 'center' }}>
+                            {(canEdit || canDelete || canPunch || canAudit) && (
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    {canPunch && (
+                                        <IconButton
+                                            icon={item.punch_status === 'IN' ? 'logout' : 'login'}
+                                            mode="contained"
+                                            containerColor={item.punch_status === 'IN' ? '#FF5252' : '#4CAF50'}
+                                            iconColor="white"
+                                            size={18}
+                                            style={{ margin: 0, marginRight: 4 }}
+                                            onPress={(e) => { e.stopPropagation(); handlePunch(item); }}
+                                        />
+                                    )}
+                                    {canEdit && (
+                                        <IconButton
+                                            icon="pencil"
+                                            size={18}
+                                            iconColor="#4CAF50"
+                                            style={{ margin: 0 }}
+                                            onPress={(e) => { e.stopPropagation(); router.push({ pathname: '/management/edit-user', params: { id: item.id } }); }}
+                                        />
+                                    )}
+                                    {canDelete && (
+                                        <IconButton
+                                            icon="delete"
+                                            size={18}
+                                            iconColor="#F44336"
+                                            style={{ margin: 0 }}
+                                            onPress={(e) => { e.stopPropagation(); confirmDelete(item.id, item.name); }}
+                                        />
+                                    )}
+                                    {canAudit && (
+                                        <IconButton
+                                            icon="history"
+                                            size={18}
+                                            iconColor="#607D8B"
+                                            style={{ margin: 0 }}
+                                            onPress={(e) => { e.stopPropagation(); setAuditEntityId(item.id); setAuditVisible(true); }}
+                                        />
+                                    )}
+                                </View>
+                            )}
+                        </View>
+                    );
+                }}
             />
             <Card.Content>
                 <View style={{ paddingBottom: 4 }}>
