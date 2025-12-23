@@ -19,7 +19,7 @@ export default function ExpenseCategoriesScreen() {
         setLoading(true);
         try {
             const data = await apiService.request('/api/masters/expense-categories');
-            setCategories(data);
+            setCategories(data as any[]);
         } catch (e) {
             console.error(e);
         } finally {
