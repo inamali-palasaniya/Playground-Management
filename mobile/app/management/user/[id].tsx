@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useIsFocused } from '@react-navigation/native';
-import { View, StyleSheet, ScrollView, useWindowDimensions, Alert, Platform, TouchableOpacity } from 'react-native';
-import { Text, Avatar, Button, Card, useTheme, DataTable, FAB, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Menu, Divider } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, useWindowDimensions, Alert, Platform, TouchableOpacity, StatusBar } from 'react-native';
+import { Text, Avatar, Button, Card, useTheme, DataTable, FAB, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Menu, Divider, Chip } from 'react-native-paper';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
+import { Tabs, MaterialTabBar } from 'react-native-collapsible-tab-view';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import apiService from '../../../services/api.service';
 import { format } from 'date-fns';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -39,7 +40,7 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
 
     if (isSuperAdmin) {
         return (
-            <ScrollView style={styles.tabContent}>
+            <Tabs.ScrollView style={styles.tabContent}>
                 <View style={{ padding: 16, alignItems: 'center' }}>
                     <MaterialCommunityIcons name="shield-crown" size={64} color="gold" />
                     <Text variant="titleMedium" style={{ marginTop: 10, fontWeight: 'bold' }}>Success Admin Access</Text>
@@ -48,12 +49,12 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
                         Permissions cannot be modified.
                     </Text>
                 </View>
-            </ScrollView>
+            </Tabs.ScrollView>
         );
     }
 
     return (
-        <ScrollView style={styles.tabContent}>
+        <Tabs.ScrollView style={styles.tabContent}>
             <View style={{ padding: 16 }}>
                 <PermissionSelector
                     permissions={permissions || []}
@@ -62,11 +63,11 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
                 />
                 {canEdit && <Text style={{ textAlign: 'center', marginTop: 10, color: 'gray' }}>Tap icons to toggle permissions immediately.</Text>}
             </View>
-        </ScrollView>
+        </Tabs.ScrollView>
     );
 };
 
-const FineRoute = ({ userId, isFocused, currentUser }: { userId: number, isFocused: boolean, currentUser: any }) => {
+const FineRoute = ({ userId, isFocused, currentUser, onUpdate }: { userId: number, isFocused: boolean, currentUser: any, onUpdate?: () => void }) => {
     const [fines, setFines] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
@@ -87,6 +88,7 @@ const FineRoute = ({ userId, isFocused, currentUser }: { userId: number, isFocus
                 text: 'Delete', style: 'destructive', onPress: async () => {
                     await apiService.deleteLedgerEntry(id);
                     loadFines();
+                    if (onUpdate) onUpdate();
                 }
             }
         ]);
@@ -97,7 +99,7 @@ const FineRoute = ({ userId, isFocused, currentUser }: { userId: number, isFocus
 
     return (
         <View style={{ flex: 1 }}>
-            <ScrollView style={styles.tabContent}>
+            <Tabs.ScrollView style={styles.tabContent}>
                 {fines.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No fines found.</Text> : (
                     fines.map((item) => (
                         <Card key={item.id} style={styles.ledgerCard}>
@@ -120,7 +122,7 @@ const FineRoute = ({ userId, isFocused, currentUser }: { userId: number, isFocus
                         </Card>
                     ))
                 )}
-            </ScrollView>
+            </Tabs.ScrollView>
             {isFocused && canAdd && (
                 <FAB icon="plus" color="white" style={styles.fab} onPress={() => router.push({ pathname: '/management/apply-fine', params: { userId } })} label="Apply Fine" visible={isFocused} />
             )}
@@ -128,21 +130,42 @@ const FineRoute = ({ userId, isFocused, currentUser }: { userId: number, isFocus
     );
 };
 
-const LedgerRoute = ({ userId, isFocused, currentUser }: { userId: number, isFocused: boolean, currentUser: any }) => {
+const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate }: { userId: number, isFocused: boolean, currentUser: any, onUpdate?: () => void }) => {
     const [ledger, setLedger] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [fabOpen, setFabOpen] = useState(false);
     const router = useRouter();
 
+    // Filters
+    const [selectedType, setSelectedType] = useState('ALL');
+    const [startDate, setStartDate] = useState<Date | null>(null);
+    const [endDate, setEndDate] = useState<Date | null>(null);
+    const [showStartPicker, setShowStartPicker] = useState(false);
+    const [showEndPicker, setShowEndPicker] = useState(false);
 
     const loadLedger = () => {
-        apiService.getUserLedger(userId)
+        setLoading(true);
+        const start = startDate ? startDate.toISOString().split('T')[0] : undefined;
+        const end = endDate ? endDate.toISOString().split('T')[0] : undefined;
+
+        apiService.getUserLedger(userId, start, end, selectedType)
             .then(data => setLedger(data))
             .catch(console.error)
             .finally(() => setLoading(false));
     }
 
-    useEffect(() => { if (isFocused) loadLedger(); }, [userId, isFocused]);
+    // Reload when filters change
+    useEffect(() => {
+        if (isFocused) loadLedger();
+    }, [userId, isFocused, selectedType, startDate, endDate]);
+
+    const clearFilters = () => {
+        setSelectedType('ALL');
+        setStartDate(null);
+        setEndDate(null);
+    };
+
+
 
     const handleDelete = async (id: number) => {
         Alert.alert('Delete Entry', 'Are you sure?', [
@@ -152,6 +175,7 @@ const LedgerRoute = ({ userId, isFocused, currentUser }: { userId: number, isFoc
                     try {
                         await apiService.deleteLedgerEntry(id);
                         loadLedger();
+                        if (onUpdate) onUpdate();
                     } catch (e) { alert('Failed to delete'); }
                 }
             }
@@ -246,8 +270,38 @@ const LedgerRoute = ({ userId, isFocused, currentUser }: { userId: number, isFoc
 
     return (
         <View style={{ flex: 1 }}>
-            <ScrollView style={styles.tabContent}>
-                {ledger.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No ledger records.</Text> : (
+            <Tabs.ScrollView style={styles.tabContent}>
+                {/* Filters */}
+                <View style={{ marginBottom: 10 }}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+                        {['ALL', 'SUBSCRIPTION', 'MONTHLY_FEE', 'FINE', 'PAYMENT', 'DEPOSIT', 'MAINTENANCE', 'OTHER'].map(type => (
+                            <Chip
+                                key={type}
+                                selected={selectedType === type}
+                                onPress={() => setSelectedType(type)}
+                                style={{ marginRight: 8, backgroundColor: selectedType === type ? '#e3f2fd' : '#f5f5f5' }}
+                                textStyle={{ fontSize: 12 }}
+                                compact
+                            >
+                                {type.replace('_', ' ')}
+                            </Chip>
+                        ))}
+                    </ScrollView>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <Button mode="outlined" compact onPress={() => setShowStartPicker(true)} labelStyle={{ fontSize: 12 }}>
+                            {startDate ? format(startDate, 'dd MMM') : 'From Date'}
+                        </Button>
+                        <Text>-</Text>
+                        <Button mode="outlined" compact onPress={() => setShowEndPicker(true)} labelStyle={{ fontSize: 12 }}>
+                            {endDate ? format(endDate, 'dd MMM') : 'To Date'}
+                        </Button>
+                        {(startDate || endDate || selectedType !== 'ALL') && (
+                            <IconButton icon="close-circle-outline" size={20} onPress={clearFilters} />
+                        )}
+                    </View>
+                </View>
+
+                {ledger.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No ledger records found.</Text> : (
                     rootItems.map((item) => {
                         const isPayment = item.type === 'PAYMENT' || item.transaction_type === 'CREDIT';
                         const canEdit = AuthService.hasPermission(currentUser, isPayment ? 'payment' : 'charge', 'edit');
@@ -323,7 +377,7 @@ const LedgerRoute = ({ userId, isFocused, currentUser }: { userId: number, isFoc
                         )
                     })
                 )}
-            </ScrollView>
+            </Tabs.ScrollView>
             {(canAddPayment || canAddCharge) && (
                 <Portal>
                     <FAB.Group
@@ -346,6 +400,22 @@ const LedgerRoute = ({ userId, isFocused, currentUser }: { userId: number, isFoc
                         style={{ paddingBottom: 60 }}
                     />
                 </Portal>
+            )}
+
+            {/* Date Pickers */}
+            {showStartPicker && (
+                <DateTimePicker
+                    value={startDate || new Date()}
+                    mode="date"
+                    onChange={(e, d) => { setShowStartPicker(false); if (d) setStartDate(d); }}
+                />
+            )}
+            {showEndPicker && (
+                <DateTimePicker
+                    value={endDate || new Date()}
+                    mode="date"
+                    onChange={(e, d) => { setShowEndPicker(false); if (d) setEndDate(d); }}
+                />
             )}
         </View>
     );
@@ -448,7 +518,8 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser }: { userId:
             if (onUpdate) onUpdate();
             Alert.alert('Success', 'Attendance updated');
         } catch (e: any) {
-            Alert.alert('Error', 'Failed to update attendance');
+            const msg = e.body ? JSON.parse(e.body).error || e.message : e.message;
+            Alert.alert('Error', msg || 'Failed to update attendance');
         }
     };
 
@@ -492,55 +563,76 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser }: { userId:
 
     return (
         <View style={{ flex: 1 }}>
-            <ScrollView style={styles.tabContent}>
+            <Tabs.ScrollView style={styles.tabContent}>
                 {attendance.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No attendance records.</Text> : (
-                    <DataTable>
-                        <DataTable.Header style={{ height: 40 }}>
-                            <DataTable.Title>Date</DataTable.Title>
-                            <DataTable.Title>In/Out</DataTable.Title>
-                            <DataTable.Title numeric>Fee</DataTable.Title>
-                            {(AuthService.hasPermission(currentUser, 'user', 'edit') || AuthService.hasPermission(currentUser, 'user', 'delete')) && <DataTable.Title numeric>Act</DataTable.Title>}
-                        </DataTable.Header>
+                    <View style={{ gap: 10 }}>
                         {attendance.map((record) => (
-                            <DataTable.Row key={record.id} style={{ height: 48 }}>
-                                <DataTable.Cell>{format(new Date(record.date), 'dd/MM')}</DataTable.Cell>
-                                <DataTable.Cell>
-                                    <Text style={{ fontSize: 12 }}>
-                                        {record.in_time ? format(new Date(record.in_time), 'HH:mm') : '-'}
-                                        {record.out_time ? ` / ${format(new Date(record.out_time), 'HH:mm')}` : ''}
-                                    </Text>
-                                </DataTable.Cell>
-                                <DataTable.Cell numeric>₹{record.daily_fee_charged || 0}</DataTable.Cell>
-                                {(AuthService.hasPermission(currentUser, 'user', 'edit') || AuthService.hasPermission(currentUser, 'user', 'delete')) && (
-                                    <DataTable.Cell numeric>
-                                        <View style={{ flexDirection: 'row' }}>
-                                            {AuthService.hasPermission(currentUser, 'user', 'edit') && <IconButton icon="pencil" size={16} onPress={() => handleEditStart(record)} style={{ margin: 0 }} />}
-                                            {AuthService.hasPermission(currentUser, 'user', 'delete') && <IconButton icon="delete" size={16} iconColor="red" style={{ margin: 0 }} onPress={() => {
-                                                Alert.alert('Delete', 'Delete attendance?', [
-                                                    { text: 'Cancel' },
-                                                    {
-                                                        text: 'Delete', style: 'destructive', onPress: async () => {
-                                                            try {
-                                                                await apiService.deleteAttendance(record.id);
-                                                                loadAttendance();
-                                                                if (onUpdate) onUpdate();
-                                                                Alert.alert('Success', 'Attendance deleted');
-                                                            } catch (e: any) {
-                                                                console.error(e);
-                                                                Alert.alert('Error', 'Failed to delete attendance');
-                                                            }
-                                                        }
-                                                    }
-                                                ]);
-                                            }} />}
+                            <Card key={record.id} style={{ backgroundColor: 'white', elevation: 2, borderRadius: 8 }}>
+                                <Card.Content style={{ paddingVertical: 10 }}>
+                                    {/* Row 1: Date & Fee */}
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                        <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>
+                                            {format(new Date(record.date), 'dd MMM yyyy')}
+                                        </Text>
+                                        <Text variant="titleSmall" style={{ fontWeight: 'bold', color: record.daily_fee_charged > 0 ? '#d32f2f' : 'green' }}>
+                                            {record.daily_fee_charged > 0 ? `₹${record.daily_fee_charged}` : 'Free'}
+                                        </Text>
+                                    </View>
+                                    <Divider style={{ marginBottom: 8 }} />
+
+                                    {/* Row 2: In / Out Times */}
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <View style={{ flex: 1 }}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                <MaterialCommunityIcons name="login" size={16} color="green" style={{ marginRight: 6 }} />
+                                                <Text variant="bodyMedium">
+                                                    {record.in_time ? format(new Date(record.in_time), 'hh:mm a') : '-'}
+                                                </Text>
+                                            </View>
                                         </View>
-                                    </DataTable.Cell>
-                                )}
-                            </DataTable.Row>
+                                        <View style={{ flex: 1 }}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                <MaterialCommunityIcons name="logout" size={16} color="orange" style={{ marginRight: 6 }} />
+                                                <Text variant="bodyMedium">
+                                                    {record.out_time ? format(new Date(record.out_time), 'hh:mm a') : 'Active'}
+                                                </Text>
+                                            </View>
+                                        </View>
+
+                                        {/* Actions */}
+                                        {(AuthService.hasPermission(currentUser, 'user', 'edit') || AuthService.hasPermission(currentUser, 'user', 'delete')) && (
+                                            <View style={{ flexDirection: 'row' }}>
+                                                {AuthService.hasPermission(currentUser, 'user', 'edit') &&
+                                                    <IconButton icon="pencil" size={18} onPress={() => handleEditStart(record)} style={{ margin: 0, width: 24, height: 24 }} />
+                                                }
+                                                {AuthService.hasPermission(currentUser, 'user', 'delete') &&
+                                                    <IconButton icon="delete" size={18} iconColor="red" style={{ margin: 0, width: 24, height: 24 }} onPress={() => {
+                                                        Alert.alert('Delete', 'Delete attendance?', [
+                                                            { text: 'Cancel' },
+                                                            {
+                                                                text: 'Delete', style: 'destructive', onPress: async () => {
+                                                                    try {
+                                                                        await apiService.deleteAttendance(record.id);
+                                                                        loadAttendance();
+                                                                        if (onUpdate) onUpdate();
+                                                                    } catch (e: any) {
+                                                                        const msg = e.body ? JSON.parse(e.body).error || e.message : e.message;
+                                                                        Alert.alert('Error', msg);
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]);
+                                                    }} />
+                                                }
+                                            </View>
+                                        )}
+                                    </View>
+                                </Card.Content>
+                            </Card>
                         ))}
-                    </DataTable>
+                    </View>
                 )}
-            </ScrollView>
+            </Tabs.ScrollView>
 
             {isFocused && (
                 <FAB
@@ -667,7 +759,7 @@ const MatchesRoute = ({ userId, isFocused }: { userId: number, isFocused: boolea
     if (loading) return <ActivityIndicator style={{ marginTop: 20 }} />;
 
     return (
-        <ScrollView style={styles.tabContent}>
+        <Tabs.ScrollView style={styles.tabContent}>
             {matches.length === 0 ? (
                 <View style={{ alignItems: 'center', marginTop: 40 }}>
                     <MaterialCommunityIcons name="cricket" size={48} color="#ccc" />
@@ -713,7 +805,7 @@ const MatchesRoute = ({ userId, isFocused }: { userId: number, isFocused: boolea
                     </Card>
                 ))
             )}
-        </ScrollView>
+        </Tabs.ScrollView>
     );
 };
 
@@ -724,16 +816,8 @@ export default function UserDetailScreen() {
     const router = useRouter();
     const { user: currentUser } = useAuth();
     const isFocused = useIsFocused();
-    const layout = useWindowDimensions();
+    const insets = useSafeAreaInsets();
     const [user, setUser] = useState<any>(null);
-    const [index, setIndex] = useState(0);
-    const [routes] = useState([
-        { key: 'ledger', title: 'Ledger' },
-        { key: 'fine', title: 'Fines' },
-        { key: 'attendance', title: 'Attendance' },
-        { key: 'matches', title: 'Matches' },
-        { key: 'permissions', title: 'Perms' },
-    ]);
 
     // Calculate duration
     const [todaysAttendance, setTodaysAttendance] = useState<any>(null);
@@ -788,32 +872,6 @@ export default function UserDetailScreen() {
         }
     }, [id]);
 
-    const renderScene = ({ route }: any) => {
-        const currentUserRole = currentUser?.role || 'NORMAL';
-        switch (route.key) {
-            case 'ledger':
-                return <LedgerRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} />;
-            case 'fine':
-                return <FineRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} />;
-            case 'attendance':
-                return <AttendanceRoute userId={Number(id)} isFocused={isFocused} onUpdate={() => {
-                    apiService.getUserById(Number(id)).then(setUser);
-                }} currentUser={currentUser} />;
-            case 'permissions':
-                return <PermissionsRoute
-                    userId={Number(id)}
-                    permissions={user?.permissions || []}
-                    onUpdate={() => apiService.getUserById(Number(id)).then(setUser)}
-                    canEdit={currentUserRole === 'MANAGEMENT' || currentUserRole === 'SUPER_ADMIN'}
-                    userRole={user?.role}
-                />;
-            case 'matches':
-                return <MatchesRoute userId={Number(id)} isFocused={isFocused && index === 3} />; // Assuming index logic works or verify isFocused behavior
-            default:
-                return null;
-        }
-    };
-
     // Header Menu State
     const [menuVisible, setMenuVisible] = useState(false);
     const openMenu = () => setMenuVisible(true);
@@ -821,36 +879,14 @@ export default function UserDetailScreen() {
 
     if (!user) return <View style={styles.loadingContainer}><ActivityIndicator /></View>;
 
-    return (
-        <View style={styles.container}>
-            {/* New Modern Header - Gradient Background */}
-            <View>
+    const renderHeader = () => {
+        return (
+            <View style={{ pointerEvents: 'box-none' }}>
                 <LinearGradient
                     colors={[theme.colors.primary, '#1976d2']}
-                    style={styles.headerGradient}
+                    style={[styles.headerGradient, { paddingTop: 10 }]} // Removed huge padding since TopNav handles it
                 >
-                    <View style={styles.topNav}>
-                        <IconButton icon="arrow-left" iconColor="white" size={24} onPress={() => router.back()} />
-                        <Text variant="titleMedium" style={{ fontWeight: 'bold', flex: 1, textAlign: 'center', color: 'white' }}>
-                            Profile
-                        </Text>
-                        {(AuthService.hasPermission(currentUser, 'payment', 'add') || AuthService.hasPermission(currentUser, 'charge', 'add')) ? (
-                            <Menu
-                                visible={menuVisible}
-                                onDismiss={closeMenu}
-                                anchor={<IconButton icon="dots-vertical" iconColor="white" onPress={openMenu} />}
-                            >
-                                {AuthService.hasPermission(currentUser, 'payment', 'add') && (
-                                    <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id, initialTxType: 'CREDIT' } }) }} title="Add Payment" leadingIcon="cash-plus" />
-                                )}
-                                {AuthService.hasPermission(currentUser, 'charge', 'add') && (
-                                    <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id, initialTxType: 'DEBIT' } }) }} title="Add Charge" leadingIcon="cash-minus" />
-                                )}
-                            </Menu>
-                        ) : <View style={{ width: 48 }} />}
-                    </View>
-
-                    <View style={{ alignItems: 'center', paddingBottom: 20 }}>
+                    <View style={{ paddingBottom: 20, alignItems: 'center' }}>
                         <Avatar.Text
                             size={64}
                             label={user.name.substring(0, 2).toUpperCase()}
@@ -858,12 +894,14 @@ export default function UserDetailScreen() {
                             color={theme.colors.primary}
                             labelStyle={{ fontWeight: 'bold' }}
                         />
+                        {/* Name is now in Sticky Header, but we keep it here for "Expanded" view too?
+                             Actually user said "just name... in smaller sticky header".
+                             Expaded header can still have it visually larger. */}
                         <Text variant="titleLarge" style={{ color: 'white', fontWeight: 'bold', marginTop: 8 }}>{user.name}</Text>
                         <Text variant="bodySmall" style={{ color: 'rgba(255,255,255,0.9)' }}>{user.role === 'SUPER_ADMIN' ? 'Super Admin' : user.role || 'User'}</Text>
                     </View>
                 </LinearGradient>
 
-                {/* Floating Contact Card & Status */}
                 {/* Floating Contact Card & Status */}
                 <View style={styles.floatingCard}>
                     {/* Contact Details */}
@@ -895,43 +933,48 @@ export default function UserDetailScreen() {
                     {/* Actions Row: Attendance & Status */}
                     <View style={{ gap: 10 }}>
                         {/* Attendance Action */}
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <View>
-                                <Text variant="labelMedium" style={{ color: 'gray' }}>Attendance</Text>
-                                <Text variant="titleSmall" style={{ fontWeight: 'bold', color: todaysAttendance?.out_time ? 'green' : (todaysAttendance ? 'orange' : 'gray') }}>
-                                    {todaysAttendance ? (todaysAttendance.out_time ? 'Checked Out' : 'Checked In') : 'Not Present'}
-                                </Text>
-                            </View>
-                            <Button
-                                mode={todaysAttendance && !todaysAttendance.out_time ? "outlined" : "contained"}
-                                compact
-                                textColor={todaysAttendance && !todaysAttendance.out_time ? "red" : "white"}
-                                buttonColor={todaysAttendance && !todaysAttendance.out_time ? "white" : theme.colors.primary}
-                                style={{ borderColor: 'red', height: 32 }}
-                                labelStyle={{ fontSize: 12 }}
-                                onPress={async () => {
-                                    const canPunchOthers = AuthService.hasPermission(currentUser, 'attendance', 'add');
-                                    const isSelf = currentUser?.id === user.id;
+                        <View style={{ marginTop: 12, padding: 12, backgroundColor: '#f9f9f9', borderRadius: 8, borderWidth: 1, borderColor: '#eee' }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <View>
+                                    <Text variant="labelSmall" style={{ color: 'gray', textTransform: 'uppercase', letterSpacing: 0.5 }}>Attendance Status</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                                        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: todaysAttendance?.out_time ? 'green' : (todaysAttendance ? 'orange' : 'gray'), marginRight: 6 }} />
+                                        <Text variant="titleSmall" style={{ fontWeight: 'bold', color: '#333' }}>
+                                            {todaysAttendance ? (todaysAttendance.out_time ? 'Checked Out' : 'Checked In') : 'Not Present'}
+                                        </Text>
+                                    </View>
+                                </View>
+                                <Button
+                                    mode={todaysAttendance && !todaysAttendance.out_time ? "outlined" : "contained"}
+                                    textColor={todaysAttendance && !todaysAttendance.out_time ? "#d32f2f" : "white"}
+                                    buttonColor={todaysAttendance && !todaysAttendance.out_time ? "white" : theme.colors.primary}
+                                    style={{ borderColor: todaysAttendance && !todaysAttendance.out_time ? '#d32f2f' : theme.colors.primary }}
+                                    contentStyle={{ paddingHorizontal: 20, height: 36 }}
+                                    labelStyle={{ fontSize: 13, fontWeight: 'bold' }}
+                                    onPress={async () => {
+                                        const canPunchOthers = AuthService.hasPermission(currentUser, 'attendance', 'add');
+                                        const isSelf = currentUser?.id === user.id;
 
-                                    if (!isSelf && !canPunchOthers) {
-                                        Alert.alert("Permission Denied", "You don't have permission to punch for other users.");
-                                        return;
-                                    }
-
-                                    try {
-                                        if (todaysAttendance && !todaysAttendance.out_time) {
-                                            await apiService.checkOut(user.id);
-                                        } else {
-                                            await apiService.checkIn(user.id);
+                                        if (!isSelf && !canPunchOthers) {
+                                            Alert.alert("Permission Denied", "You don't have permission to punch for other users.");
+                                            return;
                                         }
-                                        refreshUser();
-                                    } catch (error: any) {
-                                        Alert.alert("Error", error.message || "Action failed");
-                                    }
-                                }}
-                            >
-                                {todaysAttendance && !todaysAttendance.out_time ? 'Check Out' : 'Check In'}
-                            </Button>
+
+                                        try {
+                                            if (todaysAttendance && !todaysAttendance.out_time) {
+                                                await apiService.checkOut(user.id);
+                                            } else {
+                                                await apiService.checkIn(user.id);
+                                            }
+                                            refreshUser();
+                                        } catch (error: any) {
+                                            Alert.alert("Error", error.message || "Action failed");
+                                        }
+                                    }}
+                                >
+                                    {todaysAttendance && !todaysAttendance.out_time ? 'Check Out' : 'Check In'}
+                                </Button>
+                            </View>
                         </View>
 
                         {/* Status Toggle Row */}
@@ -1018,8 +1061,8 @@ export default function UserDetailScreen() {
                                 </Text>
                             </View>
                             <View style={{ flex: 1, alignItems: 'center' }}>
-                                <Text variant="labelSmall" style={{ color: 'gray' }}>{user.balance < 0 ? 'Due' : 'Advance'}</Text>
-                                <Text variant="titleMedium" style={{ color: user.balance < 0 ? 'red' : 'green', fontWeight: 'bold' }}>
+                                <Text variant="labelSmall" style={{ color: 'gray' }}>{user.balance > 0 ? 'Due' : 'Advance'}</Text>
+                                <Text variant="titleMedium" style={{ color: user.balance > 0 ? 'red' : 'green', fontWeight: 'bold' }}>
                                     ₹{Math.abs(user.balance || 0)}
                                 </Text>
                             </View>
@@ -1027,32 +1070,100 @@ export default function UserDetailScreen() {
                     </Card.Content>
                 </Card>
             </View>
+        );
+    };
 
-            <View style={{ flex: 1 }}>
-                <TabView
-                    navigationState={{ index, routes }}
-                    renderScene={renderScene}
-                    onIndexChange={setIndex}
-                    initialLayout={{ width: layout.width }}
-                    renderTabBar={props => (
-                        <TabBar
-                            {...props}
-                            scrollEnabled={true}
-                            indicatorStyle={{ backgroundColor: theme.colors.primary, height: 3 }}
-                            style={{ backgroundColor: 'white', elevation: 2 }}
-                            tabStyle={{ width: 'auto', minWidth: 100 }}
-                            // @ts-ignore
-                            renderLabel={({ route, color }: any) => (
-                                <Text style={{ color, fontWeight: 'bold', textTransform: 'capitalize' }}>
-                                    {route.title}
-                                </Text>
-                            )}
-                            activeColor={theme.colors.primary}
-                            inactiveColor="gray"
-                        />
-                    )}
-                />
+    return (
+        <View style={styles.container}>
+            {/* Sticky Top Nav */}
+            <View style={{
+                position: 'absolute',
+                top: 0, left: 0, right: 0,
+                zIndex: 100,
+                backgroundColor: theme.colors.primary,
+                paddingTop: insets.top,
+                height: 60 + insets.top, // Fixed height for stable sticky header
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 8,
+                elevation: 4
+            }}>
+                <StatusBar barStyle="light-content" backgroundColor={theme.colors.primary} />
+                <IconButton icon="arrow-left" iconColor="white" size={24} onPress={() => router.back()} />
+
+                {/* Sticky User Info */}
+                <View style={{ flex: 1, marginLeft: 0 }}>
+                    <Text variant="titleMedium" style={{ color: 'white', fontWeight: 'bold' }} numberOfLines={1}>
+                        {user.name}
+                    </Text>
+                    <Text variant="bodySmall" style={{ color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>
+                        {user.phone || user.email || 'No Contact'}
+                    </Text>
+                </View>
+
+                {(AuthService.hasPermission(currentUser, 'payment', 'add') || AuthService.hasPermission(currentUser, 'charge', 'add')) && (
+                    <Menu
+                        visible={menuVisible}
+                        onDismiss={closeMenu}
+                        anchor={<IconButton icon="dots-vertical" iconColor="white" onPress={openMenu} />}
+                    >
+                        {AuthService.hasPermission(currentUser, 'payment', 'add') && (
+                            <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id, initialTxType: 'CREDIT' } }) }} title="Add Payment" leadingIcon="cash-plus" />
+                        )}
+                        {AuthService.hasPermission(currentUser, 'charge', 'add') && (
+                            <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id, initialTxType: 'DEBIT' } }) }} title="Add Charge" leadingIcon="cash-minus" />
+                        )}
+                    </Menu>
+                )}
             </View>
+
+            <Tabs.Container
+                renderHeader={renderHeader}
+                headerContainerStyle={{ backgroundColor: theme.colors.background, paddingTop: 60 + insets.top }}
+                minHeaderHeight={60 + insets.top}
+                revealHeaderOnScroll={true}
+                pagerProps={{ scrollEnabled: true }}
+                renderTabBar={(props) => (
+                    <MaterialTabBar
+                        {...props}
+                        scrollEnabled={true}
+                        indicatorStyle={{ backgroundColor: theme.colors.primary, height: 3 }}
+                        style={{ backgroundColor: 'white', elevation: 2 }}
+                        labelStyle={{
+                            fontSize: 13,
+                            fontWeight: 'bold',
+                            textTransform: 'capitalize'
+                        }}
+                        tabStyle={{ paddingHorizontal: 16, width: 'auto' }}
+                        activeColor={theme.colors.primary}
+                        inactiveColor="gray"
+                    />
+                )}
+            >
+                <Tabs.Tab name="ledger" label="Ledger">
+                    <LedgerRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} onUpdate={refreshUser} />
+                </Tabs.Tab>
+                <Tabs.Tab name="fine" label="Fines">
+                    <FineRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} onUpdate={refreshUser} />
+                </Tabs.Tab>
+                <Tabs.Tab name="attendance" label="Attendance">
+                    <AttendanceRoute userId={Number(id)} isFocused={isFocused} onUpdate={() => {
+                        apiService.getUserById(Number(id)).then(setUser);
+                    }} currentUser={currentUser} />
+                </Tabs.Tab>
+                <Tabs.Tab name="matches" label="Matches">
+                    <MatchesRoute userId={Number(id)} isFocused={isFocused} />
+                </Tabs.Tab>
+                <Tabs.Tab name="permissions" label="Perms">
+                    <PermissionsRoute
+                        userId={Number(id)}
+                        permissions={user?.permissions || []}
+                        onUpdate={() => apiService.getUserById(Number(id)).then(setUser)}
+                        canEdit={currentUser?.role === 'MANAGEMENT' || currentUser?.role === 'SUPER_ADMIN'}
+                        userRole={user?.role}
+                    />
+                </Tabs.Tab>
+            </Tabs.Container>
         </View >
     );
 }

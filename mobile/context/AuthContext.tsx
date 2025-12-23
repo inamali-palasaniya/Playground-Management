@@ -2,6 +2,20 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthService, User } from '../services/auth.service';
 import { useRouter, useSegments } from 'expo-router';
+// import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+
+// Notifications.setNotificationHandler({
+//     handleNotification: async () => ({
+//         shouldShowAlert: true,
+//         shouldPlaySound: false,
+//         shouldSetBadge: false,
+//         shouldShowBanner: true,
+//         shouldShowList: true,
+//     }),
+// });
 
 interface AuthContextType {
     user: User | null;
@@ -107,6 +121,73 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
         return () => unsubscribe();
     }, []);
+
+    // Push Notification Registration - DISABLED FOR EXPO GO STABILITY
+    const registerForPushNotificationsAsync = async () => {
+        /*
+        if (Platform.OS === 'web') return;
+
+        // Safety check for Expo Go (Notifications module removed in SDK 53+ Go client)
+        if (Constants.appOwnership === 'expo' && Platform.OS === 'android') {
+            console.log('Skipping Push Token Registration: Not supported in Expo Go on Android (SDK 53+)');
+            // We could also check if Notifications.getPermissionsAsync exists
+            return;
+        }
+
+        try {
+            if (!Notifications.getPermissionsAsync) {
+                console.log('Notifications module not available');
+                return;
+            }
+
+            let token;
+            if (Device.isDevice) {
+                const { status: existingStatus } = await Notifications.getPermissionsAsync();
+                let finalStatus = existingStatus;
+                if (existingStatus !== 'granted') {
+                    const { status } = await Notifications.requestPermissionsAsync();
+                    finalStatus = status;
+                }
+                if (finalStatus !== 'granted') {
+                    console.log('Failed to get push token for push notification!');
+                    return;
+                }
+
+                try {
+                    token = (await Notifications.getExpoPushTokenAsync({
+                        projectId: Constants.expoConfig?.extra?.eas?.projectId,
+                    })).data;
+                    console.log("Expo Push Token:", token);
+                } catch (e) {
+                    console.log("Failed to get Expo Push Token:", e);
+                }
+            } else {
+                console.log('Must use physical device for Push Notifications');
+            }
+
+            if (Platform.OS === 'android') {
+                await Notifications.setNotificationChannelAsync('default', {
+                    name: 'default',
+                    importance: Notifications.AndroidImportance.MAX,
+                    vibrationPattern: [0, 250, 250, 250],
+                    lightColor: '#FF231F7C',
+                });
+            }
+
+            if (token && user?.id) {
+                await AuthService.updatePushToken(user.id, token);
+            }
+        } catch (e) {
+            console.log('Notification registration error (likely Expo Go limitation):', e);
+        }
+        */
+    };
+
+    useEffect(() => {
+        if (user) {
+            registerForPushNotificationsAsync();
+        }
+    }, [user]);
 
     return (
         <AuthContext.Provider value={{ user, isLoading, refreshUser, logout }}>

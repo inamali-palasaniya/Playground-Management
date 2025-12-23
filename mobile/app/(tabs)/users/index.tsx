@@ -75,8 +75,15 @@ export default function PeopleScreen() {
     const [auditVisible, setAuditVisible] = useState(false);
     const [auditEntityId, setAuditEntityId] = useState<number | null>(null);
 
+    // Race Condition Fix: Track the latest request ID
+    const lastRequestId = React.useRef(0);
+
     const loadData = async () => {
         try {
+            // Increment ID for this new request
+            const currentRequestId = lastRequestId.current + 1;
+            lastRequestId.current = currentRequestId;
+
             setLoading(true);
             const user = await AuthService.getUser();
             setCurrentUser(user);
@@ -87,35 +94,35 @@ export default function PeopleScreen() {
             }
 
             if (user?.role === 'NORMAL') {
-                // For normal users, we don't fetch the list.
-                // We just show their own card or redirect.
-                // Fetching self details to show up-to-date info
                 const selfDetails = await apiService.request(`/api/users/${user.id}`);
-                setUsers([selfDetails as User]);
+                // Check if this is still the latest request
+                if (lastRequestId.current === currentRequestId) {
+                    setUsers([selfDetails as User]);
+                }
             } else {
-                // Management: Fetch all
                 let queryString = `?dummy=1`;
-
-                // Dashboard Helpers (Legacy & Deep Links)
-                // Dashboard Helpers & Generic Filter
                 if (activeFilter) queryString += `&filter=${activeFilter}`;
-
-                // Main Filters
                 if (selectedGroup) queryString += `&group_id=${selectedGroup.id}`;
                 if (selectedRole) queryString += `&role=${selectedRole}`;
-                if (selectedStatus) queryString += `&status=${selectedStatus}`; // 'ACTIVE' | 'INACTIVE'
-                if (selectedPunch) queryString += `&punch_status=${selectedPunch}`; // 'IN' | 'OUT'
+                if (selectedStatus) queryString += `&status=${selectedStatus}`;
+                if (selectedPunch) queryString += `&punch_status=${selectedPunch}`;
                 if (selectedType) queryString += `&user_type=${selectedType}`;
                 if (selectedPlan) queryString += `&plan_id=${selectedPlan.id}`;
 
                 const usersPromise = apiService.request(`/api/users${queryString}`);
                 const promises: Promise<any>[] = [usersPromise];
 
-                // Only fetch groups and plans if not already loaded
                 if (groups.length === 0) promises.push(apiService.request('/api/groups'));
                 if (plans.length === 0) promises.push(apiService.request('/api/subscription-plans'));
 
                 const results = await Promise.all(promises);
+
+                // CRITICAL: Check if a newer request has started since we began
+                if (lastRequestId.current !== currentRequestId) {
+                    console.log(`Ignoring stale request ${currentRequestId} (latest: ${lastRequestId.current})`);
+                    return;
+                }
+
                 const usersData = results[0];
                 if (groups.length === 0 && results.length > 1) setGroups(results[1] as Group[]);
                 if (plans.length === 0 && results.length > 2) setPlans(results[2] as SubscriptionPlan[]);
@@ -126,7 +133,10 @@ export default function PeopleScreen() {
         } catch (error) {
             console.error('Failed to load data:', error);
         } finally {
-            console.log('Users loaded:', users.length, 'items');
+            // Only stop loading if we are the latest request (or if verified above)
+            // Ideally, we just check again or let the latest one handle it. 
+            // Simple approach: unsetting loading is fine, UI will just show current data until new data arrives.
+            // But to avoid flickering spinner:
             setLoading(false);
             setRefreshing(false);
         }

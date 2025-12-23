@@ -59,6 +59,7 @@ export const ModelName = {
   Attendance: 'Attendance',
   FeeLedger: 'FeeLedger',
   FineRule: 'FineRule',
+  ExpenseCategory: 'ExpenseCategory',
   UserFine: 'UserFine',
   Expense: 'Expense',
   Tournament: 'Tournament',
@@ -111,6 +112,10 @@ export const UserScalarFieldEnum = {
   deposit_amount: 'deposit_amount',
   group_id: 'group_id',
   password: 'password',
+  otp_code: 'otp_code',
+  otp_expiry: 'otp_expiry',
+  otp_attempts: 'otp_attempts',
+  push_token: 'push_token',
   age: 'age',
   user_type: 'user_type',
   is_active: 'is_active',
@@ -193,6 +198,14 @@ export const FineRuleScalarFieldEnum = {
 } as const
 
 export type FineRuleScalarFieldEnum = (typeof FineRuleScalarFieldEnum)[keyof typeof FineRuleScalarFieldEnum]
+
+
+export const ExpenseCategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name'
+} as const
+
+export type ExpenseCategoryScalarFieldEnum = (typeof ExpenseCategoryScalarFieldEnum)[keyof typeof ExpenseCategoryScalarFieldEnum]
 
 
 export const UserFineScalarFieldEnum = {

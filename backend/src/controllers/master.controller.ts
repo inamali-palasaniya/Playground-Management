@@ -21,6 +21,13 @@ export const createPlan = async (req: Request, res: Response) => {
         const performedBy = (req as any).user?.userId || 1;
         await AuditService.logAction('PLAN', plan.id, 'CREATE', performedBy, { name, rate_monthly });
 
+        try {
+            const { NotificationService } = await import('../services/notification.service.js');
+            await NotificationService.broadcastToAll('New Plan Available', `Check out our new plan: ${name}`);
+        } catch (e) {
+            console.error('Notification Error:', e);
+        }
+
         res.json(plan);
     } catch (error) {
         res.status(500).json({ error: 'Error creating plan' });
@@ -45,6 +52,13 @@ export const createFine = async (req: Request, res: Response) => {
 
         const performedBy = (req as any).user?.userId || 1;
         await AuditService.logAction('FINE_RULE', fine.id, 'CREATE', performedBy, { name });
+
+        try {
+            const { NotificationService } = await import('../services/notification.service.js');
+            await NotificationService.broadcastToAll('New Fine Rule', `Policy Update: ${name}`);
+        } catch (e) {
+            console.error('Notification Error:', e);
+        }
 
         res.json(fine);
     } catch (error) {
@@ -140,5 +154,50 @@ export const deleteFine = async (req: Request, res: Response) => {
         res.json({ message: 'Fine deleted' });
     } catch (error) {
         res.status(500).json({ error: 'Error deleting fine' });
+    }
+};
+
+// --- Expense Categories ---
+
+export const getExpenseCategories = async (req: Request, res: Response) => {
+    try {
+        const categories = await prisma.expenseCategory.findMany({ orderBy: { name: 'asc' } });
+        res.json(categories);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch categories' });
+    }
+};
+
+export const createExpenseCategory = async (req: Request, res: Response) => {
+    try {
+        const { name } = req.body;
+        const category = await prisma.expenseCategory.create({ data: { name } });
+        res.status(201).json(category);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to create category' });
+    }
+};
+
+export const updateExpenseCategory = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { name } = req.body;
+        const category = await prisma.expenseCategory.update({
+            where: { id: parseInt(id) },
+            data: { name }
+        });
+        res.json(category);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update category' });
+    }
+};
+
+export const deleteExpenseCategory = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        await prisma.expenseCategory.delete({ where: { id: parseInt(id) } });
+        res.json({ message: 'Category deleted' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete category' });
     }
 };

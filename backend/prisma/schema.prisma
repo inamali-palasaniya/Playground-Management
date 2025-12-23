@@ -28,6 +28,10 @@ model User {
   deposit_amount   Float          @default(0.0)
   group_id         Int?
   password         String?
+  otp_code         String?
+  otp_expiry       DateTime?
+  otp_attempts     Int          @default(0)
+  push_token       String?
   age              Int?
   user_type        UserType     @default(NORMAL)
   is_active        Boolean      @default(true)
@@ -145,6 +149,11 @@ model FineRule {
   subsequent_fine       Float      @default(0)
   createdAt             DateTime   @default(now())
   fines                 UserFine[]
+}
+
+model ExpenseCategory {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
 }
 
 model UserFine {

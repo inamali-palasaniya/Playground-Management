@@ -245,8 +245,26 @@ export const addFine = async (req: Request, res: Response) => {
 export const getUserFinancials = async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
+        const { type, startDate, endDate } = req.query;
+
+        const where: any = { user_id: Number(userId) };
+
+        if (type && type !== 'ALL') {
+            where.type = type;
+        }
+
+        if (startDate || endDate) {
+            where.date = {};
+            if (startDate) where.date.gte = new Date(startDate as string);
+            if (endDate) {
+                const end = new Date(endDate as string);
+                end.setHours(23, 59, 59, 999);
+                where.date.lte = end;
+            }
+        }
+
         const ledger = await prisma.feeLedger.findMany({
-            where: { user_id: Number(userId) },
+            where,
             include: {
                 child_ledger: true,
                 created_by: { select: { name: true } }

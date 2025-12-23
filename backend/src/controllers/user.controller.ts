@@ -568,6 +568,25 @@ export const updateUser = async (req: Request, res: Response) => {
     }
 };
 
+export const updatePushToken = async (req: Request, res: Response) => {
+    try {
+        const { userId } = req.params;
+        const { pushToken } = req.body;
+
+        if (!pushToken) return res.status(400).json({ error: 'Push Token required' });
+
+        await prisma.user.update({
+            where: { id: parseInt(userId) },
+            data: { push_token: pushToken }
+        });
+
+        res.json({ message: 'Push token updated' });
+    } catch (error) {
+        console.error('Error updating push token:', error);
+        res.status(500).json({ error: 'Failed to update push token' });
+    }
+};
+
 export const deleteUser = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
