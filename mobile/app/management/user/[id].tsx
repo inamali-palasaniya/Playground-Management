@@ -563,7 +563,7 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser }: { userId:
 
     return (
         <View style={{ flex: 1 }}>
-            <Tabs.ScrollView style={styles.tabContent}>
+            <Tabs.ScrollView contentContainerStyle={{ paddingTop: 20, paddingBottom: 100, paddingHorizontal: 16 }}>
                 {attendance.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No attendance records.</Text> : (
                     <View style={{ gap: 10 }}>
                         {attendance.map((record) => (
@@ -884,26 +884,24 @@ export default function UserDetailScreen() {
             <View style={{ pointerEvents: 'box-none' }}>
                 <LinearGradient
                     colors={[theme.colors.primary, '#1976d2']}
-                    style={[styles.headerGradient, { paddingTop: 10 }]} // Removed huge padding since TopNav handles it
+                    style={[styles.headerGradient, { paddingTop: 5 }]}
                 >
-                    <View style={{ paddingBottom: 20, alignItems: 'center' }}>
+                    <View style={{ paddingBottom: 10, alignItems: 'center' }}>
                         <Avatar.Text
-                            size={64}
+                            size={56}
                             label={user.name.substring(0, 2).toUpperCase()}
                             style={{ backgroundColor: 'white', elevation: 4 }}
                             color={theme.colors.primary}
                             labelStyle={{ fontWeight: 'bold' }}
                         />
-                        {/* Name is now in Sticky Header, but we keep it here for "Expanded" view too?
-                             Actually user said "just name... in smaller sticky header".
-                             Expaded header can still have it visually larger. */}
-                        <Text variant="titleLarge" style={{ color: 'white', fontWeight: 'bold', marginTop: 8 }}>{user.name}</Text>
+                        <Text variant="titleLarge" style={{ color: 'white', fontWeight: 'bold', marginTop: 4 }}>{user.name}</Text>
                         <Text variant="bodySmall" style={{ color: 'rgba(255,255,255,0.9)' }}>{user.role === 'SUPER_ADMIN' ? 'Super Admin' : user.role || 'User'}</Text>
                     </View>
                 </LinearGradient>
 
                 {/* Floating Contact Card & Status */}
                 <View style={styles.floatingCard}>
+
                     {/* Contact Details */}
                     <View style={{ marginBottom: 15 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
