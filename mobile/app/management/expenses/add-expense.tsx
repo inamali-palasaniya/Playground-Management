@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
-import { TextInput, Button, Appbar, useTheme, HelperText } from 'react-native-paper';
+import { TextInput, Button, Appbar, useTheme, HelperText, Menu, TouchableRipple } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import apiService from '../../../services/api.service';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -19,24 +19,16 @@ export default function AddExpenseScreen() {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (id) {
-            // Fetch existing expense
-            // Assuming getExpenses can filter or we find from list?
-            // Since api service getExpenses returns list, we fetch all and find suitable one or use separate endpoint if available?
-            // My expense controller has getExpenses (all) or perhaps I should add getById?
-            // Let's assume for now we use list filtering as I didn't add getById explicitly to controller/routes in previous step
-            // Wait, standard CREATE usually implies GET /:id exists?
-            // I implemented: getExpenses (List), createExpense, updateExpense, deleteExpense.
-            // I did NOT implement getExpenseById in controller.
-            // I should add it or just iterate list. Iterate list is inefficient but works for MVP.
-            // Actually, I can rely on passing params if I came from list? But usually we fetch fresh.
-            // I'll fetch list and find. (Or just trust params if passed).
-            // Params passing is safer for now to avoid complexity.
+    // Dropdown state
+    const [visible, setVisible] = useState(false); // Menu visibility
+    const [categories, setCategories] = useState<any[]>([]);
 
-            // Actually users usually pass data via params if small.
-            // But navigation params are stringified.
-            // Let's trying fetching list.
+    useEffect(() => {
+        apiService.request('/api/masters/expense-categories')
+            .then(data => setCategories(data as any[]))
+            .catch(err => console.error('Failed to load categories', err));
+
+        if (id) {
             setLoading(true);
             apiService.getExpenses().then(list => {
                 const exp = list.find(e => e.id === Number(id));
@@ -52,8 +44,8 @@ export default function AddExpenseScreen() {
     }, [id]);
 
     const handleSubmit = async () => {
-        if (!amount || !category) {
-            Alert.alert('Error', 'Amount and Category are required');
+        if (!amount || !category || !name) {
+            Alert.alert('Error', 'Name, Amount and Category are required');
             return;
         }
 
@@ -72,10 +64,8 @@ export default function AddExpenseScreen() {
                     method: 'PUT',
                     body: JSON.stringify(payload)
                 });
-                // Alert.alert('Success', 'Expense updated');
             } else {
                 await apiService.createExpense(payload);
-                // Alert.alert('Success', 'Expense created');
             }
             router.back();
         } catch (error: any) {
@@ -101,15 +91,41 @@ export default function AddExpenseScreen() {
                 />
 
                 <TextInput
-                    label="Category *"
-                    value={category}
-                    onChangeText={setCategory}
+                    label="Amount *"
+                    value={amount}
+                    onChangeText={setAmount}
+                    keyboardType="numeric"
                     style={styles.input}
-                    placeholder="e.g. Equipment, Maintenance, Salary"
+                    left={<TextInput.Affix text="₹ " />}
                 />
-                <HelperText type="info" visible>
-                    Common: Equipment, Maintenance, Rent, Salary, Refreshments
-                </HelperText>
+
+                <Menu
+                    visible={visible}
+                    onDismiss={() => setVisible(false)}
+                    anchor={
+                        <TouchableRipple onPress={() => setVisible(true)}>
+                            <TextInput
+                                label="Category *"
+                                value={category}
+                                editable={false} // Make it readonly, click opens menu
+                                right={<TextInput.Icon icon="menu-down" onPress={() => setVisible(true)} />}
+                                style={styles.input}
+                            />
+                        </TouchableRipple>
+                    }
+                >
+                    {categories.map((cat) => (
+                        <Menu.Item
+                            key={cat.id}
+                            onPress={() => {
+                                setCategory(cat.name);
+                                setVisible(false);
+                            }}
+                            title={cat.name}
+                        />
+                    ))}
+                    <Menu.Item onPress={() => router.push('/management/masters/categories')} title="+ Manage Categories" />
+                </Menu>
 
                 <Button
                     mode="outlined"

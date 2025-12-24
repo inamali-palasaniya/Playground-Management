@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, Alert } from 'react-native';
 import { Card, Text, useTheme, Title, Paragraph, Appbar, Avatar, IconButton, Button } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
@@ -8,12 +8,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../../services/api.service';
 import { format } from 'date-fns';
 
+import { AuthService, User } from '../../../services/auth.service';
+
 export default function CricketDashboard() {
     const router = useRouter();
     const theme = useTheme();
     const [recentMatches, setRecentMatches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+    useEffect(() => {
+        AuthService.getUser().then(setCurrentUser);
+    }, []);
 
     const loadData = async () => {
         try {
@@ -43,11 +50,12 @@ export default function CricketDashboard() {
         loadData();
     };
 
-    const modules = [
+    const allModules = [
         {
             title: 'Tournaments',
             subtitle: 'Create & Manage',
             icon: 'trophy',
+            permission: { module: 'cricket_scoring', action: 'view' }, // Defaulting to scoring view for now or tournament specific
             route: '/management/cricket/tournaments',
             color: '#FFD700'
         },
@@ -55,6 +63,7 @@ export default function CricketDashboard() {
             title: 'Teams',
             subtitle: 'Squad Management',
             icon: 'shield-account',
+            permission: { module: 'cricket_scoring', action: 'view' },
             route: '/management/cricket/teams',
             color: '#2196F3'
         },
@@ -62,6 +71,7 @@ export default function CricketDashboard() {
             title: 'Matches',
             subtitle: 'Schedule & Results',
             icon: 'cricket',
+            permission: { module: 'cricket_scoring', action: 'view' },
             route: '/management/cricket/matches',
             color: '#4CAF50'
         },
@@ -69,10 +79,17 @@ export default function CricketDashboard() {
             title: 'Live Scorer',
             subtitle: 'Dark Mode Scoring',
             icon: 'scoreboard',
+            permission: { module: 'cricket_scoring', action: 'view' },
             route: '/management/cricket/matches',
             color: '#FF5722'
         }
     ];
+
+    const modules = allModules.filter(m => {
+        if (!currentUser) return false;
+        if (currentUser.role === 'SUPER_ADMIN') return true;
+        return AuthService.hasPermission(currentUser, m.permission.module, m.permission.action as any);
+    });
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -115,10 +132,13 @@ export default function CricketDashboard() {
                             key={match.id}
                             style={styles.matchCard}
                             onPress={() => {
+                                const canView = AuthService.hasPermission(currentUser, 'cricket_scoring', 'view');
                                 if (match.status === 'COMPLETED') {
                                     router.push(`/(tabs)/scoring/live/${match.id}`);
-                                } else {
+                                } else if (canView) {
                                     router.push({ pathname: '/management/cricket/scorer', params: { matchId: match.id } });
+                                } else {
+                                    Alert.alert('Permission Denied', 'You do not have view access for live scoring.');
                                 }
                             }}
                         >

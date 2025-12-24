@@ -80,6 +80,11 @@ export type FeeLedger = Prisma.FeeLedgerModel
  */
 export type FineRule = Prisma.FineRuleModel
 /**
+ * Model ExpenseCategory
+ * 
+ */
+export type ExpenseCategory = Prisma.ExpenseCategoryModel
+/**
  * Model UserFine
  * 
  */

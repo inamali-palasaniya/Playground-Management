@@ -13,7 +13,9 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.inamali.mobile",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +23,8 @@
         "backgroundColor": "#121212"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.inamali.mobile"
+      "package": "com.inamali.mobile",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"

@@ -392,6 +392,7 @@ export const ModelName = {
   Attendance: 'Attendance',
   FeeLedger: 'FeeLedger',
   FineRule: 'FineRule',
+  ExpenseCategory: 'ExpenseCategory',
   UserFine: 'UserFine',
   Expense: 'Expense',
   Tournament: 'Tournament',
@@ -416,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "game" | "userGroup" | "user" | "subscriptionPlan" | "subscription" | "attendance" | "feeLedger" | "fineRule" | "userFine" | "expense" | "tournament" | "team" | "teamPlayer" | "match" | "ballEvent" | "permission" | "auditLog"
+    modelProps: "game" | "userGroup" | "user" | "subscriptionPlan" | "subscription" | "attendance" | "feeLedger" | "fineRule" | "expenseCategory" | "userFine" | "expense" | "tournament" | "team" | "teamPlayer" | "match" | "ballEvent" | "permission" | "auditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1009,6 +1010,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.FineRuleCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.FineRuleCountAggregateOutputType> | number
+        }
+      }
+    }
+    ExpenseCategory: {
+      payload: Prisma.$ExpenseCategoryPayload<ExtArgs>
+      fields: Prisma.ExpenseCategoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ExpenseCategoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseCategoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ExpenseCategoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseCategoryPayload>
+        }
+        findFirst: {
+          args: Prisma.ExpenseCategoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseCategoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ExpenseCategoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseCategoryPayload>
+        }
+        findMany: {
+          args: Prisma.ExpenseCategoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseCategoryPayload>[]
+        }
+        create: {
+          args: Prisma.ExpenseCategoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseCategoryPayload>
+        }
+        createMany: {
+          args: Prisma.ExpenseCategoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ExpenseCategoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseCategoryPayload>[]
+        }
+        delete: {
+          args: Prisma.ExpenseCategoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseCategoryPayload>
+        }
+        update: {
+          args: Prisma.ExpenseCategoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseCategoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.ExpenseCategoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ExpenseCategoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ExpenseCategoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseCategoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.ExpenseCategoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ExpenseCategoryPayload>
+        }
+        aggregate: {
+          args: Prisma.ExpenseCategoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateExpenseCategory>
+        }
+        groupBy: {
+          args: Prisma.ExpenseCategoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExpenseCategoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ExpenseCategoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ExpenseCategoryCountAggregateOutputType> | number
         }
       }
     }
@@ -1742,6 +1817,10 @@ export const UserScalarFieldEnum = {
   deposit_amount: 'deposit_amount',
   group_id: 'group_id',
   password: 'password',
+  otp_code: 'otp_code',
+  otp_expiry: 'otp_expiry',
+  otp_attempts: 'otp_attempts',
+  push_token: 'push_token',
   age: 'age',
   user_type: 'user_type',
   is_active: 'is_active',
@@ -1824,6 +1903,14 @@ export const FineRuleScalarFieldEnum = {
 } as const
 
 export type FineRuleScalarFieldEnum = (typeof FineRuleScalarFieldEnum)[keyof typeof FineRuleScalarFieldEnum]
+
+
+export const ExpenseCategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name'
+} as const
+
+export type ExpenseCategoryScalarFieldEnum = (typeof ExpenseCategoryScalarFieldEnum)[keyof typeof ExpenseCategoryScalarFieldEnum]
 
 
 export const UserFineScalarFieldEnum = {
@@ -2065,6 +2152,20 @@ export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMode
 
 
 /**
+ * Reference to a field of type 'DateTime'
+ */
+export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+    
+
+
+/**
+ * Reference to a field of type 'DateTime[]'
+ */
+export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
  * Reference to a field of type 'UserType'
  */
 export type EnumUserTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserType'>
@@ -2082,20 +2183,6 @@ export type ListEnumUserTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
-    
-
-
-/**
- * Reference to a field of type 'DateTime'
- */
-export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
-    
-
-
-/**
- * Reference to a field of type 'DateTime[]'
- */
-export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
     
 
 
@@ -2299,6 +2386,7 @@ export type GlobalOmitConfig = {
   attendance?: Prisma.AttendanceOmit
   feeLedger?: Prisma.FeeLedgerOmit
   fineRule?: Prisma.FineRuleOmit
+  expenseCategory?: Prisma.ExpenseCategoryOmit
   userFine?: Prisma.UserFineOmit
   expense?: Prisma.ExpenseOmit
   tournament?: Prisma.TournamentOmit

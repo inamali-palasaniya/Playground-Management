@@ -5,11 +5,18 @@ import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AuthService, User } from '../../services/auth.service';
+
 export default function ManagementIndex() {
     const theme = useTheme();
     const router = useRouter();
+    const [currentUser, setCurrentUser] = React.useState<User | null>(null);
 
-    const modules = [
+    React.useEffect(() => {
+        AuthService.getUser().then(setCurrentUser);
+    }, []);
+
+    const allModules = [
         {
             title: 'Cricket Scoring',
             icon: 'cricket',
@@ -53,6 +60,30 @@ export default function ManagementIndex() {
             description: 'Audit logs and deleted records.'
         }
     ];
+
+    const modules = allModules.filter(m => {
+        if (!currentUser) return false;
+        if (currentUser.role === 'SUPER_ADMIN') return true;
+
+        switch (m.title) {
+            case 'Cricket Scoring':
+                return AuthService.hasPermission(currentUser, 'cricket_scoring', 'view');
+            case 'User Management':
+                return AuthService.hasPermission(currentUser, 'user', 'view');
+            case 'Expenses':
+                return AuthService.hasPermission(currentUser, 'expense', 'view');
+            case 'Finance & Ledger':
+                return AuthService.hasPermission(currentUser, 'finance', 'view');
+            case 'Masters':
+                return AuthService.hasPermission(currentUser, 'master_groups', 'view') ||
+                    AuthService.hasPermission(currentUser, 'master_plans', 'view') ||
+                    AuthService.hasPermission(currentUser, 'master_fines', 'view');
+            case 'System Logs':
+                return AuthService.hasPermission(currentUser, 'audit', 'view');
+            default:
+                return true;
+        }
+    });
 
     return (
         <SafeAreaView style={styles.container}>

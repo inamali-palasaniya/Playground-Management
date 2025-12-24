@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, FlatList, Alert } from 'react-native';
-import { Appbar, useTheme, Card, Text, FAB, ActivityIndicator, IconButton } from 'react-native-paper';
+import { Appbar, useTheme, Card, Text, FAB, ActivityIndicator, IconButton, Menu, Chip } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import apiService from '../../../services/api.service';
 import { format } from 'date-fns';
@@ -17,10 +17,15 @@ export default function ExpenseListScreen() {
     const [auditVisible, setAuditVisible] = useState(false);
     const [auditEntityId, setAuditEntityId] = useState<number | null>(null);
 
+    // Filter Logic
+    const [categories, setCategories] = useState<any[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [filterMenuVisible, setFilterMenuVisible] = useState(false);
+
     const loadExpenses = async () => {
         try {
             setLoading(true);
-            const data = await apiService.getExpenses();
+            const data = await apiService.getExpenses(selectedCategory || undefined);
             setExpenses(data);
         } catch (error) {
             console.error(error);
@@ -37,7 +42,12 @@ export default function ExpenseListScreen() {
                 return;
             }
             loadExpenses();
-        }, [user])
+
+            // Load categories for filter
+            apiService.request('/api/masters/expense-categories')
+                .then(data => setCategories(data as any[]))
+                .catch(console.error);
+        }, [user, selectedCategory]) // Reload when filter changes
     );
 
     const handleDelete = (id: number) => {
@@ -96,7 +106,28 @@ export default function ExpenseListScreen() {
             <Appbar.Header style={{ backgroundColor: theme.colors.primary }} elevated>
                 <Appbar.BackAction onPress={() => router.back()} color="white" />
                 <Appbar.Content title="Expenses" titleStyle={{ color: 'white' }} />
+                <Menu
+                    visible={filterMenuVisible}
+                    onDismiss={() => setFilterMenuVisible(false)}
+                    anchor={<Appbar.Action icon={selectedCategory ? "filter" : "filter-outline"} color="white" onPress={() => setFilterMenuVisible(true)} />}
+                >
+                    <Menu.Item onPress={() => { setSelectedCategory(null); setFilterMenuVisible(false); }} title="All" leadingIcon={!selectedCategory ? "check" : undefined} />
+                    {categories.map((cat) => (
+                        <Menu.Item
+                            key={cat.id}
+                            onPress={() => { setSelectedCategory(cat.name); setFilterMenuVisible(false); }}
+                            title={cat.name}
+                            leadingIcon={selectedCategory === cat.name ? "check" : undefined}
+                        />
+                    ))}
+                </Menu>
             </Appbar.Header>
+
+            {selectedCategory && (
+                <View style={{ padding: 10, paddingBottom: 0 }}>
+                    <Chip onClose={() => setSelectedCategory(null)} icon="filter">{selectedCategory}</Chip>
+                </View>
+            )}
 
             {loading ? (
                 <View style={styles.centered}><ActivityIndicator /></View>

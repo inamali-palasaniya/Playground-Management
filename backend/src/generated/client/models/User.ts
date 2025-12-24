@@ -30,6 +30,7 @@ export type UserAvgAggregateOutputType = {
   id: number | null
   deposit_amount: number | null
   group_id: number | null
+  otp_attempts: number | null
   age: number | null
   created_by_id: number | null
 }
@@ -38,6 +39,7 @@ export type UserSumAggregateOutputType = {
   id: number | null
   deposit_amount: number | null
   group_id: number | null
+  otp_attempts: number | null
   age: number | null
   created_by_id: number | null
 }
@@ -51,6 +53,10 @@ export type UserMinAggregateOutputType = {
   deposit_amount: number | null
   group_id: number | null
   password: string | null
+  otp_code: string | null
+  otp_expiry: Date | null
+  otp_attempts: number | null
+  push_token: string | null
   age: number | null
   user_type: $Enums.UserType | null
   is_active: boolean | null
@@ -67,6 +73,10 @@ export type UserMaxAggregateOutputType = {
   deposit_amount: number | null
   group_id: number | null
   password: string | null
+  otp_code: string | null
+  otp_expiry: Date | null
+  otp_attempts: number | null
+  push_token: string | null
   age: number | null
   user_type: $Enums.UserType | null
   is_active: boolean | null
@@ -83,6 +93,10 @@ export type UserCountAggregateOutputType = {
   deposit_amount: number
   group_id: number
   password: number
+  otp_code: number
+  otp_expiry: number
+  otp_attempts: number
+  push_token: number
   age: number
   user_type: number
   is_active: number
@@ -96,6 +110,7 @@ export type UserAvgAggregateInputType = {
   id?: true
   deposit_amount?: true
   group_id?: true
+  otp_attempts?: true
   age?: true
   created_by_id?: true
 }
@@ -104,6 +119,7 @@ export type UserSumAggregateInputType = {
   id?: true
   deposit_amount?: true
   group_id?: true
+  otp_attempts?: true
   age?: true
   created_by_id?: true
 }
@@ -117,6 +133,10 @@ export type UserMinAggregateInputType = {
   deposit_amount?: true
   group_id?: true
   password?: true
+  otp_code?: true
+  otp_expiry?: true
+  otp_attempts?: true
+  push_token?: true
   age?: true
   user_type?: true
   is_active?: true
@@ -133,6 +153,10 @@ export type UserMaxAggregateInputType = {
   deposit_amount?: true
   group_id?: true
   password?: true
+  otp_code?: true
+  otp_expiry?: true
+  otp_attempts?: true
+  push_token?: true
   age?: true
   user_type?: true
   is_active?: true
@@ -149,6 +173,10 @@ export type UserCountAggregateInputType = {
   deposit_amount?: true
   group_id?: true
   password?: true
+  otp_code?: true
+  otp_expiry?: true
+  otp_attempts?: true
+  push_token?: true
   age?: true
   user_type?: true
   is_active?: true
@@ -252,6 +280,10 @@ export type UserGroupByOutputType = {
   deposit_amount: number
   group_id: number | null
   password: string | null
+  otp_code: string | null
+  otp_expiry: Date | null
+  otp_attempts: number
+  push_token: string | null
   age: number | null
   user_type: $Enums.UserType
   is_active: boolean
@@ -291,6 +323,10 @@ export type UserWhereInput = {
   deposit_amount?: Prisma.FloatFilter<"User"> | number
   group_id?: Prisma.IntNullableFilter<"User"> | number | null
   password?: Prisma.StringNullableFilter<"User"> | string | null
+  otp_code?: Prisma.StringNullableFilter<"User"> | string | null
+  otp_expiry?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  otp_attempts?: Prisma.IntFilter<"User"> | number
+  push_token?: Prisma.StringNullableFilter<"User"> | string | null
   age?: Prisma.IntNullableFilter<"User"> | number | null
   user_type?: Prisma.EnumUserTypeFilter<"User"> | $Enums.UserType
   is_active?: Prisma.BoolFilter<"User"> | boolean
@@ -331,6 +367,10 @@ export type UserOrderByWithRelationInput = {
   deposit_amount?: Prisma.SortOrder
   group_id?: Prisma.SortOrderInput | Prisma.SortOrder
   password?: Prisma.SortOrderInput | Prisma.SortOrder
+  otp_code?: Prisma.SortOrderInput | Prisma.SortOrder
+  otp_expiry?: Prisma.SortOrderInput | Prisma.SortOrder
+  otp_attempts?: Prisma.SortOrder
+  push_token?: Prisma.SortOrderInput | Prisma.SortOrder
   age?: Prisma.SortOrderInput | Prisma.SortOrder
   user_type?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -374,6 +414,10 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   deposit_amount?: Prisma.FloatFilter<"User"> | number
   group_id?: Prisma.IntNullableFilter<"User"> | number | null
   password?: Prisma.StringNullableFilter<"User"> | string | null
+  otp_code?: Prisma.StringNullableFilter<"User"> | string | null
+  otp_expiry?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  otp_attempts?: Prisma.IntFilter<"User"> | number
+  push_token?: Prisma.StringNullableFilter<"User"> | string | null
   age?: Prisma.IntNullableFilter<"User"> | number | null
   user_type?: Prisma.EnumUserTypeFilter<"User"> | $Enums.UserType
   is_active?: Prisma.BoolFilter<"User"> | boolean
@@ -414,6 +458,10 @@ export type UserOrderByWithAggregationInput = {
   deposit_amount?: Prisma.SortOrder
   group_id?: Prisma.SortOrderInput | Prisma.SortOrder
   password?: Prisma.SortOrderInput | Prisma.SortOrder
+  otp_code?: Prisma.SortOrderInput | Prisma.SortOrder
+  otp_expiry?: Prisma.SortOrderInput | Prisma.SortOrder
+  otp_attempts?: Prisma.SortOrder
+  push_token?: Prisma.SortOrderInput | Prisma.SortOrder
   age?: Prisma.SortOrderInput | Prisma.SortOrder
   user_type?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -438,6 +486,10 @@ export type UserScalarWhereWithAggregatesInput = {
   deposit_amount?: Prisma.FloatWithAggregatesFilter<"User"> | number
   group_id?: Prisma.IntNullableWithAggregatesFilter<"User"> | number | null
   password?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  otp_code?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  otp_expiry?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  otp_attempts?: Prisma.IntWithAggregatesFilter<"User"> | number
+  push_token?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   age?: Prisma.IntNullableWithAggregatesFilter<"User"> | number | null
   user_type?: Prisma.EnumUserTypeWithAggregatesFilter<"User"> | $Enums.UserType
   is_active?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
@@ -452,6 +504,10 @@ export type UserCreateInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -491,6 +547,10 @@ export type UserUncheckedCreateInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -527,6 +587,10 @@ export type UserUpdateInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -566,6 +630,10 @@ export type UserUncheckedUpdateInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -604,6 +672,10 @@ export type UserCreateManyInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -618,6 +690,10 @@ export type UserUpdateManyMutationInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -633,6 +709,10 @@ export type UserUncheckedUpdateManyInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -664,6 +744,10 @@ export type UserCountOrderByAggregateInput = {
   deposit_amount?: Prisma.SortOrder
   group_id?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  otp_code?: Prisma.SortOrder
+  otp_expiry?: Prisma.SortOrder
+  otp_attempts?: Prisma.SortOrder
+  push_token?: Prisma.SortOrder
   age?: Prisma.SortOrder
   user_type?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -675,6 +759,7 @@ export type UserAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   deposit_amount?: Prisma.SortOrder
   group_id?: Prisma.SortOrder
+  otp_attempts?: Prisma.SortOrder
   age?: Prisma.SortOrder
   created_by_id?: Prisma.SortOrder
 }
@@ -688,6 +773,10 @@ export type UserMaxOrderByAggregateInput = {
   deposit_amount?: Prisma.SortOrder
   group_id?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  otp_code?: Prisma.SortOrder
+  otp_expiry?: Prisma.SortOrder
+  otp_attempts?: Prisma.SortOrder
+  push_token?: Prisma.SortOrder
   age?: Prisma.SortOrder
   user_type?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -704,6 +793,10 @@ export type UserMinOrderByAggregateInput = {
   deposit_amount?: Prisma.SortOrder
   group_id?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  otp_code?: Prisma.SortOrder
+  otp_expiry?: Prisma.SortOrder
+  otp_attempts?: Prisma.SortOrder
+  push_token?: Prisma.SortOrder
   age?: Prisma.SortOrder
   user_type?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -715,6 +808,7 @@ export type UserSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   deposit_amount?: Prisma.SortOrder
   group_id?: Prisma.SortOrder
+  otp_attempts?: Prisma.SortOrder
   age?: Prisma.SortOrder
   created_by_id?: Prisma.SortOrder
 }
@@ -800,6 +894,10 @@ export type FloatFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type NullableIntFieldUpdateOperationsInput = {
@@ -1185,6 +1283,10 @@ export type UserCreateWithoutGroupInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -1222,6 +1324,10 @@ export type UserUncheckedCreateWithoutGroupInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -1289,6 +1395,10 @@ export type UserScalarWhereInput = {
   deposit_amount?: Prisma.FloatFilter<"User"> | number
   group_id?: Prisma.IntNullableFilter<"User"> | number | null
   password?: Prisma.StringNullableFilter<"User"> | string | null
+  otp_code?: Prisma.StringNullableFilter<"User"> | string | null
+  otp_expiry?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  otp_attempts?: Prisma.IntFilter<"User"> | number
+  push_token?: Prisma.StringNullableFilter<"User"> | string | null
   age?: Prisma.IntNullableFilter<"User"> | number | null
   user_type?: Prisma.EnumUserTypeFilter<"User"> | $Enums.UserType
   is_active?: Prisma.BoolFilter<"User"> | boolean
@@ -1303,6 +1413,10 @@ export type UserCreateWithoutCreated_usersInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -1341,6 +1455,10 @@ export type UserUncheckedCreateWithoutCreated_usersInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -1381,6 +1499,10 @@ export type UserCreateWithoutCreated_byInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -1419,6 +1541,10 @@ export type UserUncheckedCreateWithoutCreated_byInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -1475,6 +1601,10 @@ export type UserUpdateWithoutCreated_usersInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1513,6 +1643,10 @@ export type UserUncheckedUpdateWithoutCreated_usersInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1564,6 +1698,10 @@ export type UserCreateWithoutSubscriptionsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -1602,6 +1740,10 @@ export type UserUncheckedCreateWithoutSubscriptionsInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -1653,6 +1795,10 @@ export type UserUpdateWithoutSubscriptionsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1691,6 +1837,10 @@ export type UserUncheckedUpdateWithoutSubscriptionsInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1726,6 +1876,10 @@ export type UserCreateWithoutCreated_attendancesInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -1764,6 +1918,10 @@ export type UserUncheckedCreateWithoutCreated_attendancesInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -1804,6 +1962,10 @@ export type UserCreateWithoutAttendancesInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -1842,6 +2004,10 @@ export type UserUncheckedCreateWithoutAttendancesInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -1893,6 +2059,10 @@ export type UserUpdateWithoutCreated_attendancesInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1931,6 +2101,10 @@ export type UserUncheckedUpdateWithoutCreated_attendancesInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1977,6 +2151,10 @@ export type UserUpdateWithoutAttendancesInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2015,6 +2193,10 @@ export type UserUncheckedUpdateWithoutAttendancesInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2050,6 +2232,10 @@ export type UserCreateWithoutCreated_ledgersInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -2088,6 +2274,10 @@ export type UserUncheckedCreateWithoutCreated_ledgersInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -2128,6 +2318,10 @@ export type UserCreateWithoutFee_ledgerInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -2166,6 +2360,10 @@ export type UserUncheckedCreateWithoutFee_ledgerInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -2217,6 +2415,10 @@ export type UserUpdateWithoutCreated_ledgersInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2255,6 +2457,10 @@ export type UserUncheckedUpdateWithoutCreated_ledgersInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2301,6 +2507,10 @@ export type UserUpdateWithoutFee_ledgerInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2339,6 +2549,10 @@ export type UserUncheckedUpdateWithoutFee_ledgerInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2374,6 +2588,10 @@ export type UserCreateWithoutFinesInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -2412,6 +2630,10 @@ export type UserUncheckedCreateWithoutFinesInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -2463,6 +2685,10 @@ export type UserUpdateWithoutFinesInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2501,6 +2727,10 @@ export type UserUncheckedUpdateWithoutFinesInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2536,6 +2766,10 @@ export type UserCreateWithoutCreated_expensesInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -2574,6 +2808,10 @@ export type UserUncheckedCreateWithoutCreated_expensesInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -2625,6 +2863,10 @@ export type UserUpdateWithoutCreated_expensesInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2663,6 +2905,10 @@ export type UserUncheckedUpdateWithoutCreated_expensesInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2698,6 +2944,10 @@ export type UserCreateWithoutSeries_won_motsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -2736,6 +2986,10 @@ export type UserUncheckedCreateWithoutSeries_won_motsInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -2776,6 +3030,10 @@ export type UserCreateWithoutCreated_tournamentsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -2814,6 +3072,10 @@ export type UserUncheckedCreateWithoutCreated_tournamentsInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -2865,6 +3127,10 @@ export type UserUpdateWithoutSeries_won_motsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2903,6 +3169,10 @@ export type UserUncheckedUpdateWithoutSeries_won_motsInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2949,6 +3219,10 @@ export type UserUpdateWithoutCreated_tournamentsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2987,6 +3261,10 @@ export type UserUncheckedUpdateWithoutCreated_tournamentsInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3022,6 +3300,10 @@ export type UserCreateWithoutCreated_teamsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -3060,6 +3342,10 @@ export type UserUncheckedCreateWithoutCreated_teamsInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -3111,6 +3397,10 @@ export type UserUpdateWithoutCreated_teamsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3149,6 +3439,10 @@ export type UserUncheckedUpdateWithoutCreated_teamsInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3184,6 +3478,10 @@ export type UserCreateWithoutPlayer_teamsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -3222,6 +3520,10 @@ export type UserUncheckedCreateWithoutPlayer_teamsInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -3273,6 +3575,10 @@ export type UserUpdateWithoutPlayer_teamsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3311,6 +3617,10 @@ export type UserUncheckedUpdateWithoutPlayer_teamsInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3346,6 +3656,10 @@ export type UserCreateWithoutMatches_won_motmInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -3384,6 +3698,10 @@ export type UserUncheckedCreateWithoutMatches_won_motmInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -3424,6 +3742,10 @@ export type UserCreateWithoutMatches_as_strikerInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -3462,6 +3784,10 @@ export type UserUncheckedCreateWithoutMatches_as_strikerInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -3502,6 +3828,10 @@ export type UserCreateWithoutMatches_as_non_strikerInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -3540,6 +3870,10 @@ export type UserUncheckedCreateWithoutMatches_as_non_strikerInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -3580,6 +3914,10 @@ export type UserCreateWithoutMatches_as_bowlerInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -3618,6 +3956,10 @@ export type UserUncheckedCreateWithoutMatches_as_bowlerInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -3658,6 +4000,10 @@ export type UserCreateWithoutCreated_matchesInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -3696,6 +4042,10 @@ export type UserUncheckedCreateWithoutCreated_matchesInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -3747,6 +4097,10 @@ export type UserUpdateWithoutMatches_won_motmInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3785,6 +4139,10 @@ export type UserUncheckedUpdateWithoutMatches_won_motmInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3831,6 +4189,10 @@ export type UserUpdateWithoutMatches_as_strikerInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3869,6 +4231,10 @@ export type UserUncheckedUpdateWithoutMatches_as_strikerInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3915,6 +4281,10 @@ export type UserUpdateWithoutMatches_as_non_strikerInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3953,6 +4323,10 @@ export type UserUncheckedUpdateWithoutMatches_as_non_strikerInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -3999,6 +4373,10 @@ export type UserUpdateWithoutMatches_as_bowlerInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4037,6 +4415,10 @@ export type UserUncheckedUpdateWithoutMatches_as_bowlerInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4083,6 +4465,10 @@ export type UserUpdateWithoutCreated_matchesInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4121,6 +4507,10 @@ export type UserUncheckedUpdateWithoutCreated_matchesInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4156,6 +4546,10 @@ export type UserCreateWithoutBowled_ballsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -4194,6 +4588,10 @@ export type UserUncheckedCreateWithoutBowled_ballsInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -4234,6 +4632,10 @@ export type UserCreateWithoutFaced_ballsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -4272,6 +4674,10 @@ export type UserUncheckedCreateWithoutFaced_ballsInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -4312,6 +4718,10 @@ export type UserCreateWithoutNon_striker_ballsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -4350,6 +4760,10 @@ export type UserUncheckedCreateWithoutNon_striker_ballsInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -4401,6 +4815,10 @@ export type UserUpdateWithoutBowled_ballsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4439,6 +4857,10 @@ export type UserUncheckedUpdateWithoutBowled_ballsInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4485,6 +4907,10 @@ export type UserUpdateWithoutFaced_ballsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4523,6 +4949,10 @@ export type UserUncheckedUpdateWithoutFaced_ballsInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4569,6 +4999,10 @@ export type UserUpdateWithoutNon_striker_ballsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4607,6 +5041,10 @@ export type UserUncheckedUpdateWithoutNon_striker_ballsInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4642,6 +5080,10 @@ export type UserCreateWithoutPermissionsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -4680,6 +5122,10 @@ export type UserUncheckedCreateWithoutPermissionsInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -4731,6 +5177,10 @@ export type UserUpdateWithoutPermissionsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4769,6 +5219,10 @@ export type UserUncheckedUpdateWithoutPermissionsInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4804,6 +5258,10 @@ export type UserCreateWithoutAudit_logsInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -4842,6 +5300,10 @@ export type UserUncheckedCreateWithoutAudit_logsInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -4893,6 +5355,10 @@ export type UserUpdateWithoutAudit_logsInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4931,6 +5397,10 @@ export type UserUncheckedUpdateWithoutAudit_logsInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -4967,6 +5437,10 @@ export type UserCreateManyGroupInput = {
   role?: $Enums.UserRole
   deposit_amount?: number
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -4981,6 +5455,10 @@ export type UserUpdateWithoutGroupInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5018,6 +5496,10 @@ export type UserUncheckedUpdateWithoutGroupInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5055,6 +5537,10 @@ export type UserUncheckedUpdateManyWithoutGroupInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5071,6 +5557,10 @@ export type UserCreateManyCreated_byInput = {
   deposit_amount?: number
   group_id?: number | null
   password?: string | null
+  otp_code?: string | null
+  otp_expiry?: Date | string | null
+  otp_attempts?: number
+  push_token?: string | null
   age?: number | null
   user_type?: $Enums.UserType
   is_active?: boolean
@@ -5084,6 +5574,10 @@ export type UserUpdateWithoutCreated_byInput = {
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5122,6 +5616,10 @@ export type UserUncheckedUpdateWithoutCreated_byInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5159,6 +5657,10 @@ export type UserUncheckedUpdateManyWithoutCreated_byInput = {
   deposit_amount?: Prisma.FloatFieldUpdateOperationsInput | number
   group_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otp_expiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  otp_attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  push_token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   user_type?: Prisma.EnumUserTypeFieldUpdateOperationsInput | $Enums.UserType
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -5394,6 +5896,10 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   deposit_amount?: boolean
   group_id?: boolean
   password?: boolean
+  otp_code?: boolean
+  otp_expiry?: boolean
+  otp_attempts?: boolean
+  push_token?: boolean
   age?: boolean
   user_type?: boolean
   is_active?: boolean
@@ -5435,6 +5941,10 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   deposit_amount?: boolean
   group_id?: boolean
   password?: boolean
+  otp_code?: boolean
+  otp_expiry?: boolean
+  otp_attempts?: boolean
+  push_token?: boolean
   age?: boolean
   user_type?: boolean
   is_active?: boolean
@@ -5453,6 +5963,10 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   deposit_amount?: boolean
   group_id?: boolean
   password?: boolean
+  otp_code?: boolean
+  otp_expiry?: boolean
+  otp_attempts?: boolean
+  push_token?: boolean
   age?: boolean
   user_type?: boolean
   is_active?: boolean
@@ -5471,6 +5985,10 @@ export type UserSelectScalar = {
   deposit_amount?: boolean
   group_id?: boolean
   password?: boolean
+  otp_code?: boolean
+  otp_expiry?: boolean
+  otp_attempts?: boolean
+  push_token?: boolean
   age?: boolean
   user_type?: boolean
   is_active?: boolean
@@ -5478,7 +5996,7 @@ export type UserSelectScalar = {
   created_by_id?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "phone" | "email" | "role" | "deposit_amount" | "group_id" | "password" | "age" | "user_type" | "is_active" | "createdAt" | "created_by_id", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "phone" | "email" | "role" | "deposit_amount" | "group_id" | "password" | "otp_code" | "otp_expiry" | "otp_attempts" | "push_token" | "age" | "user_type" | "is_active" | "createdAt" | "created_by_id", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attendances?: boolean | Prisma.User$attendancesArgs<ExtArgs>
   bowled_balls?: boolean | Prisma.User$bowled_ballsArgs<ExtArgs>
@@ -5552,6 +6070,10 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     deposit_amount: number
     group_id: number | null
     password: string | null
+    otp_code: string | null
+    otp_expiry: Date | null
+    otp_attempts: number
+    push_token: string | null
     age: number | null
     user_type: $Enums.UserType
     is_active: boolean
@@ -6012,6 +6534,10 @@ export interface UserFieldRefs {
   readonly deposit_amount: Prisma.FieldRef<"User", 'Float'>
   readonly group_id: Prisma.FieldRef<"User", 'Int'>
   readonly password: Prisma.FieldRef<"User", 'String'>
+  readonly otp_code: Prisma.FieldRef<"User", 'String'>
+  readonly otp_expiry: Prisma.FieldRef<"User", 'DateTime'>
+  readonly otp_attempts: Prisma.FieldRef<"User", 'Int'>
+  readonly push_token: Prisma.FieldRef<"User", 'String'>
   readonly age: Prisma.FieldRef<"User", 'Int'>
   readonly user_type: Prisma.FieldRef<"User", 'UserType'>
   readonly is_active: Prisma.FieldRef<"User", 'Boolean'>

@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { List, FAB, Portal, Dialog, TextInput, Button, ActivityIndicator, IconButton } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
+import { List, FAB, Portal, Dialog, TextInput, Button, ActivityIndicator, IconButton, Appbar, useTheme } from 'react-native-paper';
+import { useRouter, useFocusEffect } from 'expo-router';
 import apiService from '../../../services/api.service';
 
-export default function GroupsScreen() {
-    const insets = useSafeAreaInsets();
-    const [groups, setGroups] = useState<any[]>([]);
+export default function ExpenseCategoriesScreen() {
+    const router = useRouter();
+    const theme = useTheme();
+    const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [visible, setVisible] = useState(false);
 
@@ -16,11 +15,11 @@ export default function GroupsScreen() {
     const [name, setName] = useState('');
     const [saving, setSaving] = useState(false);
 
-    const loadGroups = async () => {
+    const loadCategories = async () => {
         setLoading(true);
         try {
-            const data = await apiService.getGroups();
-            setGroups(data);
+            const data = await apiService.request('/api/masters/expense-categories');
+            setCategories(data as any[]);
         } catch (e) {
             console.error(e);
         } finally {
@@ -30,7 +29,7 @@ export default function GroupsScreen() {
 
     useFocusEffect(
         useCallback(() => {
-            loadGroups();
+            loadCategories();
         }, [])
     );
 
@@ -47,16 +46,18 @@ export default function GroupsScreen() {
     };
 
     const handleDelete = (id: number) => {
-        Alert.alert('Delete Group', 'Are you sure?', [
+        Alert.alert('Delete Category', 'Are you sure?', [
             { text: 'Cancel' },
             {
                 text: 'Delete',
                 style: 'destructive',
                 onPress: async () => {
                     try {
-                        await apiService.request(`/api/groups/${id}`, { method: 'DELETE' });
-                        loadGroups();
-                    } catch (e) { Alert.alert('Error', 'Failed to delete'); }
+                        await apiService.request(`/api/masters/expense-categories/${id}`, { method: 'DELETE' });
+                        loadCategories();
+                    } catch (e) {
+                        Alert.alert('Error', 'Failed to delete category');
+                    }
                 }
             }
         ]);
@@ -67,50 +68,56 @@ export default function GroupsScreen() {
         setSaving(true);
         try {
             if (editingId) {
-                await apiService.request(`/api/groups/${editingId}`, {
+                await apiService.request(`/api/masters/expense-categories/${editingId}`, {
                     method: 'PUT',
                     body: JSON.stringify({ name })
                 });
             } else {
-                await apiService.request('/api/groups', {
+                await apiService.request('/api/masters/expense-categories', {
                     method: 'POST',
                     body: JSON.stringify({ name })
                 });
             }
 
             setVisible(false);
-            loadGroups();
+            loadCategories();
         } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to save group');
+            Alert.alert('Error', e.message || 'Failed to save category');
         } finally {
             setSaving(false);
         }
     };
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.container}>
+            <Appbar.Header style={{ backgroundColor: theme.colors.primary }} elevated>
+                <Appbar.BackAction onPress={() => router.back()} color="white" />
+                <Appbar.Content title="Expense Categories" titleStyle={{ color: 'white' }} />
+            </Appbar.Header>
+
             {loading ? <ActivityIndicator style={{ marginTop: 20 }} /> : (
                 <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
-                    {groups.map((group) => (
+                    {categories.map((cat) => (
                         <List.Item
-                            key={group.id}
-                            title={group.name}
-                            left={props => <List.Icon {...props} icon="account-group" />}
+                            key={cat.id}
+                            title={cat.name}
+                            left={props => <List.Icon {...props} icon="shape" />}
                             right={props => (
                                 <View style={{ flexDirection: 'row' }}>
-                                    <IconButton icon="pencil" onPress={() => handleOpenEdit(group)} />
-                                    <IconButton icon="delete" iconColor="red" onPress={() => handleDelete(group.id)} />
+                                    <IconButton icon="pencil" onPress={() => handleOpenEdit(cat)} />
+                                    <IconButton icon="delete" iconColor="red" onPress={() => handleDelete(cat.id)} />
                                 </View>
                             )}
+                            style={styles.item}
                         />
                     ))}
                 </ScrollView>
             )}
-            <FAB icon="plus" style={styles.fab} onPress={handleOpenCreate} label="Add Group" />
+            <FAB icon="plus" style={styles.fab} onPress={handleOpenCreate} label="Add Category" />
 
             <Portal>
                 <Dialog visible={visible} onDismiss={() => setVisible(false)}>
-                    <Dialog.Title>{editingId ? 'Edit Group' : 'New Group'}</Dialog.Title>
+                    <Dialog.Title>{editingId ? 'Edit Category' : 'New Category'}</Dialog.Title>
                     <Dialog.Content>
                         <TextInput label="Name" value={name} onChangeText={setName} style={styles.input} />
                     </Dialog.Content>
@@ -127,5 +134,6 @@ export default function GroupsScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f5f5f5' },
     fab: { position: 'absolute', margin: 16, right: 0, bottom: 0 },
-    input: { marginBottom: 10, backgroundColor: 'white' }
+    input: { marginBottom: 10, backgroundColor: 'white' },
+    item: { backgroundColor: 'white', marginBottom: 1 }
 });

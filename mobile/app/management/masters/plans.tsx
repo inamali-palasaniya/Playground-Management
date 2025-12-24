@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
 import { List, FAB, Portal, Dialog, TextInput, Button, Checkbox, Text, ActivityIndicator, IconButton } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import apiService from '../../../services/api.service';
 import AuditLogDialog from '../../components/AuditLogDialog';
 
@@ -33,7 +35,11 @@ export default function PlansScreen() {
         }
     };
 
-    useEffect(() => { loadPlans(); }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadPlans();
+        }, [])
+    );
 
     const handleOpenCreate = () => {
         setEditingId(null);

@@ -50,14 +50,14 @@ export const AuthService = {
       default: return false;
     }
   },
-  login: async (email?: string, password?: string, phone?: string): Promise<AuthResponse> => {
+  login: async (identifier?: string, password?: string, phone?: string): Promise<AuthResponse> => {
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, phone, password }),
+        body: JSON.stringify({ identifier, phone, password }),
       });
 
       const data = await response.json();
@@ -160,5 +160,53 @@ export const AuthService = {
   emitAuthExpired: () => {
     AuthService.listeners.forEach(callback => callback());
   },
+
+  forgotPassword: async (identifier: string) => {
+    const response = await fetch(`${API_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to send OTP');
+    return data;
+  },
+
+  resetPassword: async (identifier: string, otp: string, newPassword: string) => {
+    const response = await fetch(`${API_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, otp, newPassword })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to reset password');
+    return data;
+  },
+
+  updatePushToken: async (userId: number, pushToken: string) => {
+    const token = await AuthService.getToken();
+    const response = await fetch(`${API_URL}/users/${userId}/push-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ pushToken })
+    });
+    if (!response.ok) {
+      console.error('Failed to update push token', await response.text());
+    }
+  },
+
+  resetPasswordWithToken: async (identifier: string, token: string, newPassword: string) => {
+    const response = await fetch(`${API_URL}/auth/reset-password-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, token, newPassword })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to reset password');
+    return data;
+  }
 };
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList, Alert } from 'react-native';
 import { Card, Text, FAB, ActivityIndicator, useTheme, Chip, Button, Appbar, IconButton } from 'react-native-paper';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../../../services/api.service';
 
@@ -24,9 +25,11 @@ export default function TeamListScreen() {
         }
     };
 
-    useEffect(() => {
-        loadTeams();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadTeams();
+        }, [])
+    );
 
     const handleDelete = async (id: number, name: string) => {
         Alert.alert('Delete Team', `Are you sure you want to delete ${name}?`, [

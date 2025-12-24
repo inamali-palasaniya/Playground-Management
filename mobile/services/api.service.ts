@@ -424,9 +424,15 @@ class ApiService {
         }));
     }
 
-    async getUserLedger(userId: number, startDate?: string, endDate?: string): Promise<any[]> {
+    async getUserLedger(userId: number, startDate?: string, endDate?: string, type?: string): Promise<any[]> {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        if (type) params.append('type', type);
+        const query = params.toString() ? `?${params.toString()}` : '';
+
         // Direct map to getUserFinancials ledger
-        return this.request<any>(`/api/finance/user/${userId}`, { skipLoader: true }).then(data => data.ledger);
+        return this.request<any>(`/api/finance/user/${userId}${query}`, { skipLoader: true }).then(data => data.ledger);
     }
 
     async updateLedgerEntry(id: number, data: any): Promise<any> {
@@ -638,8 +644,11 @@ class ApiService {
         });
     }
 
-    async getExpenses(): Promise<any[]> {
-        return this.request<any[]>('/api/expenses');
+    async getExpenses(category?: string): Promise<any[]> {
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return this.request<any[]>(`/api/expenses${query}`);
     }
 }
 

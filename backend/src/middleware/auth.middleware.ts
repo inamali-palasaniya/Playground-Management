@@ -41,7 +41,12 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
       return res.status(403).json({ error: 'You are inactivated. Contact Administrator.', forceLogout: true });
     }
 
-    req.user = verified;
+    // CRITICAL FIX: Override the role from the token with the fresh role from the DB.
+    // This allows role changes (e.g. Normal -> Super Admin) to take effect immediately without re-login.
+    req.user = {
+      ...verified,
+      role: user.role // Use fresh role
+    };
     next();
   } catch (error) {
     res.status(401).json({ error: 'Invalid token.' });
@@ -49,8 +54,9 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
 };
 
 export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
-  if (req.user?.role !== 'MANAGEMENT') { // Matches UserRole.MANAGEMENT in Prisma
-    return res.status(403).json({ error: 'Access denied. Management role required.' });
+  const role = req.user?.role;
+  if (role !== 'MANAGEMENT' && role !== 'SUPER_ADMIN') {
+    return res.status(403).json({ error: 'Access denied. Management or Super Admin role required.' });
   }
   next();
 };

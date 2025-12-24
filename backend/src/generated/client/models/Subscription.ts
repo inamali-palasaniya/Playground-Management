@@ -550,10 +550,6 @@ export type SubscriptionUncheckedUpdateManyWithoutPlanNestedInput = {
   deleteMany?: Prisma.SubscriptionScalarWhereInput | Prisma.SubscriptionScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type EnumSubscriptionStatusFieldUpdateOperationsInput = {
   set?: $Enums.SubscriptionStatus
 }

@@ -57,6 +57,14 @@ export default function MastersScreen() {
                     route="/management/masters/groups"
                 />
 
+                <MasterItem
+                    title="Expense Categories"
+                    description="Manage categories for expenses (e.g., Rent, Salary)."
+                    icon="shape"
+                    color="#d81b60"
+                    route="/management/masters/categories"
+                />
+
                 <Text variant="titleMedium" style={[styles.sectionHeader, { marginTop: 16 }]}>Audit & History</Text>
 
                 <MasterItem

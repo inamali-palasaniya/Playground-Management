@@ -26,6 +26,7 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
+      // Pass 'email' state as the identifier (it contains email or phone)
       await AuthService.login(email, password);
       // Refresh user in context to trigger the AuthContext effect
       await refreshUser();
@@ -83,6 +84,7 @@ export default function LoginScreen() {
             <Button
               mode="text"
               compact
+              onPress={() => router.push('/auth/forgot-password')}
               style={styles.forgotPass}
               labelStyle={{ color: theme.colors.primary || '#1565c0' }}
             >

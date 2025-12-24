@@ -228,6 +228,17 @@ export const updateMatch = async (req: Request, res: Response) => {
         });
 
         res.json(match);
+
+        // Emit update via Socket.IO
+        try {
+            const { getIO } = require('../server');
+            const io = getIO();
+            if (io) {
+                io.to(`match_${id}`).emit('score_update', { type: 'UPDATE', matchId: id });
+            }
+        } catch (e) {
+            console.error('Socket emit failed:', e);
+        }
     } catch (error) {
         console.error('Error updating match:', error);
         res.status(500).json({ error: 'Failed to update match' });
@@ -281,7 +292,9 @@ export const recordBallEvent = async (req: Request, res: Response) => {
             const { getIO } = require('../server');
             const io = getIO();
             if (io) {
-                io.to(`match_${match_id}`).emit('score_update', { type: 'BALL', data: ballEvent });
+                const room = `match_${match_id}`;
+                console.log(`Emitting BALL update to ${room}`);
+                io.to(room).emit('score_update', { type: 'BALL', data: ballEvent });
             }
         } catch (e) { console.error('Socket emit failed:', e); }
     } catch (error: any) {
@@ -320,7 +333,9 @@ export const undoLastBall = async (req: Request, res: Response) => {
             const { getIO } = require('../server');
             const io = getIO();
             if (io) {
-                io.to(`match_${id}`).emit('score_update', { type: 'UNDO', matchId: id });
+                const room = `match_${id}`;
+                console.log(`Emitting UNDO update to ${room}`);
+                io.to(room).emit('score_update', { type: 'UNDO', matchId: id });
             }
         } catch (e) {
             console.error('Socket emit failed:', e);
