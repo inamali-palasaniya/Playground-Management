@@ -98,20 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         router.replace('/login');
     };
 
-    useEffect(() => {
-        const inAuthGroup = segments[0] === '(tabs)' || segments[0] === 'management';
-        const inLogin = segments[0] === 'login';
 
-        if (isLoading) return;
-
-        if (!user && inAuthGroup) {
-            // Redirect to login if accessing protected area without user
-            router.replace('/login');
-        } else if (user && inLogin) {
-            // Redirect to dashboard if logged in and on login page
-            router.replace('/(tabs)/dashboard');
-        }
-    }, [user, segments, isLoading]);
 
     // Handle session expiration
     useEffect(() => {

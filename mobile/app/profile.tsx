@@ -4,6 +4,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
 import apiService from '../services/api.service';
 import { AuthService } from '../services/auth.service';
+import { useAuth } from '../context/AuthContext';
 import { format } from 'date-fns';
 
 export default function ProfileScreen() {
@@ -39,10 +40,12 @@ export default function ProfileScreen() {
         }
     };
 
+    const { logout } = useAuth(); // Get logout from context
+
     const handleLogout = async () => {
         try {
-            await AuthService.logout();
-            router.replace('/login');
+            await logout();
+            // Context effect will handle redirect
         } catch (error) {
             console.error('Logout failed', error);
             Alert.alert('Error', 'Failed to logout');

@@ -56,7 +56,7 @@ export default function ForgotPasswordScreen() {
             Alert.alert('Success', 'Password reset successfully. Please login.');
             router.back();
         } catch (e: any) {
-            console.error(e);
+            // console.error(e);
             Alert.alert('Error', e.message || 'Failed to reset password');
         } finally {
             setLoading(false);

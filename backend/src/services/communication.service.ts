@@ -41,7 +41,9 @@ export class CommunicationService {
             try {
                 console.log('>> Sending via Nodemailer (Gmail/SMTP)...');
                 const transporter = nodemailer.createTransport({
-                    service: 'gmail', // Or use host/port for generic SMTP
+                    host: 'smtp.gmail.com',
+                    port: 587,
+                    secure: false, // true for 465, false for other ports
                     auth: { user: EMAIL_USER, pass: EMAIL_PASS }
                 });
 
