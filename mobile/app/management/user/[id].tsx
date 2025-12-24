@@ -40,8 +40,8 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
 
     if (isSuperAdmin) {
         return (
-            <Tabs.ScrollView contentContainerStyle={{ paddingTop: 65, paddingHorizontal: 16 }}>
-                <View style={{ padding: 16, alignItems: 'center' }}>
+            <Tabs.ScrollView style={styles.tabContent}>
+                <View style={{ padding: 16, alignItems: 'center', paddingTop: 140 }}>
                     <MaterialCommunityIcons name="shield-crown" size={64} color="gold" />
                     <Text variant="titleMedium" style={{ marginTop: 10, fontWeight: 'bold' }}>Success Admin Access</Text>
                     <Text style={{ textAlign: 'center', color: 'gray', marginTop: 5 }}>
@@ -54,8 +54,8 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
     }
 
     return (
-        <Tabs.ScrollView contentContainerStyle={{ paddingTop: 65, paddingHorizontal: 16 }}>
-            <View style={{ padding: 16 }}>
+        <Tabs.ScrollView style={styles.tabContent}>
+            <View style={{ padding: 16, paddingTop: 140 }}>
                 <PermissionSelector
                     permissions={permissions || []}
                     onChange={handleSave}
@@ -99,29 +99,31 @@ const FineRoute = ({ userId, isFocused, currentUser, onUpdate }: { userId: numbe
 
     return (
         <View style={{ flex: 1 }}>
-            <Tabs.ScrollView contentContainerStyle={{ paddingTop: 65, paddingHorizontal: 16, paddingBottom: 80 }}>
-                {fines.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No fines found.</Text> : (
-                    fines.map((item) => (
-                        <Card key={item.id} style={styles.ledgerCard}>
-                            <Card.Content style={{ paddingVertical: 8 }}>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <View style={{ flex: 1 }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                            <MaterialCommunityIcons name="alert-decagram" size={16} color="#d32f2f" />
-                                            <Text variant="titleSmall" style={{ fontWeight: 'bold' }}>Fine</Text>
+            <Tabs.ScrollView style={styles.tabContent}>
+                <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100 }}>
+                    {fines.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No fines found.</Text> : (
+                        fines.map((item) => (
+                            <Card key={item.id} style={styles.ledgerCard}>
+                                <Card.Content style={{ paddingVertical: 8 }}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <View style={{ flex: 1 }}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                                <MaterialCommunityIcons name="alert-decagram" size={16} color="#d32f2f" />
+                                                <Text variant="titleSmall" style={{ fontWeight: 'bold' }}>Fine</Text>
+                                            </View>
+                                            <Text variant="bodySmall" style={{ color: 'gray' }}>{format(new Date(item.date), 'dd MMM yyyy')}</Text>
+                                            <Text variant="bodySmall" style={{ color: '#999' }}>By: {item.created_by?.name || 'Admin'}</Text>
                                         </View>
-                                        <Text variant="bodySmall" style={{ color: 'gray' }}>{format(new Date(item.date), 'dd MMM yyyy')}</Text>
-                                        <Text variant="bodySmall" style={{ color: '#999' }}>By: {item.created_by?.name || 'Admin'}</Text>
+                                        <View style={{ alignItems: 'flex-end' }}>
+                                            <Text variant="titleMedium" style={{ color: '#d32f2f', fontWeight: 'bold' }}>₹{item.amount}</Text>
+                                            {canDelete && <IconButton icon="delete-outline" iconColor="#d32f2f" size={20} onPress={() => handleDelete(item.id)} style={{ margin: 0 }} />}
+                                        </View>
                                     </View>
-                                    <View style={{ alignItems: 'flex-end' }}>
-                                        <Text variant="titleMedium" style={{ color: '#d32f2f', fontWeight: 'bold' }}>₹{item.amount}</Text>
-                                        {canDelete && <IconButton icon="delete-outline" iconColor="#d32f2f" size={20} onPress={() => handleDelete(item.id)} style={{ margin: 0 }} />}
-                                    </View>
-                                </View>
-                            </Card.Content>
-                        </Card>
-                    ))
-                )}
+                                </Card.Content>
+                            </Card>
+                        ))
+                    )}
+                </View>
             </Tabs.ScrollView>
             {isFocused && canAdd && (
                 <FAB icon="plus" color="white" style={styles.fab} onPress={() => router.push({ pathname: '/management/apply-fine', params: { userId } })} label="Apply Fine" visible={isFocused} />
@@ -270,113 +272,115 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate }: { userId: num
 
     return (
         <View style={{ flex: 1 }}>
-            <Tabs.ScrollView contentContainerStyle={{ paddingTop: 65, paddingHorizontal: 16, paddingBottom: 100 }}>
-                {/* Filters */}
-                <View style={{ marginBottom: 10 }}>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
-                        {['ALL', 'SUBSCRIPTION', 'MONTHLY_FEE', 'FINE', 'PAYMENT', 'DEPOSIT', 'MAINTENANCE', 'OTHER'].map(type => (
-                            <Chip
-                                key={type}
-                                selected={selectedType === type}
-                                onPress={() => setSelectedType(type)}
-                                style={{ marginRight: 8, backgroundColor: selectedType === type ? '#e3f2fd' : '#f5f5f5' }}
-                                textStyle={{ fontSize: 12 }}
-                                compact
-                            >
-                                {type.replace('_', ' ')}
-                            </Chip>
-                        ))}
-                    </ScrollView>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <Button mode="outlined" compact onPress={() => setShowStartPicker(true)} labelStyle={{ fontSize: 12 }}>
-                            {startDate ? format(startDate, 'dd MMM') : 'From Date'}
-                        </Button>
-                        <Text>-</Text>
-                        <Button mode="outlined" compact onPress={() => setShowEndPicker(true)} labelStyle={{ fontSize: 12 }}>
-                            {endDate ? format(endDate, 'dd MMM') : 'To Date'}
-                        </Button>
-                        {(startDate || endDate || selectedType !== 'ALL') && (
-                            <IconButton icon="close-circle-outline" size={20} onPress={clearFilters} />
-                        )}
+            <Tabs.ScrollView style={styles.tabContent}>
+                <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100 }}>
+                    {/* Filters */}
+                    <View style={{ marginBottom: 10 }}>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+                            {['ALL', 'SUBSCRIPTION', 'MONTHLY_FEE', 'FINE', 'PAYMENT', 'DEPOSIT', 'MAINTENANCE', 'OTHER'].map(type => (
+                                <Chip
+                                    key={type}
+                                    selected={selectedType === type}
+                                    onPress={() => setSelectedType(type)}
+                                    style={{ marginRight: 8, backgroundColor: selectedType === type ? '#e3f2fd' : '#f5f5f5' }}
+                                    textStyle={{ fontSize: 12 }}
+                                    compact
+                                >
+                                    {type.replace('_', ' ')}
+                                </Chip>
+                            ))}
+                        </ScrollView>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <Button mode="outlined" compact onPress={() => setShowStartPicker(true)} labelStyle={{ fontSize: 12 }}>
+                                {startDate ? format(startDate, 'dd MMM') : 'From Date'}
+                            </Button>
+                            <Text>-</Text>
+                            <Button mode="outlined" compact onPress={() => setShowEndPicker(true)} labelStyle={{ fontSize: 12 }}>
+                                {endDate ? format(endDate, 'dd MMM') : 'To Date'}
+                            </Button>
+                            {(startDate || endDate || selectedType !== 'ALL') && (
+                                <IconButton icon="close-circle-outline" size={20} onPress={clearFilters} />
+                            )}
+                        </View>
                     </View>
-                </View>
 
-                {ledger.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No ledger records found.</Text> : (
-                    rootItems.map((item) => {
-                        const isPayment = item.type === 'PAYMENT' || item.transaction_type === 'CREDIT';
-                        const canEdit = AuthService.hasPermission(currentUser, isPayment ? 'payment' : 'charge', 'edit');
-                        const canDelete = AuthService.hasPermission(currentUser, isPayment ? 'payment' : 'charge', 'delete');
+                    {ledger.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No ledger records found.</Text> : (
+                        rootItems.map((item) => {
+                            const isPayment = item.type === 'PAYMENT' || item.transaction_type === 'CREDIT';
+                            const canEdit = AuthService.hasPermission(currentUser, isPayment ? 'payment' : 'charge', 'edit');
+                            const canDelete = AuthService.hasPermission(currentUser, isPayment ? 'payment' : 'charge', 'delete');
 
-                        return (
-                            <Card
-                                key={item.id}
-                                style={[styles.ledgerCard, { borderLeftColor: item.is_paid ? 'green' : 'red', borderLeftWidth: 4 }]}
-                                onPress={() => router.push({ pathname: '/management/ledger/[id]', params: { id: item.id, userId } })}
-                            >
-                                <Card.Content>
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                        <View style={{ flex: 1 }}>
-                                            <Text variant="titleMedium">{item.type.replace('_', ' ')} <Text style={{ fontSize: 12, color: 'gray' }}>#{item.id}</Text></Text>
-                                            <Text variant="bodySmall">{format(new Date(item.date), 'dd MMM yyyy')}</Text>
-                                            {item.notes && <Text variant="bodySmall" style={{ color: 'gray' }}>{item.notes}</Text>}
-                                            <Text variant="bodySmall" style={{ color: '#8b8b8b', fontStyle: 'italic', marginTop: 2 }}>
-                                                By: {item.created_by?.name || 'Admin'}
-                                            </Text>
-                                            {/* Children (Payments) */}
-                                            {item.children && item.children.length > 0 && (
-                                                <View style={{ marginTop: 8, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#eee' }}>
-                                                    {item.children.map((child: any) => (
-                                                        <View key={child.id} style={{ marginBottom: 4 }}>
-                                                            <Text variant="bodySmall" style={{ color: 'green' }}>
-                                                                Paid ₹{child.amount} on {format(new Date(child.date), 'dd MMM')} <Text style={{ fontSize: 10, color: '#ccc' }}>PMT-{child.id}</Text>
-                                                            </Text>
-                                                        </View>
-                                                    ))}
-                                                </View>
-                                            )}
-                                        </View>
-                                        <View style={{ alignItems: 'flex-end' }}>
-                                            <Text variant="titleMedium" style={{ color: item.type === 'PAYMENT' || item.transaction_type === 'CREDIT' ? 'green' : 'black' }}>
-                                                {item.transaction_type === 'CREDIT' ? '-' : '+'}₹{item.amount}
-                                            </Text>
-                                            <Text variant="labelSmall" style={{ color: item.is_paid ? 'green' : 'red' }}>
-                                                {item.is_paid ? 'PAID' : 'UNPAID'}
-                                            </Text>
-
-                                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                                                {/* Pay Button for Unpaid Debits */}
-                                                {!item.is_paid && item.transaction_type === 'DEBIT' && canAddPayment && (
-                                                    <Button
-                                                        mode="contained"
-                                                        compact
-                                                        labelStyle={{ fontSize: 10, marginVertical: 2, color: 'white' }}
-                                                        style={{ marginRight: 8, height: 24 }}
-                                                        onPress={() => router.push({
-                                                            pathname: '/management/add-payment',
-                                                            params: {
-                                                                userId,
-                                                                userName: 'User',
-                                                                linkedChargeId: item.id,
-                                                                linkedAmount: item.amount,
-                                                                linkedType: item.type === 'SUBSCRIPTION' ? 'SUBSCRIPTION' : 'PAYMENT'
-                                                            }
-                                                        })}
-                                                    >
-                                                        Pay
-                                                    </Button>
+                            return (
+                                <Card
+                                    key={item.id}
+                                    style={[styles.ledgerCard, { borderLeftColor: item.is_paid ? 'green' : 'red', borderLeftWidth: 4 }]}
+                                    onPress={() => router.push({ pathname: '/management/ledger/[id]', params: { id: item.id, userId } })}
+                                >
+                                    <Card.Content>
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                            <View style={{ flex: 1 }}>
+                                                <Text variant="titleMedium">{item.type.replace('_', ' ')} <Text style={{ fontSize: 12, color: 'gray' }}>#{item.id}</Text></Text>
+                                                <Text variant="bodySmall">{format(new Date(item.date), 'dd MMM yyyy')}</Text>
+                                                {item.notes && <Text variant="bodySmall" style={{ color: 'gray' }}>{item.notes}</Text>}
+                                                <Text variant="bodySmall" style={{ color: '#8b8b8b', fontStyle: 'italic', marginTop: 2 }}>
+                                                    By: {item.created_by?.name || 'Admin'}
+                                                </Text>
+                                                {/* Children (Payments) */}
+                                                {item.children && item.children.length > 0 && (
+                                                    <View style={{ marginTop: 8, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#eee' }}>
+                                                        {item.children.map((child: any) => (
+                                                            <View key={child.id} style={{ marginBottom: 4 }}>
+                                                                <Text variant="bodySmall" style={{ color: 'green' }}>
+                                                                    Paid ₹{child.amount} on {format(new Date(child.date), 'dd MMM')} <Text style={{ fontSize: 10, color: '#ccc' }}>PMT-{child.id}</Text>
+                                                                </Text>
+                                                            </View>
+                                                        ))}
+                                                    </View>
                                                 )}
+                                            </View>
+                                            <View style={{ alignItems: 'flex-end' }}>
+                                                <Text variant="titleMedium" style={{ color: item.type === 'PAYMENT' || item.transaction_type === 'CREDIT' ? 'green' : 'black' }}>
+                                                    {item.transaction_type === 'CREDIT' ? '-' : '+'}₹{item.amount}
+                                                </Text>
+                                                <Text variant="labelSmall" style={{ color: item.is_paid ? 'green' : 'red' }}>
+                                                    {item.is_paid ? 'PAID' : 'UNPAID'}
+                                                </Text>
 
-                                                {canEdit && <IconButton icon="pencil" size={18} onPress={() => handleEditStart(item)} />}
-                                                <IconButton icon="file-document-outline" size={18} iconColor="#1565c0" onPress={() => handleReceipt(item)} />
-                                                {canDelete && <IconButton icon="delete" size={18} iconColor="red" onPress={() => handleDelete(item.id)} />}
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                                                    {/* Pay Button for Unpaid Debits */}
+                                                    {!item.is_paid && item.transaction_type === 'DEBIT' && canAddPayment && (
+                                                        <Button
+                                                            mode="contained"
+                                                            compact
+                                                            labelStyle={{ fontSize: 10, marginVertical: 2, color: 'white' }}
+                                                            style={{ marginRight: 8, height: 24 }}
+                                                            onPress={() => router.push({
+                                                                pathname: '/management/add-payment',
+                                                                params: {
+                                                                    userId,
+                                                                    userName: 'User',
+                                                                    linkedChargeId: item.id,
+                                                                    linkedAmount: item.amount,
+                                                                    linkedType: item.type === 'SUBSCRIPTION' ? 'SUBSCRIPTION' : 'PAYMENT'
+                                                                }
+                                                            })}
+                                                        >
+                                                            Pay
+                                                        </Button>
+                                                    )}
+
+                                                    {canEdit && <IconButton icon="pencil" size={18} onPress={() => handleEditStart(item)} />}
+                                                    <IconButton icon="file-document-outline" size={18} iconColor="#1565c0" onPress={() => handleReceipt(item)} />
+                                                    {canDelete && <IconButton icon="delete" size={18} iconColor="red" onPress={() => handleDelete(item.id)} />}
+                                                </View>
                                             </View>
                                         </View>
-                                    </View>
-                                </Card.Content>
-                            </Card>
-                        )
-                    })
-                )}
+                                    </Card.Content>
+                                </Card>
+                            )
+                        })
+                    )}
+                </View>
             </Tabs.ScrollView>
             {(canAddPayment || canAddCharge) && (
                 <Portal>
@@ -563,75 +567,77 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser }: { userId:
 
     return (
         <View style={{ flex: 1 }}>
-            <Tabs.ScrollView contentContainerStyle={{ paddingTop: 65, paddingBottom: 100, paddingHorizontal: 16 }}>
-                {attendance.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No attendance records.</Text> : (
-                    <View style={{ gap: 10 }}>
-                        {attendance.map((record) => (
-                            <Card key={record.id} style={{ backgroundColor: 'white', elevation: 2, borderRadius: 8 }}>
-                                <Card.Content style={{ paddingVertical: 10 }}>
-                                    {/* Row 1: Date & Fee */}
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                                        <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>
-                                            {format(new Date(record.date), 'dd MMM yyyy')}
-                                        </Text>
-                                        <Text variant="titleSmall" style={{ fontWeight: 'bold', color: record.daily_fee_charged > 0 ? '#d32f2f' : 'green' }}>
-                                            {record.daily_fee_charged > 0 ? `₹${record.daily_fee_charged}` : 'Free'}
-                                        </Text>
-                                    </View>
-                                    <Divider style={{ marginBottom: 8 }} />
-
-                                    {/* Row 2: In / Out Times */}
-                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <View style={{ flex: 1 }}>
-                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                <MaterialCommunityIcons name="login" size={16} color="green" style={{ marginRight: 6 }} />
-                                                <Text variant="bodyMedium">
-                                                    {record.in_time ? format(new Date(record.in_time), 'hh:mm a') : '-'}
-                                                </Text>
-                                            </View>
+            <Tabs.ScrollView style={styles.tabContent}>
+                <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100 }}>
+                    {attendance.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No attendance records.</Text> : (
+                        <View style={{ gap: 10 }}>
+                            {attendance.map((record) => (
+                                <Card key={record.id} style={{ backgroundColor: 'white', elevation: 2, borderRadius: 8 }}>
+                                    <Card.Content style={{ paddingVertical: 10 }}>
+                                        {/* Row 1: Date & Fee */}
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                            <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>
+                                                {format(new Date(record.date), 'dd MMM yyyy')}
+                                            </Text>
+                                            <Text variant="titleSmall" style={{ fontWeight: 'bold', color: record.daily_fee_charged > 0 ? '#d32f2f' : 'green' }}>
+                                                {record.daily_fee_charged > 0 ? `₹${record.daily_fee_charged}` : 'Free'}
+                                            </Text>
                                         </View>
-                                        <View style={{ flex: 1 }}>
-                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                <MaterialCommunityIcons name="logout" size={16} color="orange" style={{ marginRight: 6 }} />
-                                                <Text variant="bodyMedium">
-                                                    {record.out_time ? format(new Date(record.out_time), 'hh:mm a') : 'Active'}
-                                                </Text>
-                                            </View>
-                                        </View>
+                                        <Divider style={{ marginBottom: 8 }} />
 
-                                        {/* Actions */}
-                                        {(AuthService.hasPermission(currentUser, 'user', 'edit') || AuthService.hasPermission(currentUser, 'user', 'delete')) && (
-                                            <View style={{ flexDirection: 'row' }}>
-                                                {AuthService.hasPermission(currentUser, 'user', 'edit') &&
-                                                    <IconButton icon="pencil" size={18} onPress={() => handleEditStart(record)} style={{ margin: 0, width: 24, height: 24 }} />
-                                                }
-                                                {AuthService.hasPermission(currentUser, 'user', 'delete') &&
-                                                    <IconButton icon="delete" size={18} iconColor="red" style={{ margin: 0, width: 24, height: 24 }} onPress={() => {
-                                                        Alert.alert('Delete', 'Delete attendance?', [
-                                                            { text: 'Cancel' },
-                                                            {
-                                                                text: 'Delete', style: 'destructive', onPress: async () => {
-                                                                    try {
-                                                                        await apiService.deleteAttendance(record.id);
-                                                                        loadAttendance();
-                                                                        if (onUpdate) onUpdate();
-                                                                    } catch (e: any) {
-                                                                        const msg = e.body ? JSON.parse(e.body).error || e.message : e.message;
-                                                                        Alert.alert('Error', msg);
+                                        {/* Row 2: In / Out Times */}
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <View style={{ flex: 1 }}>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                    <MaterialCommunityIcons name="login" size={16} color="green" style={{ marginRight: 6 }} />
+                                                    <Text variant="bodyMedium">
+                                                        {record.in_time ? format(new Date(record.in_time), 'hh:mm a') : '-'}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                            <View style={{ flex: 1 }}>
+                                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                    <MaterialCommunityIcons name="logout" size={16} color="orange" style={{ marginRight: 6 }} />
+                                                    <Text variant="bodyMedium">
+                                                        {record.out_time ? format(new Date(record.out_time), 'hh:mm a') : 'Active'}
+                                                    </Text>
+                                                </View>
+                                            </View>
+
+                                            {/* Actions */}
+                                            {(AuthService.hasPermission(currentUser, 'user', 'edit') || AuthService.hasPermission(currentUser, 'user', 'delete')) && (
+                                                <View style={{ flexDirection: 'row' }}>
+                                                    {AuthService.hasPermission(currentUser, 'user', 'edit') &&
+                                                        <IconButton icon="pencil" size={18} onPress={() => handleEditStart(record)} style={{ margin: 0, width: 24, height: 24 }} />
+                                                    }
+                                                    {AuthService.hasPermission(currentUser, 'user', 'delete') &&
+                                                        <IconButton icon="delete" size={18} iconColor="red" style={{ margin: 0, width: 24, height: 24 }} onPress={() => {
+                                                            Alert.alert('Delete', 'Delete attendance?', [
+                                                                { text: 'Cancel' },
+                                                                {
+                                                                    text: 'Delete', style: 'destructive', onPress: async () => {
+                                                                        try {
+                                                                            await apiService.deleteAttendance(record.id);
+                                                                            loadAttendance();
+                                                                            if (onUpdate) onUpdate();
+                                                                        } catch (e: any) {
+                                                                            const msg = e.body ? JSON.parse(e.body).error || e.message : e.message;
+                                                                            Alert.alert('Error', msg);
+                                                                        }
                                                                     }
                                                                 }
-                                                            }
-                                                        ]);
-                                                    }} />
-                                                }
-                                            </View>
-                                        )}
-                                    </View>
-                                </Card.Content>
-                            </Card>
-                        ))}
-                    </View>
-                )}
+                                                            ]);
+                                                        }} />
+                                                    }
+                                                </View>
+                                            )}
+                                        </View>
+                                    </Card.Content>
+                                </Card>
+                            ))}
+                        </View>
+                    )}
+                </View>
             </Tabs.ScrollView>
 
             {isFocused && (
@@ -759,52 +765,54 @@ const MatchesRoute = ({ userId, isFocused }: { userId: number, isFocused: boolea
     if (loading) return <ActivityIndicator style={{ marginTop: 20 }} />;
 
     return (
-        <Tabs.ScrollView contentContainerStyle={{ paddingTop: 65, paddingHorizontal: 16, paddingBottom: 20 }}>
-            {matches.length === 0 ? (
-                <View style={{ alignItems: 'center', marginTop: 40 }}>
-                    <MaterialCommunityIcons name="cricket" size={48} color="#ccc" />
-                    <Text style={{ textAlign: 'center', marginTop: 10, color: 'gray' }}>No matches played yet.</Text>
-                </View>
-            ) : (
-                matches.map(({ match, stats }: any) => (
-                    <Card key={match.id} style={{ marginBottom: 12, marginHorizontal: 16, backgroundColor: 'white', elevation: 2, borderRadius: 12 }} onPress={() => router.push({ pathname: '/management/cricket/analytics/[id]', params: { id: match.id } })}>
-                        <View style={{ flexDirection: 'row', backgroundColor: '#f5f5f5', padding: 8, borderTopLeftRadius: 12, borderTopRightRadius: 12, justifyContent: 'space-between' }}>
-                            <Text style={{ fontSize: 12, color: '#666' }}>{format(new Date(match.start_time), 'dd MMM, HH:mm')}</Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: match.is_completed ? 'green' : 'orange', marginRight: 4 }} />
-                                <Text style={{ fontSize: 12, fontWeight: 'bold', color: match.is_completed ? 'green' : 'orange' }}>{match.is_completed ? 'FINISHED' : 'LIVE'}</Text>
-                            </View>
-                        </View>
-
-                        <Card.Content style={{ paddingVertical: 12 }}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                                <View style={{ flex: 1 }}>
-                                    <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>{match.team_a.name}</Text>
-                                </View>
-                                <Text style={{ fontWeight: 'bold', color: 'gray' }}>VS</Text>
-                                <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                                    <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>{match.team_b.name}</Text>
+        <Tabs.ScrollView style={styles.tabContent}>
+            <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 20 }}>
+                {matches.length === 0 ? (
+                    <View style={{ alignItems: 'center', marginTop: 40 }}>
+                        <MaterialCommunityIcons name="cricket" size={48} color="#ccc" />
+                        <Text style={{ textAlign: 'center', marginTop: 10, color: 'gray' }}>No matches played yet.</Text>
+                    </View>
+                ) : (
+                    matches.map(({ match, stats }: any) => (
+                        <Card key={match.id} style={{ marginBottom: 12, marginHorizontal: 16, backgroundColor: 'white', elevation: 2, borderRadius: 12 }} onPress={() => router.push({ pathname: '/management/cricket/analytics/[id]', params: { id: match.id } })}>
+                            <View style={{ flexDirection: 'row', backgroundColor: '#f5f5f5', padding: 8, borderTopLeftRadius: 12, borderTopRightRadius: 12, justifyContent: 'space-between' }}>
+                                <Text style={{ fontSize: 12, color: '#666' }}>{format(new Date(match.start_time), 'dd MMM, HH:mm')}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: match.is_completed ? 'green' : 'orange', marginRight: 4 }} />
+                                    <Text style={{ fontSize: 12, fontWeight: 'bold', color: match.is_completed ? 'green' : 'orange' }}>{match.is_completed ? 'FINISHED' : 'LIVE'}</Text>
                                 </View>
                             </View>
 
-                            <Text style={{ textAlign: 'center', fontSize: 12, color: '#666', marginBottom: 10 }}>{match.result_description || 'Match in progress...'}</Text>
+                            <Card.Content style={{ paddingVertical: 12 }}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>{match.team_a.name}</Text>
+                                    </View>
+                                    <Text style={{ fontWeight: 'bold', color: 'gray' }}>VS</Text>
+                                    <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                                        <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>{match.team_b.name}</Text>
+                                    </View>
+                                </View>
 
-                            <View style={{ flexDirection: 'row', backgroundColor: '#f9f9f9', borderRadius: 8, padding: 8 }}>
-                                <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#eee' }}>
-                                    <Text variant="labelSmall" style={{ color: '#666' }}>BATTING</Text>
-                                    <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>{stats.batting.runs}<Text style={{ fontSize: 12, fontWeight: 'normal' }}>/</Text>{stats.batting.balls}</Text>
-                                    <Text style={{ fontSize: 10, color: 'gray' }}>Runs/Balls</Text>
+                                <Text style={{ textAlign: 'center', fontSize: 12, color: '#666', marginBottom: 10 }}>{match.result_description || 'Match in progress...'}</Text>
+
+                                <View style={{ flexDirection: 'row', backgroundColor: '#f9f9f9', borderRadius: 8, padding: 8 }}>
+                                    <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#eee' }}>
+                                        <Text variant="labelSmall" style={{ color: '#666' }}>BATTING</Text>
+                                        <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>{stats.batting.runs}<Text style={{ fontSize: 12, fontWeight: 'normal' }}>/</Text>{stats.batting.balls}</Text>
+                                        <Text style={{ fontSize: 10, color: 'gray' }}>Runs/Balls</Text>
+                                    </View>
+                                    <View style={{ flex: 1, alignItems: 'center' }}>
+                                        <Text variant="labelSmall" style={{ color: '#666' }}>BOWLING</Text>
+                                        <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>{stats.bowling.wickets}<Text style={{ fontSize: 12, fontWeight: 'normal' }}>-</Text>{stats.bowling.runs}</Text>
+                                        <Text style={{ fontSize: 10, color: 'gray' }}>Wkts-Runs</Text>
+                                    </View>
                                 </View>
-                                <View style={{ flex: 1, alignItems: 'center' }}>
-                                    <Text variant="labelSmall" style={{ color: '#666' }}>BOWLING</Text>
-                                    <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>{stats.bowling.wickets}<Text style={{ fontSize: 12, fontWeight: 'normal' }}>-</Text>{stats.bowling.runs}</Text>
-                                    <Text style={{ fontSize: 10, color: 'gray' }}>Wkts-Runs</Text>
-                                </View>
-                            </View>
-                        </Card.Content>
-                    </Card>
-                ))
-            )}
+                            </Card.Content>
+                        </Card>
+                    ))
+                )}
+            </View>
         </Tabs.ScrollView>
     );
 };
@@ -931,12 +939,12 @@ export default function UserDetailScreen() {
                     {/* Actions Row: Attendance & Status */}
                     <View style={{ gap: 10 }}>
                         {/* Attendance Action */}
-                        <View style={{ marginTop: 12, padding: 12, backgroundColor: '#f9f9f9', borderRadius: 8, borderWidth: 1, borderColor: '#eee' }}>
+                        <View style={{ marginTop: 12, padding: 16, backgroundColor: '#f8f9fa', borderRadius: 12, borderWidth: 1, borderColor: '#eeeeee' }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <View>
-                                    <Text variant="labelSmall" style={{ color: 'gray', textTransform: 'uppercase', letterSpacing: 0.5 }}>Attendance Status</Text>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                                        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: todaysAttendance?.out_time ? 'green' : (todaysAttendance ? 'orange' : 'gray'), marginRight: 6 }} />
+                                    <Text variant="labelSmall" style={{ color: 'gray', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Attendance Status</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: todaysAttendance?.out_time ? 'green' : (todaysAttendance ? 'orange' : 'gray'), marginRight: 8 }} />
                                         <Text variant="titleSmall" style={{ fontWeight: 'bold', color: '#333' }}>
                                             {todaysAttendance ? (todaysAttendance.out_time ? 'Checked Out' : 'Checked In') : 'Not Present'}
                                         </Text>
@@ -946,8 +954,8 @@ export default function UserDetailScreen() {
                                     mode={todaysAttendance && !todaysAttendance.out_time ? "outlined" : "contained"}
                                     textColor={todaysAttendance && !todaysAttendance.out_time ? "#d32f2f" : "white"}
                                     buttonColor={todaysAttendance && !todaysAttendance.out_time ? "white" : theme.colors.primary}
-                                    style={{ borderColor: todaysAttendance && !todaysAttendance.out_time ? '#d32f2f' : theme.colors.primary }}
-                                    contentStyle={{ paddingHorizontal: 20, height: 36 }}
+                                    style={{ borderColor: todaysAttendance && !todaysAttendance.out_time ? '#d32f2f' : theme.colors.primary, borderRadius: 20 }}
+                                    contentStyle={{ paddingHorizontal: 20, height: 40 }}
                                     labelStyle={{ fontSize: 13, fontWeight: 'bold' }}
                                     onPress={async () => {
                                         const canPunchOthers = AuthService.hasPermission(currentUser, 'attendance', 'add');
@@ -1202,6 +1210,7 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     // Sub-component styles
+    tabContent: { flex: 1 },
     ledgerCard: { marginBottom: 10, backgroundColor: 'white', elevation: 2, borderRadius: 8 },
     fab: { position: 'absolute', margin: 16, right: 0, bottom: 0, backgroundColor: '#6200ee' }
 });
