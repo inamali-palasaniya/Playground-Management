@@ -40,7 +40,7 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
 
     if (isSuperAdmin) {
         return (
-            <Tabs.ScrollView style={styles.tabContent}>
+            <Tabs.ScrollView contentContainerStyle={{ paddingTop: 65, paddingHorizontal: 16 }}>
                 <View style={{ padding: 16, alignItems: 'center' }}>
                     <MaterialCommunityIcons name="shield-crown" size={64} color="gold" />
                     <Text variant="titleMedium" style={{ marginTop: 10, fontWeight: 'bold' }}>Success Admin Access</Text>
@@ -54,7 +54,7 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
     }
 
     return (
-        <Tabs.ScrollView style={styles.tabContent}>
+        <Tabs.ScrollView contentContainerStyle={{ paddingTop: 65, paddingHorizontal: 16 }}>
             <View style={{ padding: 16 }}>
                 <PermissionSelector
                     permissions={permissions || []}
@@ -99,7 +99,7 @@ const FineRoute = ({ userId, isFocused, currentUser, onUpdate }: { userId: numbe
 
     return (
         <View style={{ flex: 1 }}>
-            <Tabs.ScrollView style={styles.tabContent}>
+            <Tabs.ScrollView contentContainerStyle={{ paddingTop: 65, paddingHorizontal: 16, paddingBottom: 80 }}>
                 {fines.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No fines found.</Text> : (
                     fines.map((item) => (
                         <Card key={item.id} style={styles.ledgerCard}>
@@ -270,7 +270,7 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate }: { userId: num
 
     return (
         <View style={{ flex: 1 }}>
-            <Tabs.ScrollView style={styles.tabContent}>
+            <Tabs.ScrollView contentContainerStyle={{ paddingTop: 65, paddingHorizontal: 16, paddingBottom: 100 }}>
                 {/* Filters */}
                 <View style={{ marginBottom: 10 }}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
@@ -563,7 +563,7 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser }: { userId:
 
     return (
         <View style={{ flex: 1 }}>
-            <Tabs.ScrollView contentContainerStyle={{ paddingTop: 20, paddingBottom: 100, paddingHorizontal: 16 }}>
+            <Tabs.ScrollView contentContainerStyle={{ paddingTop: 65, paddingBottom: 100, paddingHorizontal: 16 }}>
                 {attendance.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No attendance records.</Text> : (
                     <View style={{ gap: 10 }}>
                         {attendance.map((record) => (
@@ -759,7 +759,7 @@ const MatchesRoute = ({ userId, isFocused }: { userId: number, isFocused: boolea
     if (loading) return <ActivityIndicator style={{ marginTop: 20 }} />;
 
     return (
-        <Tabs.ScrollView style={styles.tabContent}>
+        <Tabs.ScrollView contentContainerStyle={{ paddingTop: 65, paddingHorizontal: 16, paddingBottom: 20 }}>
             {matches.length === 0 ? (
                 <View style={{ alignItems: 'center', marginTop: 40 }}>
                     <MaterialCommunityIcons name="cricket" size={48} color="#ccc" />
@@ -1202,7 +1202,6 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     // Sub-component styles
-    tabContent: { flex: 1, padding: 16 },
     ledgerCard: { marginBottom: 10, backgroundColor: 'white', elevation: 2, borderRadius: 8 },
     fab: { position: 'absolute', margin: 16, right: 0, bottom: 0, backgroundColor: '#6200ee' }
 });
