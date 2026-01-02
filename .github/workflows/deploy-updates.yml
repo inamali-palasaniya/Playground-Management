@@ -33,4 +33,5 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Publish Update
-        run: eas update --branch production --message "Commit: $(git log -1 --pretty=%B)"
+        run: |
+          eas update --branch production --message "Automated Update: $(git log -1 --pretty=%s)"
