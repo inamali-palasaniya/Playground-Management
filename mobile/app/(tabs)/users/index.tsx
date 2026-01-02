@@ -23,6 +23,8 @@ interface User {
     deposit_amount?: number;
     created_by_name?: string;
     createdAt?: string;
+    payment_frequency?: 'DAILY' | 'MONTHLY' | null;
+    is_subscription_paid?: boolean;
 }
 
 interface Group {
@@ -338,6 +340,28 @@ export default function PeopleScreen() {
                         {item.plan_name && (
                             <View style={{ backgroundColor: '#f0f0f0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
                                 <Text style={{ fontSize: 10, color: '#555' }}>{item.plan_name}</Text>
+                            </View>
+                        )}
+                        {item.payment_frequency && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: item.payment_frequency === 'MONTHLY' ? '#e0f2f1' : '#fff3e0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                                <MaterialCommunityIcons
+                                    name={item.payment_frequency === 'MONTHLY' ? 'calendar-month' : 'calendar-today'}
+                                    size={12}
+                                    color={item.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100'}
+                                    style={{ marginRight: 4 }}
+                                />
+                                <Text style={{ fontSize: 10, color: item.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100', fontWeight: 'bold' }}>
+                                    {item.payment_frequency === 'MONTHLY' ? 'Monthly' : 'Daily'}
+                                </Text>
+                            </View>
+                        )}
+                        {item.payment_frequency === 'MONTHLY' && (
+                            <View style={{ marginLeft: 4 }}>
+                                <MaterialCommunityIcons
+                                    name={item.is_subscription_paid ? 'check-decagram' : 'alert-circle-outline'}
+                                    size={16}
+                                    color={item.is_subscription_paid ? '#4CAF50' : '#F44336'}
+                                />
                             </View>
                         )}
                         {item.balance !== undefined && item.balance !== 0 && (

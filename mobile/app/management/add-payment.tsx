@@ -31,7 +31,7 @@ export default function AddPaymentScreen() {
     );
     const [type, setType] = useState<string>(
         isEditing ? (initialType as string || 'PAYMENT') :
-            (linkedType ? linkedType.toString() : 'PAYMENT')
+            (linkedType ? linkedType.toString() : 'SUBSCRIPTION')
     );
     const [notes, setNotes] = useState(
         isEditing ? (initialNotes as string || '') : ''
@@ -91,24 +91,24 @@ export default function AddPaymentScreen() {
                     Alert.alert('Success', 'Transaction updated successfully');
                 } else {
                     await apiService.recordPayment(
-                         Number(selectedUserId),
-                         parseFloat(amount),
-                         paymentMethod,
-                         notes,
-                         type,
-                         date.toISOString(),
-                         type === 'SUBSCRIPTION' ? format(billingMonth, 'MMMM yyyy') : undefined,
-                         linkedChargeId ? parseInt(linkedChargeId as string) : undefined,
-                         transactionType
-                     );
+                        Number(selectedUserId),
+                        parseFloat(amount),
+                        paymentMethod,
+                        notes,
+                        type,
+                        date.toISOString(),
+                        type === 'SUBSCRIPTION' ? format(billingMonth, 'MMMM yyyy') : undefined,
+                        linkedChargeId ? parseInt(linkedChargeId as string) : undefined,
+                        transactionType
+                    );
                     Alert.alert('Success', 'Payment recorded successfully');
                 }
-                 router.back();
-             } catch (error) {
-                 console.error(error);
+                router.back();
+            } catch (error) {
+                console.error(error);
                 Alert.alert('Error', isEditing ? 'Failed to update' : 'Failed to record payment');
-             } finally {
-                 setLoading(false);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -229,7 +229,14 @@ export default function AddPaymentScreen() {
                     }
                 >
                     {paymentTypes.map(t => (
-                        <Menu.Item key={t.value} onPress={() => { setType(t.value); setTypeMenuVisible(false); }} title={t.label} />
+                        <Menu.Item
+                            key={t.value}
+                            onPress={() => {
+                                setTypeMenuVisible(false);
+                                setTimeout(() => setType(t.value), 200);
+                            }}
+                            title={t.label}
+                        />
                     ))}
                 </Menu>
             </View>

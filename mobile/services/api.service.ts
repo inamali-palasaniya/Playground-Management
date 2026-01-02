@@ -30,6 +30,8 @@ interface User {
     total_credits?: number;
     balance?: number;
     subscriptions?: any[];
+    payment_frequency?: 'DAILY' | 'MONTHLY' | null;
+    is_subscription_paid?: boolean;
 }
 
 interface CreateMatchData {

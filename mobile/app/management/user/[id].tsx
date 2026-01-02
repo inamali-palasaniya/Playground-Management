@@ -11,7 +11,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Linking } from 'react-native';
 import { PermissionSelector } from '../../../components/PermissionSelector';
-import { generateReceipt } from '../../../utils/receiptGenerator';
+import { generateReceipt, shareReceiptFile } from '../../../utils/receiptGenerator';
 import { useAuth } from '../../../context/AuthContext';
 import { AuthService } from '../../../services/auth.service';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -132,7 +132,7 @@ const FineRoute = ({ userId, isFocused, currentUser, onUpdate }: { userId: numbe
     );
 };
 
-const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate }: { userId: number, isFocused: boolean, currentUser: any, onUpdate?: () => void }) => {
+const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user }: { userId: number, isFocused: boolean, currentUser: any, onUpdate?: () => void, user?: any }) => {
     const [ledger, setLedger] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [fabOpen, setFabOpen] = useState(false);
@@ -230,16 +230,40 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate }: { userId: num
 
             const type = item.transaction_type === 'CREDIT' ? 'PAYMENT' : 'CHARGE';
 
-            await generateReceipt({
+            // Generate URI
+            const uri = await generateReceipt({
                 title: type === 'PAYMENT' ? 'Payment Receipt' : 'Invoice',
-                userName: 'User', // In real app, pass user name prop to LedgerRoute or fetch it
+                userName: user?.name || 'User',
+                userPhone: user?.phone,
                 id: item.id,
                 date: item.date,
                 totalAmount: item.amount,
                 items: items,
                 transactionType: type,
-                userPhone: '' // Pass if available
             });
+
+            const shareOptions = [
+                {
+                    text: 'Share PDF',
+                    onPress: () => { shareReceiptFile(uri); }
+                },
+                {
+                    text: 'Cancel',
+                    style: 'cancel' as const
+                }
+            ];
+
+            if (user?.phone) {
+                shareOptions.splice(1, 0, {
+                    text: 'WhatsApp to User',
+                    onPress: () => {
+                        const text = `Hello ${user.name},\n\nHere is your receipt details:\nType: ${type}\nAmount: ₹${item.amount}\nDate: ${format(new Date(item.date), 'dd MMM yyyy')}\nRef: ${item.id}\n\nThank you!`;
+                        Linking.openURL(`whatsapp://send?phone=${user.phone}&text=${encodeURIComponent(text)}`);
+                    }
+                });
+            }
+
+            Alert.alert('Share Receipt', 'Choose how you want to share', shareOptions);
         } catch (e: any) {
             Alert.alert('Error', e.message);
         }
@@ -936,6 +960,42 @@ export default function UserDetailScreen() {
 
                     <Divider style={{ marginBottom: 15 }} />
 
+                    {/* Subscription Details */}
+                    {(user.plan_name || user.payment_frequency) && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, justifyContent: 'space-between', backgroundColor: '#f0f0f0', padding: 10, borderRadius: 8 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <MaterialCommunityIcons name="tag-outline" size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
+                                <View>
+                                    <Text variant="bodySmall" style={{ color: 'gray', fontSize: 10 }}>Current Plan</Text>
+                                    <Text variant="bodyMedium" style={{ fontWeight: 'bold', color: '#333' }}>{user.plan_name || 'No Plan'}</Text>
+                                </View>
+                            </View>
+
+                            {user.payment_frequency && (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: user.payment_frequency === 'MONTHLY' ? '#e0f2f1' : '#fff3e0', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                                    <MaterialCommunityIcons
+                                        name={user.payment_frequency === 'MONTHLY' ? 'calendar-month' : 'calendar-today'}
+                                        size={14}
+                                        color={user.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100'}
+                                        style={{ marginRight: 4 }}
+                                    />
+                                    <Text style={{ fontSize: 11, color: user.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100', fontWeight: 'bold' }}>
+                                        {user.payment_frequency}
+                                    </Text>
+                                    {user.payment_frequency === 'MONTHLY' && (
+                                        <View style={{ marginLeft: 6, borderLeftWidth: 1, borderLeftColor: 'rgba(0,0,0,0.1)', paddingLeft: 6 }}>
+                                            <MaterialCommunityIcons
+                                                name={user.is_subscription_paid ? 'check-decagram' : 'alert-circle-outline'}
+                                                size={16}
+                                                color={user.is_subscription_paid ? '#4CAF50' : '#F44336'}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
+                            )}
+                        </View>
+                    )}
+
                     {/* Actions Row: Attendance & Status */}
                     <View style={{ gap: 10 }}>
                         {/* Attendance Action */}
@@ -1147,7 +1207,7 @@ export default function UserDetailScreen() {
                 )}
             >
                 <Tabs.Tab name="ledger" label="Ledger">
-                    <LedgerRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} onUpdate={refreshUser} />
+                    <LedgerRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} onUpdate={refreshUser} user={user} />
                 </Tabs.Tab>
                 <Tabs.Tab name="fine" label="Fines">
                     <FineRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} onUpdate={refreshUser} />

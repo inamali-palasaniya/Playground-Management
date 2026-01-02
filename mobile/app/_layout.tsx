@@ -2,7 +2,8 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { PaperProvider, MD3LightTheme, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Component, type ErrorInfo, type ReactNode, useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
+import * as Updates from 'expo-updates';
 import { AuthService } from '../services/auth.service';
 import { GlobalLoader } from '../components/GlobalLoader';
 
@@ -66,6 +67,40 @@ const styles = StyleSheet.create({
 });
 
 export default function Layout() {
+    useEffect(() => {
+        async function checkUpdates() {
+            try {
+                if (__DEV__) return;
+
+                const update = await Updates.checkForUpdateAsync();
+                if (update.isAvailable) {
+                    Alert.alert(
+                        'Update Available',
+                        'A new version of the app is available. Would you like to update now?',
+                        [
+                            { text: 'Later', style: 'cancel' },
+                            {
+                                text: 'Update',
+                                onPress: async () => {
+                                    try {
+                                        await Updates.fetchUpdateAsync();
+                                        await Updates.reloadAsync();
+                                    } catch (e) {
+                                        Alert.alert('Error', 'Failed to fetch update');
+                                    }
+                                }
+                            }
+                        ]
+                    );
+                }
+            } catch (error) {
+                console.log('Error checking for updates:', error);
+            }
+        }
+
+        checkUpdates();
+    }, []);
+
     return (
         <ErrorBoundary>
             <SafeAreaProvider>
