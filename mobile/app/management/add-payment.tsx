@@ -232,8 +232,8 @@ export default function AddPaymentScreen() {
                         <Menu.Item
                             key={t.value}
                             onPress={() => {
+                                setType(t.value);
                                 setTypeMenuVisible(false);
-                                setTimeout(() => setType(t.value), 200);
                             }}
                             title={t.label}
                         />

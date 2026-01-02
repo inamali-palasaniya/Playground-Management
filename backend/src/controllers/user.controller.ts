@@ -206,7 +206,7 @@ export const getUsers = async (req: Request, res: Response) => {
             include: {
                 group: true,
                 subscriptions: {
-                    where: { status: 'ACTIVE' },
+                    orderBy: { createdAt: 'desc' },
                     include: { plan: true },
                     take: 1
                 },
@@ -319,7 +319,7 @@ export const getUserById = async (req: Request, res: Response) => {
             include: {
                 group: true,
                 subscriptions: {
-                    where: { status: 'ACTIVE' },
+                    orderBy: { createdAt: 'desc' },
                     include: { plan: true },
                     take: 1
                 },

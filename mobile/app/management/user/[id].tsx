@@ -125,6 +125,8 @@ const FineRoute = ({ userId, isFocused, currentUser, onUpdate }: { userId: numbe
                     )}
                 </View>
             </Tabs.ScrollView>
+
+
             {isFocused && canAdd && (
                 <FAB icon="plus" color="white" style={styles.fab} onPress={() => router.push({ pathname: '/management/apply-fine', params: { userId } })} label="Apply Fine" visible={isFocused} />
             )}
@@ -137,6 +139,10 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user }: { userI
     const [loading, setLoading] = useState(true);
     const [fabOpen, setFabOpen] = useState(false);
     const router = useRouter();
+
+    // Receipt Sharing State
+    const [receiptDialogVisible, setReceiptDialogVisible] = useState(false);
+    const [currentReceiptData, setCurrentReceiptData] = useState<{ uri: string, type: string, amount: number, date: string, id: number } | null>(null);
 
     // Filters
     const [selectedType, setSelectedType] = useState('ALL');
@@ -242,28 +248,8 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user }: { userI
                 transactionType: type,
             });
 
-            const shareOptions = [
-                {
-                    text: 'Share PDF',
-                    onPress: () => { shareReceiptFile(uri); }
-                },
-                {
-                    text: 'Cancel',
-                    style: 'cancel' as const
-                }
-            ];
-
-            if (user?.phone) {
-                shareOptions.splice(1, 0, {
-                    text: 'WhatsApp to User',
-                    onPress: () => {
-                        const text = `Hello ${user.name},\n\nHere is your receipt details:\nType: ${type}\nAmount: ₹${item.amount}\nDate: ${format(new Date(item.date), 'dd MMM yyyy')}\nRef: ${item.id}\n\nThank you!`;
-                        Linking.openURL(`whatsapp://send?phone=${user.phone}&text=${encodeURIComponent(text)}`);
-                    }
-                });
-            }
-
-            Alert.alert('Share Receipt', 'Choose how you want to share', shareOptions);
+            setCurrentReceiptData({ uri, type, amount: item.amount, date: item.date, id: item.id });
+            setReceiptDialogVisible(true);
         } catch (e: any) {
             Alert.alert('Error', e.message);
         }
@@ -408,6 +394,43 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user }: { userI
             </Tabs.ScrollView>
             {(canAddPayment || canAddCharge) && (
                 <Portal>
+                    <Dialog visible={receiptDialogVisible} onDismiss={() => setReceiptDialogVisible(false)} style={{ backgroundColor: 'white' }}>
+                        <Dialog.Title style={{ textAlign: 'center' }}>Share Receipt</Dialog.Title>
+                        <Dialog.Content>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginVertical: 10 }}>
+                                <View style={{ alignItems: 'center' }}>
+                                    <TouchableOpacity
+                                        style={{ alignItems: 'center', justifyContent: 'center', width: 60, height: 60, backgroundColor: '#E8F5E9', borderRadius: 30, marginBottom: 8 }}
+                                        onPress={() => {
+                                            if (currentReceiptData && user?.phone) {
+                                                const text = `Hello ${user.name},\n\nHere is your receipt details:\nType: ${currentReceiptData.type}\nAmount: ₹${currentReceiptData.amount}\nDate: ${format(new Date(currentReceiptData.date), 'dd MMM yyyy')}\nRef: ${currentReceiptData.id}\n\nThank you!`;
+                                                Linking.openURL(`whatsapp://send?phone=${user.phone}&text=${encodeURIComponent(text)}`);
+                                            }
+                                            setReceiptDialogVisible(false);
+                                        }}
+                                    >
+                                        <MaterialCommunityIcons name="whatsapp" size={32} color="#25D366" />
+                                    </TouchableOpacity>
+                                    <Text variant="labelMedium">WhatsApp</Text>
+                                </View>
+                                <View style={{ alignItems: 'center' }}>
+                                    <TouchableOpacity
+                                        style={{ alignItems: 'center', justifyContent: 'center', width: 60, height: 60, backgroundColor: '#E3F2FD', borderRadius: 30, marginBottom: 8 }}
+                                        onPress={() => {
+                                            if (currentReceiptData) shareReceiptFile(currentReceiptData.uri);
+                                            setReceiptDialogVisible(false);
+                                        }}
+                                    >
+                                        <MaterialCommunityIcons name="share-variant" size={30} color="#2196F3" />
+                                    </TouchableOpacity>
+                                    <Text variant="labelMedium">Share PDF</Text>
+                                </View>
+                            </View>
+                        </Dialog.Content>
+                        <Dialog.Actions>
+                            <Button onPress={() => setReceiptDialogVisible(false)}>Cancel</Button>
+                        </Dialog.Actions>
+                    </Dialog>
                     <FAB.Group
                         open={fabOpen}
                         visible={isFocused} // Only visible when screen is focused
