@@ -2,7 +2,8 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { View, StyleSheet, FlatList, RefreshControl, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button, Portal } from 'react-native-paper';
-import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useRouter, useFocusEffect, useLocalSearchParams, Stack } from 'expo-router';
+import * as Updates from 'expo-updates';
 import apiService from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { format } from 'date-fns';
@@ -175,6 +176,32 @@ export default function PeopleScreen() {
     useEffect(() => {
         setParamsSynced(false);
     }, [params.role, params.status, params.punch_status, params.user_type, params.filter]);
+
+    const handleLogout = async () => {
+        await AuthService.logout();
+        router.replace('/login');
+    };
+
+    const checkUpdates = async () => {
+        try {
+            if (__DEV__) {
+                Alert.alert('Dev Mode', 'OTA updates are disabled in development.');
+                return;
+            }
+            const update = await Updates.checkForUpdateAsync();
+            if (update.isAvailable) {
+                Alert.alert('Update Available', 'Downloading...', [{ text: 'OK' }]);
+                await Updates.fetchUpdateAsync();
+                Alert.alert('Update Ready', 'Restarting app...', [
+                    { text: 'OK', onPress: () => Updates.reloadAsync() }
+                ]);
+            } else {
+                Alert.alert('Up to Date', 'You have the latest version.');
+            }
+        } catch (error: any) {
+            Alert.alert('Error', error.message);
+        }
+    };
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -396,12 +423,22 @@ export default function PeopleScreen() {
         <View style={styles.container}>
             {isManagement ? (
                 <View style={styles.headerContainer}>
-                    <Searchbar
-                        placeholder="Search Users"
-                        onChangeText={setSearchQuery}
-                        value={searchQuery}
-                        style={styles.searchBar}
-                    />
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                        <Searchbar
+                            placeholder="Search Users"
+                            onChangeText={setSearchQuery}
+                            value={searchQuery}
+                            style={[styles.searchBar, { flex: 1, marginRight: 8 }]}
+                        />
+                        <IconButton
+                            icon="cloud-download-outline"
+                            mode="contained"
+                            containerColor="#e3f2fd"
+                            iconColor="#1565c0"
+                            size={24}
+                            onPress={checkUpdates}
+                        />
+                    </View>
 
                     {/* Horizontal Filter Bar */}
                     <View style={{ marginTop: 12 }}>
