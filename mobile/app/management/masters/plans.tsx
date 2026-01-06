@@ -86,22 +86,37 @@ export default function PlansScreen() {
     const handleSave = async () => {
         if (!name) { Alert.alert('Error', 'Name is required'); return; }
         setSaving(true);
-        const totalMonthly = parseFloat(rateMonthly) || 0;
-        const depositPart = isSplitDeposit ? (parseFloat(monthlyDepositPart) || 0) : 0;
+        try {
+            const totalMonthly = parseFloat(rateMonthly) || 0;
+            const depositPart = isSplitDeposit ? (parseFloat(monthlyDepositPart) || 0) : 0;
 
-        if (depositPart > totalMonthly) {
-            Alert.alert('Error', 'Deposit part cannot be greater than Total Monthly Rate');
+            if (depositPart > totalMonthly) {
+                Alert.alert('Error', 'Deposit part cannot be greater than Total Monthly Rate');
+                setSaving(false);
+                return;
+            }
+
+            const payload = {
+                name,
+                rate_daily: parseFloat(rateDaily) || 0,
+                // Send Net Fee to DB (Total - Deposit)
+                rate_monthly: totalMonthly - depositPart,
+                is_deposit_required: isDepositRequired,
+                monthly_deposit_part: depositPart
+            };
+
+            if (editingId) {
+                await apiService.updateSubscriptionPlan(editingId, payload);
+            } else {
+                await apiService.createSubscriptionPlan(payload);
+            }
+
+            setVisible(false);
+            loadPlans();
+        } catch (e: any) {
+            Alert.alert('Error', e.message || 'Failed to save plan');
+        } finally {
             setSaving(false);
-            return;
-        }
-
-        const payload = {
-            name,
-            rate_daily: parseFloat(rateDaily) || 0,
-            // Send Net Fee to DB (Total - Deposit)
-            rate_monthly: totalMonthly - depositPart,
-            is_deposit_required: isDepositRequired,
-            monthly_deposit_part: depositPart
         };
 
         if (editingId) {
