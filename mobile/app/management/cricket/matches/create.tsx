@@ -234,7 +234,7 @@ export default function CreateMatchScreen() {
                     visible={teamAMenu}
                     onDismiss={() => setTeamAMenu(false)}
                     title="Select Team A"
-                    items={teams}
+                    items={teams.filter(t => t.id !== teamB?.id)}
                     onSelect={setTeamA}
                     selectedValue={teamA?.id}
                 />
@@ -243,7 +243,7 @@ export default function CreateMatchScreen() {
                     visible={teamBMenu}
                     onDismiss={() => setTeamBMenu(false)}
                     title="Select Team B"
-                    items={teams}
+                    items={teams.filter(t => t.id !== teamA?.id)}
                     onSelect={setTeamB}
                     selectedValue={teamB?.id}
                 />
