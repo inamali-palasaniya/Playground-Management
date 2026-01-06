@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, StyleSheet, Alert, ScrollView, Pressable, Keyboard } from 'react-native';
 import { TextInput, Button, Text, useTheme, Menu, Chip, Appbar, Portal } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -93,11 +93,21 @@ export default function CreateTeamScreen() {
                         visible={menuVisible}
                         onDismiss={() => setMenuVisible(false)}
                         anchor={
-                            <Button mode="outlined" onPress={() => setTimeout(() => setMenuVisible(true), 0)} style={{ width: '100%', marginBottom: 16 }}>
-                                {selectedTournament ? selectedTournament.name : 'Select Tournament'}
-                            </Button>
-                        }
-                    >
+                            <Pressable
+                                onPress={() => { Keyboard.dismiss(); setMenuVisible(true); }}
+                                style={{ marginBottom: 16 }}
+                            >
+                                <TextInput
+                                    mode="outlined"
+                                    label="Select Tournament"
+                                    value={selectedTournament?.name || ''}
+                                    editable={false}
+                                    right={<TextInput.Icon icon="chevron-down" />}
+                                    style={{ backgroundColor: 'white' }}
+                                    pointerEvents="none"
+                                />
+                            </Pressable>
+                        }                  >
                         {tournaments.map(t => (
                             <Menu.Item
                                 key={t.id}
