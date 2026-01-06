@@ -21,6 +21,8 @@ export default function PlansScreen() {
     const [rateDaily, setRateDaily] = useState('');
     const [rateMonthly, setRateMonthly] = useState('');
     const [isDepositRequired, setIsDepositRequired] = useState(false);
+    const [isSplitDeposit, setIsSplitDeposit] = useState(false);
+    const [monthlyDepositPart, setMonthlyDepositPart] = useState('');
     const [saving, setSaving] = useState(false);
 
     const loadPlans = async () => {
@@ -47,6 +49,9 @@ export default function PlansScreen() {
         setRateDaily('');
         setRateMonthly('');
         setIsDepositRequired(false);
+        setIsSplitDeposit(false);
+        setMonthlyDepositPart('');
+        setVisible(true);
         setVisible(true);
     };
 
@@ -56,6 +61,8 @@ export default function PlansScreen() {
         setRateDaily(String(plan.rate_daily || 0));
         setRateMonthly(String(plan.rate_monthly || 0));
         setIsDepositRequired(plan.is_deposit_required);
+        setIsSplitDeposit(!!plan.monthly_deposit_part && plan.monthly_deposit_part > 0);
+        setMonthlyDepositPart(String(plan.monthly_deposit_part || ''));
         setVisible(true);
     };
 
@@ -84,7 +91,7 @@ export default function PlansScreen() {
                 rate_daily: parseFloat(rateDaily) || 0,
                 rate_monthly: parseFloat(rateMonthly) || 0,
                 is_deposit_required: isDepositRequired,
-                monthly_deposit_part: 0
+                monthly_deposit_part: isSplitDeposit ? (parseFloat(monthlyDepositPart) || 0) : 0
             };
 
             if (editingId) {
@@ -136,6 +143,14 @@ export default function PlansScreen() {
                             <Checkbox status={isDepositRequired ? 'checked' : 'unchecked'} onPress={() => setIsDepositRequired(!isDepositRequired)} />
                             <Text>Deposit Required</Text>
                         </View>
+
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+                            <Checkbox status={isSplitDeposit ? 'checked' : 'unchecked'} onPress={() => setIsSplitDeposit(!isSplitDeposit)} />
+                            <Text>Split Monthly Deposit?</Text>
+                        </View>
+                        {isSplitDeposit && (
+                            <TextInput label="Monthly Deposit Part (e.g. 200)" value={monthlyDepositPart} onChangeText={setMonthlyDepositPart} keyboardType="numeric" style={styles.input} />
+                        )}
                     </Dialog.Content>
                     <Dialog.Actions>
                         <Button onPress={() => setVisible(false)}>Cancel</Button>
