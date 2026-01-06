@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Component, type ErrorInfo, type ReactNode, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import * as Updates from 'expo-updates';
+import { StatusBar } from 'expo-status-bar';
 import { AuthService } from '../services/auth.service';
 import { GlobalLoader } from '../components/GlobalLoader';
 
@@ -107,6 +108,7 @@ export default function Layout() {
                 <PaperProvider theme={theme}>
                     <AuthProvider>
                         <AuthProtection>
+                            <StatusBar style="dark" />
                             <GlobalLoader />
                             <Stack screenOptions={{ headerShown: false }}>
                                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
