@@ -59,7 +59,8 @@ export default function PlansScreen() {
         setEditingId(plan.id);
         setName(plan.name);
         setRateDaily(String(plan.rate_daily || 0));
-        setRateMonthly(String(plan.rate_monthly || 0));
+        // Show TOTAL to user (Fee + Deposit)
+        setRateMonthly(String((plan.rate_monthly || 0) + (plan.monthly_deposit_part || 0)));
         setIsDepositRequired(plan.is_deposit_required);
         setIsSplitDeposit(!!plan.monthly_deposit_part && plan.monthly_deposit_part > 0);
         setMonthlyDepositPart(String(plan.monthly_deposit_part || ''));
@@ -85,88 +86,98 @@ export default function PlansScreen() {
     const handleSave = async () => {
         if (!name) { Alert.alert('Error', 'Name is required'); return; }
         setSaving(true);
-        try {
-            const payload = {
-                name,
-                rate_daily: parseFloat(rateDaily) || 0,
-                rate_monthly: parseFloat(rateMonthly) || 0,
-                is_deposit_required: isDepositRequired,
-                monthly_deposit_part: isSplitDeposit ? (parseFloat(monthlyDepositPart) || 0) : 0
-            };
+        const totalMonthly = parseFloat(rateMonthly) || 0;
+        const depositPart = isSplitDeposit ? (parseFloat(monthlyDepositPart) || 0) : 0;
 
-            if (editingId) {
-                await apiService.updateSubscriptionPlan(editingId, payload);
-            } else {
-                await apiService.createSubscriptionPlan(payload);
-            }
-
-            setVisible(false);
-            loadPlans();
-        } catch (e: any) {
-            Alert.alert('Error', e.message || 'Failed to save plan');
-        } finally {
+        if (depositPart > totalMonthly) {
+            Alert.alert('Error', 'Deposit part cannot be greater than Total Monthly Rate');
             setSaving(false);
+            return;
         }
-    };
 
-    return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
-            {loading ? <ActivityIndicator style={{ marginTop: 20 }} /> : (
-                <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
-                    {plans.map((plan) => (
-                        <List.Item
-                            key={plan.id}
-                            title={plan.name}
-                            description={`Monthly: ${plan.rate_monthly}, Daily: ${plan.rate_daily} ${plan.is_deposit_required ? '(Dep Req)' : ''}`}
-                            left={props => <List.Icon {...props} icon="file-document-outline" />}
-                            right={props => (
-                                <View style={{ flexDirection: 'row' }}>
-                                    <IconButton icon="history" size={20} iconColor="#607D8B" onPress={() => { setAuditEntityId(plan.id); setAuditVisible(true); }} />
-                                    <IconButton icon="pencil" onPress={() => handleOpenEdit(plan)} />
-                                    <IconButton icon="delete" iconColor="red" onPress={() => handleDelete(plan.id)} />
-                                </View>
-                            )}
-                        />
-                    ))}
-                </ScrollView>
-            )}
-            <FAB icon="plus" style={styles.fab} onPress={handleOpenCreate} label="Add Plan" />
+        const payload = {
+            name,
+            rate_daily: parseFloat(rateDaily) || 0,
+            // Send Net Fee to DB (Total - Deposit)
+            rate_monthly: totalMonthly - depositPart,
+            is_deposit_required: isDepositRequired,
+            monthly_deposit_part: depositPart
+        };
 
-            <Portal>
-                <Dialog visible={visible} onDismiss={() => setVisible(false)}>
-                    <Dialog.Title>{editingId ? 'Edit Plan' : 'New Plan'}</Dialog.Title>
-                    <Dialog.Content>
-                        <TextInput label="Name" value={name} onChangeText={setName} style={styles.input} />
-                        <TextInput label="Monthly Rate" value={rateMonthly} onChangeText={setRateMonthly} keyboardType="numeric" style={styles.input} />
-                        <TextInput label="Daily Rate" value={rateDaily} onChangeText={setRateDaily} keyboardType="numeric" style={styles.input} />
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-                            <Checkbox status={isDepositRequired ? 'checked' : 'unchecked'} onPress={() => setIsDepositRequired(!isDepositRequired)} />
-                            <Text>Deposit Required</Text>
-                        </View>
+        if (editingId) {
+            await apiService.updateSubscriptionPlan(editingId, payload);
+        } else {
+            await apiService.createSubscriptionPlan(payload);
+        }
 
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-                            <Checkbox status={isSplitDeposit ? 'checked' : 'unchecked'} onPress={() => setIsSplitDeposit(!isSplitDeposit)} />
-                            <Text>Split Monthly Deposit?</Text>
-                        </View>
-                        {isSplitDeposit && (
-                            <TextInput label="Monthly Deposit Part (e.g. 200)" value={monthlyDepositPart} onChangeText={setMonthlyDepositPart} keyboardType="numeric" style={styles.input} />
+        setVisible(false);
+        loadPlans();
+    } catch (e: any) {
+        Alert.alert('Error', e.message || 'Failed to save plan');
+    } finally {
+        setSaving(false);
+    }
+};
+
+return (
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+        {loading ? <ActivityIndicator style={{ marginTop: 20 }} /> : (
+            <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+                {plans.map((plan) => (
+                    <List.Item
+                        key={plan.id}
+                        title={plan.name}
+                        // Display Total to user
+                        description={`Monthly: ${plan.rate_monthly + (plan.monthly_deposit_part || 0)} ${plan.monthly_deposit_part ? `(Fee: ${plan.rate_monthly} + Dep: ${plan.monthly_deposit_part})` : ''}, Daily: ${plan.rate_daily} ${plan.is_deposit_required ? '(Dep Req)' : ''}`}
+                        left={props => <List.Icon {...props} icon="file-document-outline" />}
+                        right={props => (
+                            <View style={{ flexDirection: 'row' }}>
+                                <IconButton icon="history" size={20} iconColor="#607D8B" onPress={() => { setAuditEntityId(plan.id); setAuditVisible(true); }} />
+                                <IconButton icon="pencil" onPress={() => handleOpenEdit(plan)} />
+                                <IconButton icon="delete" iconColor="red" onPress={() => handleDelete(plan.id)} />
+                            </View>
                         )}
-                    </Dialog.Content>
-                    <Dialog.Actions>
-                        <Button onPress={() => setVisible(false)}>Cancel</Button>
-                        <Button onPress={handleSave} loading={saving}>Save</Button>
-                    </Dialog.Actions>
-                </Dialog>
-            </Portal>
+                    />
+                ))}
+            </ScrollView>
+        )}
+        <FAB icon="plus" style={styles.fab} onPress={handleOpenCreate} label="Add Plan" />
 
-            <AuditLogDialog
-                visible={auditVisible}
-                onDismiss={() => setAuditVisible(false)}
-                entityType="PLAN"
-                entityId={auditEntityId}
-            />
-        </View>
-    );
+        <Portal>
+            <Dialog visible={visible} onDismiss={() => setVisible(false)}>
+                <Dialog.Title>{editingId ? 'Edit Plan' : 'New Plan'}</Dialog.Title>
+                <Dialog.Content>
+                    <TextInput label="Name" value={name} onChangeText={setName} style={styles.input} />
+                    <TextInput label="Monthly Rate" value={rateMonthly} onChangeText={setRateMonthly} keyboardType="numeric" style={styles.input} />
+                    <TextInput label="Daily Rate" value={rateDaily} onChangeText={setRateDaily} keyboardType="numeric" style={styles.input} />
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+                        <Checkbox status={isDepositRequired ? 'checked' : 'unchecked'} onPress={() => setIsDepositRequired(!isDepositRequired)} />
+                        <Text>Deposit Required</Text>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+                        <Checkbox status={isSplitDeposit ? 'checked' : 'unchecked'} onPress={() => setIsSplitDeposit(!isSplitDeposit)} />
+                        <Text>Split Monthly Deposit?</Text>
+                    </View>
+                    {isSplitDeposit && (
+                        <TextInput label="Monthly Deposit Part (e.g. 200)" value={monthlyDepositPart} onChangeText={setMonthlyDepositPart} keyboardType="numeric" style={styles.input} />
+                    )}
+                </Dialog.Content>
+                <Dialog.Actions>
+                    <Button onPress={() => setVisible(false)}>Cancel</Button>
+                    <Button onPress={handleSave} loading={saving}>Save</Button>
+                </Dialog.Actions>
+            </Dialog>
+        </Portal>
+
+        <AuditLogDialog
+            visible={auditVisible}
+            onDismiss={() => setAuditVisible(false)}
+            entityType="PLAN"
+            entityId={auditEntityId}
+        />
+    </View>
+);
 }
 
 const styles = StyleSheet.create({
