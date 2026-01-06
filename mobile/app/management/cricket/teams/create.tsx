@@ -93,10 +93,7 @@ export default function CreateTeamScreen() {
                         visible={menuVisible}
                         onDismiss={() => setMenuVisible(false)}
                         anchor={
-                            <Pressable
-                                onPress={() => { Keyboard.dismiss(); setMenuVisible(true); }}
-                                style={{ marginBottom: 16 }}
-                            >
+                            <View style={{ marginBottom: 16 }}>
                                 <TextInput
                                     mode="outlined"
                                     label="Select Tournament"
@@ -104,10 +101,14 @@ export default function CreateTeamScreen() {
                                     editable={false}
                                     right={<TextInput.Icon icon="chevron-down" />}
                                     style={{ backgroundColor: 'white' }}
-                                    pointerEvents="none"
                                 />
-                            </Pressable>
-                        }                  >
+                                <Pressable
+                                    style={StyleSheet.absoluteFill}
+                                    onPress={() => { Keyboard.dismiss(); setMenuVisible(true); }}
+                                />
+                            </View>
+                        }
+                    >
                         {tournaments.map(t => (
                             <Menu.Item
                                 key={t.id}
@@ -116,20 +117,16 @@ export default function CreateTeamScreen() {
                             />
                         ))}
                     </Menu>
-                    {selectedTournament && (
-                        <Chip icon="check-circle" style={{ alignSelf: 'flex-start' }}>{selectedTournament.name}</Chip>
-                    )}
-                </View>
 
-                <Button
-                    mode="contained"
-                    onPress={handleSave}
-                    loading={loading}
-                    disabled={loading}
-                    style={{ marginTop: 20 }}
-                >
-                    {id ? "Update Team" : "Create Team"}
-                </Button>
+                    <Button
+                        mode="contained"
+                        onPress={handleSave}
+                        loading={loading}
+                        disabled={loading}
+                        style={{ marginTop: 20 }}
+                    >
+                        {id ? "Update Team" : "Create Team"}
+                    </Button>
             </ScrollView>
         </SafeAreaView>
     );
