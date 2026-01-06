@@ -93,20 +93,21 @@ export default function CreateTeamScreen() {
                         visible={menuVisible}
                         onDismiss={() => setMenuVisible(false)}
                         anchor={
-                            <View style={{ marginBottom: 16 }}>
-                                <TextInput
-                                    mode="outlined"
-                                    label="Select Tournament"
-                                    value={selectedTournament?.name || ''}
-                                    editable={false}
-                                    right={<TextInput.Icon icon="chevron-down" />}
-                                    style={{ backgroundColor: 'white' }}
-                                />
-                                <Pressable
-                                    style={StyleSheet.absoluteFill}
-                                    onPress={() => { Keyboard.dismiss(); setMenuVisible(true); }}
-                                />
-                            </View>
+                            <Pressable
+                                onPress={() => { Keyboard.dismiss(); setTimeout(() => setMenuVisible(true), 0); }}
+                                style={{ marginBottom: 16 }}
+                            >
+                                <View pointerEvents="none">
+                                    <TextInput
+                                        mode="outlined"
+                                        label="Select Tournament"
+                                        value={selectedTournament?.name || ''}
+                                        editable={false}
+                                        right={<TextInput.Icon icon="chevron-down" />}
+                                        style={{ backgroundColor: 'white' }}
+                                    />
+                                </View>
+                            </Pressable>
                         }
                     >
                         {tournaments.map(t => (
@@ -117,16 +118,17 @@ export default function CreateTeamScreen() {
                             />
                         ))}
                     </Menu>
+                </View>
 
-                    <Button
-                        mode="contained"
-                        onPress={handleSave}
-                        loading={loading}
-                        disabled={loading}
-                        style={{ marginTop: 20 }}
-                    >
-                        {id ? "Update Team" : "Create Team"}
-                    </Button>
+                <Button
+                    mode="contained"
+                    onPress={handleSave}
+                    loading={loading}
+                    disabled={loading}
+                    style={{ marginTop: 20 }}
+                >
+                    {id ? "Update Team" : "Create Team"}
+                </Button>
             </ScrollView>
         </SafeAreaView>
     );
