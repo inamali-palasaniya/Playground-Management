@@ -42,6 +42,7 @@ export const getPlanById = async (req: Request, res: Response) => {
 
 export const createPlan = async (req: Request, res: Response) => {
     try {
+        console.log('Create Plan Body:', req.body); // DEBUG LOG
         const { name, rate_daily, rate_monthly, is_deposit_required, monthly_deposit_part } = req.body;
 
         // Validation

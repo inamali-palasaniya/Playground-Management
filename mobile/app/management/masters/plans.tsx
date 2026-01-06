@@ -52,7 +52,6 @@ export default function PlansScreen() {
         setIsSplitDeposit(false);
         setMonthlyDepositPart('');
         setVisible(true);
-        setVisible(true);
     };
 
     const handleOpenEdit = (plan: any) => {
