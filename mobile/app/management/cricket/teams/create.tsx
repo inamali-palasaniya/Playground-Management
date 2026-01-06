@@ -93,7 +93,7 @@ export default function CreateTeamScreen() {
                         visible={menuVisible}
                         onDismiss={() => setMenuVisible(false)}
                         anchor={
-                            <Button mode="outlined" onPress={() => setMenuVisible(true)} style={{ width: '100%', marginBottom: 16 }}>
+                            <Button mode="outlined" onPress={() => setTimeout(() => setMenuVisible(true), 0)} style={{ width: '100%', marginBottom: 16 }}>
                                 {selectedTournament ? selectedTournament.name : 'Select Tournament'}
                             </Button>
                         }
