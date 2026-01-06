@@ -59,11 +59,16 @@ export default function PlansScreen() {
         setEditingId(plan.id);
         setName(plan.name);
         setRateDaily(String(plan.rate_daily || 0));
+
         // Show TOTAL to user (Fee + Deposit)
-        setRateMonthly(String((plan.rate_monthly || 0) + (plan.monthly_deposit_part || 0)));
+        // Explicitly cast to Number to prevent string concatenation
+        const fee = Number(plan.rate_monthly) || 0;
+        const dep = Number(plan.monthly_deposit_part) || 0;
+        setRateMonthly(String(fee + dep));
+
         setIsDepositRequired(plan.is_deposit_required);
-        setIsSplitDeposit(!!plan.monthly_deposit_part && plan.monthly_deposit_part > 0);
-        setMonthlyDepositPart(String(plan.monthly_deposit_part || ''));
+        setIsSplitDeposit(dep > 0);
+        setMonthlyDepositPart(String(dep || ''));
         setVisible(true);
     };
 
@@ -105,6 +110,8 @@ export default function PlansScreen() {
                 monthly_deposit_part: depositPart
             };
 
+            console.log("Saving Plan:", payload);
+
             if (editingId) {
                 await apiService.updateSubscriptionPlan(editingId, payload);
             } else {
@@ -114,14 +121,12 @@ export default function PlansScreen() {
             setVisible(false);
             loadPlans();
         } catch (e: any) {
+            console.error(e);
             Alert.alert('Error', e.message || 'Failed to save plan');
         } finally {
             setSaving(false);
-        };
-
-
+        }
     };
-
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
             {loading ? <ActivityIndicator style={{ marginTop: 20 }} /> : (
