@@ -89,25 +89,23 @@ export default function CreateTeamScreen() {
 
                 <View style={{ marginBottom: 20 }}>
                     <Text variant="bodyMedium" style={{ marginBottom: 8, fontWeight: '500' }}>Tournament</Text>
-                    <Portal>
-                        <Menu
-                            visible={menuVisible}
-                            onDismiss={() => setMenuVisible(false)}
-                            anchor={
-                                <Button mode="outlined" onPress={() => setMenuVisible(true)} style={{ width: '100%', marginBottom: 16 }}>
-                                    {selectedTournament ? selectedTournament.name : 'Select Tournament'}
-                                </Button>
-                            }
-                        >
-                            {tournaments.map(t => (
-                                <Menu.Item
-                                    key={t.id}
-                                    onPress={() => { setSelectedTournament(t); setMenuVisible(false); }}
-                                    title={t.name}
-                                />
-                            ))}
-                        </Menu>
-                    </Portal>
+                    <Menu
+                        visible={menuVisible}
+                        onDismiss={() => setMenuVisible(false)}
+                        anchor={
+                            <Button mode="outlined" onPress={() => setMenuVisible(true)} style={{ width: '100%', marginBottom: 16 }}>
+                                {selectedTournament ? selectedTournament.name : 'Select Tournament'}
+                            </Button>
+                        }
+                    >
+                        {tournaments.map(t => (
+                            <Menu.Item
+                                key={t.id}
+                                onPress={() => { setSelectedTournament(t); setMenuVisible(false); }}
+                                title={t.name}
+                            />
+                        ))}
+                    </Menu>
                     {selectedTournament && (
                         <Chip icon="check-circle" style={{ alignSelf: 'flex-start' }}>{selectedTournament.name}</Chip>
                     )}
