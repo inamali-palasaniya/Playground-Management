@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, StyleSheet, Alert, ScrollView, Pressable, Keyboard } from 'react-native';
 import { TextInput, Button, Text, useTheme, Menu, Chip, Appbar, Portal } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -89,28 +89,35 @@ export default function CreateTeamScreen() {
 
                 <View style={{ marginBottom: 20 }}>
                     <Text variant="bodyMedium" style={{ marginBottom: 8, fontWeight: '500' }}>Tournament</Text>
-                    <Portal>
-                        <Menu
-                            visible={menuVisible}
-                            onDismiss={() => setMenuVisible(false)}
-                            anchor={
-                                <Button mode="outlined" onPress={() => setMenuVisible(true)} style={{ width: '100%', marginBottom: 16 }}>
-                                    {selectedTournament ? selectedTournament.name : 'Select Tournament'}
-                                </Button>
-                            }
-                        >
-                            {tournaments.map(t => (
-                                <Menu.Item
-                                    key={t.id}
-                                    onPress={() => { setSelectedTournament(t); setMenuVisible(false); }}
-                                    title={t.name}
-                                />
-                            ))}
-                        </Menu>
-                    </Portal>
-                    {selectedTournament && (
-                        <Chip icon="check-circle" style={{ alignSelf: 'flex-start' }}>{selectedTournament.name}</Chip>
-                    )}
+                    <Menu
+                        visible={menuVisible}
+                        onDismiss={() => setMenuVisible(false)}
+                        anchor={
+                            <Pressable
+                                onPress={() => { Keyboard.dismiss(); setTimeout(() => setMenuVisible(true), 0); }}
+                                style={{ marginBottom: 16 }}
+                            >
+                                <View pointerEvents="none">
+                                    <TextInput
+                                        mode="outlined"
+                                        label="Select Tournament"
+                                        value={selectedTournament?.name || ''}
+                                        editable={false}
+                                        right={<TextInput.Icon icon="chevron-down" />}
+                                        style={{ backgroundColor: 'white' }}
+                                    />
+                                </View>
+                            </Pressable>
+                        }
+                    >
+                        {tournaments.map(t => (
+                            <Menu.Item
+                                key={t.id}
+                                onPress={() => { setSelectedTournament(t); setMenuVisible(false); }}
+                                title={t.name}
+                            />
+                        ))}
+                    </Menu>
                 </View>
 
                 <Button

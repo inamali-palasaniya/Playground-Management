@@ -21,6 +21,8 @@ export default function PlansScreen() {
     const [rateDaily, setRateDaily] = useState('');
     const [rateMonthly, setRateMonthly] = useState('');
     const [isDepositRequired, setIsDepositRequired] = useState(false);
+    const [isSplitDeposit, setIsSplitDeposit] = useState(false);
+    const [monthlyDepositPart, setMonthlyDepositPart] = useState('');
     const [saving, setSaving] = useState(false);
 
     const loadPlans = async () => {
@@ -47,6 +49,8 @@ export default function PlansScreen() {
         setRateDaily('');
         setRateMonthly('');
         setIsDepositRequired(false);
+        setIsSplitDeposit(false);
+        setMonthlyDepositPart('');
         setVisible(true);
     };
 
@@ -54,8 +58,16 @@ export default function PlansScreen() {
         setEditingId(plan.id);
         setName(plan.name);
         setRateDaily(String(plan.rate_daily || 0));
-        setRateMonthly(String(plan.rate_monthly || 0));
+
+        // Show TOTAL to user (Fee + Deposit)
+        // Explicitly cast to Number to prevent string concatenation
+        const fee = Number(plan.rate_monthly) || 0;
+        const dep = Number(plan.monthly_deposit_part) || 0;
+        setRateMonthly(String(fee + dep));
+
         setIsDepositRequired(plan.is_deposit_required);
+        setIsSplitDeposit(dep > 0);
+        setMonthlyDepositPart(String(dep || ''));
         setVisible(true);
     };
 
@@ -79,13 +91,25 @@ export default function PlansScreen() {
         if (!name) { Alert.alert('Error', 'Name is required'); return; }
         setSaving(true);
         try {
+            const totalMonthly = parseFloat(rateMonthly) || 0;
+            const depositPart = isSplitDeposit ? (parseFloat(monthlyDepositPart) || 0) : 0;
+
+            if (depositPart > totalMonthly) {
+                Alert.alert('Error', 'Deposit part cannot be greater than Total Monthly Rate');
+                setSaving(false);
+                return;
+            }
+
             const payload = {
                 name,
                 rate_daily: parseFloat(rateDaily) || 0,
-                rate_monthly: parseFloat(rateMonthly) || 0,
+                // Send Net Fee to DB (Total - Deposit)
+                rate_monthly: totalMonthly - depositPart,
                 is_deposit_required: isDepositRequired,
-                monthly_deposit_part: 0
+                monthly_deposit_part: depositPart
             };
+
+            console.log("Saving Plan:", payload);
 
             if (editingId) {
                 await apiService.updateSubscriptionPlan(editingId, payload);
@@ -96,12 +120,12 @@ export default function PlansScreen() {
             setVisible(false);
             loadPlans();
         } catch (e: any) {
+            console.error(e);
             Alert.alert('Error', e.message || 'Failed to save plan');
         } finally {
             setSaving(false);
         }
     };
-
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
             {loading ? <ActivityIndicator style={{ marginTop: 20 }} /> : (
@@ -110,7 +134,8 @@ export default function PlansScreen() {
                         <List.Item
                             key={plan.id}
                             title={plan.name}
-                            description={`Monthly: ${plan.rate_monthly}, Daily: ${plan.rate_daily} ${plan.is_deposit_required ? '(Dep Req)' : ''}`}
+                            // Display Total to user
+                            description={`Monthly: ${plan.rate_monthly + (plan.monthly_deposit_part || 0)} ${plan.monthly_deposit_part ? `(Fee: ${plan.rate_monthly} + Dep: ${plan.monthly_deposit_part})` : ''}, Daily: ${plan.rate_daily} ${plan.is_deposit_required ? '(Dep Req)' : ''}`}
                             left={props => <List.Icon {...props} icon="file-document-outline" />}
                             right={props => (
                                 <View style={{ flexDirection: 'row' }}>
@@ -136,6 +161,14 @@ export default function PlansScreen() {
                             <Checkbox status={isDepositRequired ? 'checked' : 'unchecked'} onPress={() => setIsDepositRequired(!isDepositRequired)} />
                             <Text>Deposit Required</Text>
                         </View>
+
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+                            <Checkbox status={isSplitDeposit ? 'checked' : 'unchecked'} onPress={() => setIsSplitDeposit(!isSplitDeposit)} />
+                            <Text>Split Monthly Deposit?</Text>
+                        </View>
+                        {isSplitDeposit && (
+                            <TextInput label="Monthly Deposit Part (e.g. 200)" value={monthlyDepositPart} onChangeText={setMonthlyDepositPart} keyboardType="numeric" style={styles.input} />
+                        )}
                     </Dialog.Content>
                     <Dialog.Actions>
                         <Button onPress={() => setVisible(false)}>Cancel</Button>

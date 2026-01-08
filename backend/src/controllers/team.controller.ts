@@ -133,6 +133,34 @@ export const removePlayer = async (req: Request, res: Response) => {
     }
 };
 
+// Update Team
+export const updateTeam = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { name, tournament_id } = req.body;
+
+        const data: any = {};
+        if (name) data.name = name;
+        if (tournament_id) {
+            // Validate Tournament
+            const tournament = await prisma.tournament.findUnique({ where: { id: Number(tournament_id) } });
+            if (!tournament) return res.status(404).json({ error: 'Tournament not found' });
+            data.tournament_id = Number(tournament_id);
+        }
+
+        const team = await prisma.team.update({
+            where: { id: Number(id) },
+            data,
+            include: { tournament: true }
+        });
+
+        res.json(team);
+    } catch (error) {
+        console.error('Error updating team:', error);
+        res.status(500).json({ error: 'Failed to update team' });
+    }
+};
+
 // Delete Team
 export const deleteTeam = async (req: Request, res: Response) => {
     try {

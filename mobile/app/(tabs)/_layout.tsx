@@ -4,11 +4,13 @@ import { View, StyleSheet, Platform } from 'react-native';
 import HeaderProfile from '../../components/HeaderProfile';
 import { useTheme } from 'react-native-paper';
 import { useAuth } from '../../context/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
     const router = useRouter();
     const theme = useTheme();
     const { user } = useAuth();
+    const insets = useSafeAreaInsets();
 
     const isNormalUser = user?.role === 'NORMAL';
 
@@ -21,7 +23,8 @@ export default function TabLayout() {
                 borderTopWidth: 0,
                 // elevation: 10, // Removed to avoid duplicate with styles.shadow
                 backgroundColor: 'white',
-                height: 70,
+                height: 70 + insets.bottom,
+                paddingBottom: insets.bottom,
                 ...styles.shadow
             }
         }}>

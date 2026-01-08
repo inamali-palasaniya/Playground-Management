@@ -2,7 +2,8 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { View, StyleSheet, FlatList, RefreshControl, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button, Portal } from 'react-native-paper';
-import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useRouter, useFocusEffect, useLocalSearchParams, Stack } from 'expo-router';
+import * as Updates from 'expo-updates';
 import apiService from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { format } from 'date-fns';
@@ -23,6 +24,8 @@ interface User {
     deposit_amount?: number;
     created_by_name?: string;
     createdAt?: string;
+    payment_frequency?: 'DAILY' | 'MONTHLY' | null;
+    is_subscription_paid?: boolean;
 }
 
 interface Group {
@@ -173,6 +176,32 @@ export default function PeopleScreen() {
     useEffect(() => {
         setParamsSynced(false);
     }, [params.role, params.status, params.punch_status, params.user_type, params.filter]);
+
+    const handleLogout = async () => {
+        await AuthService.logout();
+        router.replace('/login');
+    };
+
+    const checkUpdates = async () => {
+        try {
+            if (__DEV__) {
+                Alert.alert('Dev Mode', 'OTA updates are disabled in development.');
+                return;
+            }
+            const update = await Updates.checkForUpdateAsync();
+            if (update.isAvailable) {
+                Alert.alert('Update Available', 'Downloading...', [{ text: 'OK' }]);
+                await Updates.fetchUpdateAsync();
+                Alert.alert('Update Ready', 'Restarting app...', [
+                    { text: 'OK', onPress: () => Updates.reloadAsync() }
+                ]);
+            } else {
+                Alert.alert('Up to Date', 'You have the latest version.');
+            }
+        } catch (error: any) {
+            Alert.alert('Error', error.message);
+        }
+    };
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -340,6 +369,28 @@ export default function PeopleScreen() {
                                 <Text style={{ fontSize: 10, color: '#555' }}>{item.plan_name}</Text>
                             </View>
                         )}
+                        {item.payment_frequency && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: item.payment_frequency === 'MONTHLY' ? '#e0f2f1' : '#fff3e0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                                <MaterialCommunityIcons
+                                    name={item.payment_frequency === 'MONTHLY' ? 'calendar-month' : 'calendar-today'}
+                                    size={12}
+                                    color={item.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100'}
+                                    style={{ marginRight: 4 }}
+                                />
+                                <Text style={{ fontSize: 10, color: item.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100', fontWeight: 'bold' }}>
+                                    {item.payment_frequency === 'MONTHLY' ? 'Monthly' : 'Daily'}
+                                </Text>
+                            </View>
+                        )}
+                        {item.payment_frequency === 'MONTHLY' && (
+                            <View style={{ marginLeft: 4 }}>
+                                <MaterialCommunityIcons
+                                    name={item.is_subscription_paid ? 'check-decagram' : 'alert-circle-outline'}
+                                    size={16}
+                                    color={item.is_subscription_paid ? '#4CAF50' : '#F44336'}
+                                />
+                            </View>
+                        )}
                         {item.balance !== undefined && item.balance !== 0 && (
                             <Text style={{ fontSize: 11, fontWeight: 'bold', color: item.balance > 0 ? '#d32f2f' : '#388e3c' }}>
                                 {item.balance > 0 ? `Due: ₹${item.balance}` : `Adv: ₹${Math.abs(item.balance)}`}
@@ -372,12 +423,22 @@ export default function PeopleScreen() {
         <View style={styles.container}>
             {isManagement ? (
                 <View style={styles.headerContainer}>
-                    <Searchbar
-                        placeholder="Search Users"
-                        onChangeText={setSearchQuery}
-                        value={searchQuery}
-                        style={styles.searchBar}
-                    />
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                        <Searchbar
+                            placeholder="Search Users"
+                            onChangeText={setSearchQuery}
+                            value={searchQuery}
+                            style={[styles.searchBar, { flex: 1, marginRight: 8 }]}
+                        />
+                        <IconButton
+                            icon="cloud-download-outline"
+                            mode="contained"
+                            containerColor="#e3f2fd"
+                            iconColor="#1565c0"
+                            size={24}
+                            onPress={checkUpdates}
+                        />
+                    </View>
 
                     {/* Horizontal Filter Bar */}
                     <View style={{ marginTop: 12 }}>

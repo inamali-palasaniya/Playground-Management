@@ -42,7 +42,8 @@ export const getPlanById = async (req: Request, res: Response) => {
 
 export const createPlan = async (req: Request, res: Response) => {
     try {
-        const { name, rate_daily, rate_monthly, is_deposit_required } = req.body;
+        console.log('Create Plan Body:', req.body); // DEBUG LOG
+        const { name, rate_daily, rate_monthly, is_deposit_required, monthly_deposit_part } = req.body;
 
         // Validation
         if (!name) {
@@ -59,6 +60,7 @@ export const createPlan = async (req: Request, res: Response) => {
                 rate_daily: rate_daily !== undefined ? parseFloat(rate_daily) : null,
                 rate_monthly: rate_monthly !== undefined ? parseFloat(rate_monthly) : null,
                 is_deposit_required: is_deposit_required || false,
+                monthly_deposit_part: monthly_deposit_part !== undefined ? parseFloat(monthly_deposit_part) : null,
             },
         });
 
@@ -72,7 +74,8 @@ export const createPlan = async (req: Request, res: Response) => {
 export const updatePlan = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { name, rate_daily, rate_monthly, is_deposit_required } = req.body;
+        console.log('Update Plan Body:', req.body); // DEBUG LOG
+        const { name, rate_daily, rate_monthly, is_deposit_required, monthly_deposit_part } = req.body;
 
         const plan = await prisma.subscriptionPlan.update({
             where: { id: parseInt(id) },
@@ -81,6 +84,7 @@ export const updatePlan = async (req: Request, res: Response) => {
                 rate_daily: rate_daily !== undefined ? (rate_daily ? parseFloat(rate_daily) : null) : undefined,
                 rate_monthly: rate_monthly !== undefined ? (rate_monthly ? parseFloat(rate_monthly) : null) : undefined,
                 is_deposit_required,
+                monthly_deposit_part: monthly_deposit_part !== undefined ? parseFloat(monthly_deposit_part) : undefined,
             },
         });
 

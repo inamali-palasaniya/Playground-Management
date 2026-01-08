@@ -206,13 +206,13 @@ export const getUsers = async (req: Request, res: Response) => {
             include: {
                 group: true,
                 subscriptions: {
-                    where: { status: 'ACTIVE' },
+                    orderBy: { createdAt: 'desc' },
                     include: { plan: true },
                     take: 1
                 },
                 permissions: true,
                 fee_ledger: {
-                    select: { amount: true, transaction_type: true }
+                    select: { amount: true, transaction_type: true, type: true, date: true }
                 },
                 created_by: { select: { name: true } },
                 attendances: {
@@ -234,6 +234,7 @@ export const getUsers = async (req: Request, res: Response) => {
             const plan = sub?.plan;
             let status = 'N/A';
             let planName = 'No Plan';
+            let paymentFrequency = sub?.payment_frequency || null;
 
             if (plan) {
                 planName = plan.name;
@@ -287,6 +288,12 @@ export const getUsers = async (req: Request, res: Response) => {
                 total_credits: totalCredits,
                 todays_attendance_id: user.attendances[0]?.id || null,
                 punch_status: user.attendances[0]?.is_present ? (user.attendances[0]?.out_time ? 'OUT' : 'IN') : 'NONE',
+                payment_frequency: paymentFrequency,
+                is_subscription_paid: user.fee_ledger.some(t =>
+                    t.transaction_type === 'CREDIT' &&
+                    t.type === 'SUBSCRIPTION' &&
+                    new Date(t.date) >= new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+                ),
                 created_by_name: (user as any).created_by?.name || 'System'
             };
         }).filter(u => u !== null);
@@ -312,7 +319,7 @@ export const getUserById = async (req: Request, res: Response) => {
             include: {
                 group: true,
                 subscriptions: {
-                    where: { status: 'ACTIVE' },
+                    orderBy: { createdAt: 'desc' },
                     include: { plan: true },
                     take: 1
                 },
@@ -340,6 +347,7 @@ export const getUserById = async (req: Request, res: Response) => {
         const plan = sub?.plan;
         let status = 'N/A';
         let planName = 'No Plan';
+        let paymentFrequency = sub?.payment_frequency || null;
 
         if (plan) {
             planName = plan.name;
@@ -375,6 +383,12 @@ export const getUserById = async (req: Request, res: Response) => {
             total_credits: totalCredits,
             plan_name: planName,
             subscription_status: status,
+            payment_frequency: paymentFrequency,
+            is_subscription_paid: user.fee_ledger.some(t =>
+                t.transaction_type === 'CREDIT' &&
+                t.type === 'SUBSCRIPTION' &&
+                new Date(t.date) >= new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+            ),
             punch_status: punchStatus,
             todays_attendance_id: attendance?.id
         });

@@ -97,9 +97,16 @@ export const generateReceipt = async (data: ReceiptData) => {
 
     try {
         const { uri } = await Print.printToFileAsync({ html });
-        await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+        return uri;
     } catch (error) {
         console.error('Failed to generate receipt:', error);
         throw new Error('Failed to generate receipt');
     }
+};
+
+export const shareReceiptFile = async (uri: string) => {
+    if (!(await Sharing.isAvailableAsync())) {
+        throw new Error('Sharing is not available on this device');
+    }
+    await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
 };
