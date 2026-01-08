@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
-import { List, FAB, Portal, Dialog, TextInput, Button, Checkbox, Text, ActivityIndicator, IconButton } from 'react-native-paper';
+import { List, FAB, Portal, Dialog, TextInput, Button, Checkbox, Text, ActivityIndicator, IconButton, Appbar, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import apiService from '../../../services/api.service';
 import AuditLogDialog from '../../components/AuditLogDialog';
 
 export default function PlansScreen() {
+    const router = useRouter();
+    const theme = useTheme();
     const insets = useSafeAreaInsets();
     const [plans, setPlans] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -106,7 +108,7 @@ export default function PlansScreen() {
                 // Send Net Fee to DB (Total - Deposit)
                 rate_monthly: totalMonthly - depositPart,
                 is_deposit_required: isDepositRequired,
-                monthly_deposit_part: depositPart
+                monthly_deposit_part: depositPart,
             };
 
             console.log("Saving Plan:", payload);
@@ -127,9 +129,14 @@ export default function PlansScreen() {
         }
     };
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.container}>
+            <Appbar.Header style={{ backgroundColor: theme.colors.primary }} elevated>
+                <Appbar.BackAction onPress={() => router.back()} color="white" />
+                <Appbar.Content title="Subscription Plans" titleStyle={{ color: 'white' }} />
+            </Appbar.Header>
+
             {loading ? <ActivityIndicator style={{ marginTop: 20 }} /> : (
-                <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+                <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
                     {plans.map((plan) => (
                         <List.Item
                             key={plan.id}
@@ -148,7 +155,12 @@ export default function PlansScreen() {
                     ))}
                 </ScrollView>
             )}
-            <FAB icon="plus" style={styles.fab} onPress={handleOpenCreate} label="Add Plan" />
+            <FAB
+                icon="plus"
+                style={[styles.fab, { bottom: insets.bottom + 16 }]}
+                onPress={handleOpenCreate}
+                label="Add Plan"
+            />
 
             <Portal>
                 <Dialog visible={visible} onDismiss={() => setVisible(false)}>

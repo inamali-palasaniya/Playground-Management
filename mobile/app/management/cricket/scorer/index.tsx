@@ -227,6 +227,13 @@ export default function ScorerScreen() {
         try {
             if (!matchState.strikerId || !matchState.bowlerId) {
                 Alert.alert('Error', 'Striker and Bowler must be selected.');
+                Alert.alert('Error', 'Striker and Bowler must be selected.');
+                return;
+            }
+
+            // Check if over is already complete (Frontend Guard)
+            if (matchState.currentBall >= 6 && (extraType !== 'WD' && extraType !== 'NB')) {
+                Alert.alert('Over Complete', 'Please select the next bowler to continue.');
                 return;
             }
 
@@ -504,9 +511,9 @@ export default function ScorerScreen() {
                         {[0, 1, 2, 3, 4, 6].map(run => (
                             <TouchableOpacity
                                 key={run}
-                                style={[styles.runBtn, { backgroundColor: run === 4 || run === 6 ? '#03DAC6' : '#333', opacity: !perms.add ? 0.5 : 1 }]}
+                                style={[styles.runBtn, { backgroundColor: run === 4 || run === 6 ? '#03DAC6' : '#333', opacity: (!perms.add || matchState.currentBall >= 6) ? 0.5 : 1 }]}
                                 onPress={() => perms.add && handleBall(run)}
-                                disabled={!perms.add}
+                                disabled={!perms.add || matchState.currentBall >= 6}
                             >
                                 <Text style={{ fontSize: 22, color: run === 4 || run === 6 ? 'black' : 'white', fontWeight: 'bold' }}>{run}</Text>
                             </TouchableOpacity>
@@ -514,13 +521,13 @@ export default function ScorerScreen() {
                     </View>
 
                     <View style={styles.row}>
-                        <Button mode="contained" buttonColor="#CF6679" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, undefined, true)} style={styles.actionBtn} disabled={!perms.add}>WICKET</Button>
+                        <Button mode="contained" buttonColor="#CF6679" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, undefined, true)} style={styles.actionBtn} disabled={!perms.add || matchState.currentBall >= 6}>WICKET</Button>
                         <Button mode="outlined" textColor="#BB86FC" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'WD')} style={styles.actionBtn} disabled={!perms.add}>WIDE</Button>
                         <Button mode="outlined" textColor="#BB86FC" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'NB')} style={styles.actionBtn} disabled={!perms.add}>NO BALL</Button>
                     </View>
                     <View style={styles.row}>
-                        <Button mode="text" textColor="gray" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'BYE')} style={styles.actionBtn} disabled={!perms.add}>BYE</Button>
-                        <Button mode="text" textColor="gray" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'LB')} style={styles.actionBtn} disabled={!perms.add}>LEG BYE</Button>
+                        <Button mode="text" textColor="gray" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'BYE')} style={styles.actionBtn} disabled={!perms.add || matchState.currentBall >= 6}>BYE</Button>
+                        <Button mode="text" textColor="gray" labelStyle={{ fontSize: 11 }} onPress={() => handleBall(0, 'LB')} style={styles.actionBtn} disabled={!perms.add || matchState.currentBall >= 6}>LEG BYE</Button>
                         <Button mode="text" textColor="orange" labelStyle={{ fontSize: 11 }} onPress={() => setSetupVisible(true)} style={styles.actionBtn} disabled={!perms.edit}>SETUP</Button>
                     </View>
                 </View>

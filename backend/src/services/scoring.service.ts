@@ -57,7 +57,24 @@ export const processBallEvent = async (data: BallEventData) => {
         // Current logic relies on client sending correct numbers.
         // Let's strictly check: If existing balls for this innings imply overs are done.
 
-        // 3. Validate Bowler (Cannot be same as previous over)
+        // 3. Validate Over Limit (Prevent adding balls if existing valid balls >= 6)
+        // Count existing valid balls for this over
+        const existingValidBalls = await prisma.ballEvent.count({
+            where: {
+                match_id: matchId,
+                innings: innings,
+                over_number: overNumber,
+                is_valid_ball: true
+            }
+        });
+
+        if (existingValidBalls >= 6 && (isValidBall !== false)) {
+            // If we already have 6 valid balls, we cannot add another valid ball to this over.
+            // The client must increment overNumber.
+            throw new Error("Over is complete. Please select next bowler.");
+        }
+
+        // 4. Validate Bowler (Cannot be same as previous over)
         // Find last ball of *previous* over. 
         // If this is the *first ball* of a new over, check the bowler of the *last ball* of the *previous over*.
         if (ballNumber === 1 && overNumber > 1) {

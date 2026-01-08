@@ -50,17 +50,18 @@ export const createPlan = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Plan name is required' });
         }
 
-        if (!rate_daily && !rate_monthly) {
+        if ((rate_daily === undefined || rate_daily === null || rate_daily === '') &&
+            (rate_monthly === undefined || rate_monthly === null || rate_monthly === '')) {
             return res.status(400).json({ error: 'Either daily or monthly rate is required' });
         }
 
         const plan = await prisma.subscriptionPlan.create({
             data: {
                 name,
-                rate_daily: rate_daily !== undefined ? parseFloat(rate_daily) : null,
-                rate_monthly: rate_monthly !== undefined ? parseFloat(rate_monthly) : null,
+                rate_daily: rate_daily !== undefined && rate_daily !== '' ? parseFloat(rate_daily) : null,
+                rate_monthly: rate_monthly !== undefined && rate_monthly !== '' ? parseFloat(rate_monthly) : null,
                 is_deposit_required: is_deposit_required || false,
-                monthly_deposit_part: monthly_deposit_part !== undefined ? parseFloat(monthly_deposit_part) : null,
+                monthly_deposit_part: monthly_deposit_part !== undefined && monthly_deposit_part !== '' ? parseFloat(monthly_deposit_part) : 0,
             },
         });
 
@@ -77,15 +78,26 @@ export const updatePlan = async (req: Request, res: Response) => {
         console.log('Update Plan Body:', req.body); // DEBUG LOG
         const { name, rate_daily, rate_monthly, is_deposit_required, monthly_deposit_part } = req.body;
 
+        const updateData: any = {
+            name,
+            is_deposit_required,
+        };
+
+        if (rate_daily !== undefined) {
+            updateData.rate_daily = (rate_daily !== null && rate_daily !== '') ? parseFloat(rate_daily) : null;
+        }
+
+        if (rate_monthly !== undefined) {
+            updateData.rate_monthly = (rate_monthly !== null && rate_monthly !== '') ? parseFloat(rate_monthly) : null;
+        }
+
+        if (monthly_deposit_part !== undefined) {
+            updateData.monthly_deposit_part = (monthly_deposit_part !== null && monthly_deposit_part !== '') ? parseFloat(monthly_deposit_part) : 0;
+        }
+
         const plan = await prisma.subscriptionPlan.update({
             where: { id: parseInt(id) },
-            data: {
-                name,
-                rate_daily: rate_daily !== undefined ? (rate_daily ? parseFloat(rate_daily) : null) : undefined,
-                rate_monthly: rate_monthly !== undefined ? (rate_monthly ? parseFloat(rate_monthly) : null) : undefined,
-                is_deposit_required,
-                monthly_deposit_part: monthly_deposit_part !== undefined ? parseFloat(monthly_deposit_part) : undefined,
-            },
+            data: updateData,
         });
 
         res.json(plan);

@@ -647,7 +647,7 @@ export default function PeopleScreen() {
                                 ? [{ icon: 'database-cog', label: 'Manage Masters', onPress: () => router.push('/management/masters') }] : []),
                         ]}
                         onStateChange={({ open }) => setFabOpen(open)}
-                        style={{ paddingBottom: 60 }} // Adjusted padding for Portal
+                        style={{ paddingBottom: 90 }} // Approx TabBar height + spacing
                     />
                 </Portal>
             )}
@@ -668,6 +668,6 @@ const styles = StyleSheet.create({
     searchBar: { elevation: 0, backgroundColor: '#f5f5f5', borderRadius: 8 },
     filterScroll: { paddingRight: 16 },
     filterChip: { marginRight: 8, height: 32 },
-    list: { paddingHorizontal: 16, paddingBottom: 80, paddingTop: 10 },
+    list: { paddingHorizontal: 16, paddingBottom: 120, paddingTop: 10 },
     card: { marginBottom: 10, backgroundColor: 'white' },
 });

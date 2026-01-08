@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { List, FAB, Portal, Dialog, TextInput, Button, ActivityIndicator, IconButton } from 'react-native-paper';
+import { List, FAB, Portal, Dialog, TextInput, Button, ActivityIndicator, IconButton, Appbar, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import apiService from '../../../services/api.service';
 
 export default function FinesScreen() {
+    const router = useRouter();
+    const theme = useTheme();
     const insets = useSafeAreaInsets();
     const [fines, setFines] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -94,9 +96,14 @@ export default function FinesScreen() {
     };
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.container}>
+            <Appbar.Header style={{ backgroundColor: theme.colors.primary }} elevated>
+                <Appbar.BackAction onPress={() => router.back()} color="white" />
+                <Appbar.Content title="Fine Rules" titleStyle={{ color: 'white' }} />
+            </Appbar.Header>
+
             {loading ? <ActivityIndicator style={{ marginTop: 20 }} /> : (
-                <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+                <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
                     {fines.map((fine) => (
                         <List.Item
                             key={fine.id}
@@ -113,7 +120,12 @@ export default function FinesScreen() {
                     ))}
                 </ScrollView>
             )}
-            <FAB icon="plus" style={styles.fab} onPress={handleOpenCreate} label="Add Fine Rule" />
+            <FAB
+                icon="plus"
+                style={[styles.fab, { bottom: insets.bottom + 16 }]}
+                onPress={handleOpenCreate}
+                label="Add Fine Rule"
+            />
 
             <Portal>
                 <Dialog visible={visible} onDismiss={() => setVisible(false)}>
