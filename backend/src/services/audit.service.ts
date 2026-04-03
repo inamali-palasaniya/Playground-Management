@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/client/client.js';
+import { PrismaClient } from '@prisma/client';
 import prisma from '../utils/prisma.js';
 
 export class AuditService {
