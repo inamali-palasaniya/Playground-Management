@@ -1,0 +1,124 @@
+diff --git a/node_modules/react-native-paper/lib/commonjs/components/Menu/Menu.js b/node_modules/react-native-paper/lib/commonjs/components/Menu/Menu.js
+index 0b9a9df..01f5f03 100644
+--- a/node_modules/react-native-paper/lib/commonjs/components/Menu/Menu.js
++++ b/node_modules/react-native-paper/lib/commonjs/components/Menu/Menu.js
+@@ -246,10 +246,9 @@ const Menu = ({
+     })]).start(({
+       finished
+     }) => {
+-      if (finished) {
+-        focusFirstDOMNode(menuRef.current);
+-        prevRendered.current = true;
+-      }
++      // ALWAYS update state even if interrupted
++      focusFirstDOMNode(menuRef.current);
++      prevRendered.current = true;
+     });
+   }, [anchor, attachListeners, measureAnchorLayout, theme]);
+   const hide = React.useCallback(() => {
+@@ -265,15 +264,14 @@ const Menu = ({
+     }).start(({
+       finished
+     }) => {
+-      if (finished) {
+-        setMenuLayout({
+-          width: 0,
+-          height: 0
+-        });
+-        setRendered(false);
+-        prevRendered.current = false;
+-        focusFirstDOMNode(anchorRef.current);
+-      }
++      // ALWAYS update state even if interrupted
++      setMenuLayout({
++        width: 0,
++        height: 0
++      });
++      setRendered(false);
++      prevRendered.current = false;
++      focusFirstDOMNode(anchorRef.current);
+     });
+   }, [removeListeners, theme]);
+   const updateVisibility = React.useCallback(async display => {
+diff --git a/node_modules/react-native-paper/lib/module/components/Menu/Menu.js b/node_modules/react-native-paper/lib/module/components/Menu/Menu.js
+index 46a45f4..7053e87 100644
+--- a/node_modules/react-native-paper/lib/module/components/Menu/Menu.js
++++ b/node_modules/react-native-paper/lib/module/components/Menu/Menu.js
+@@ -235,13 +235,10 @@ const Menu = ({
+       duration: ANIMATION_DURATION * animation.scale,
+       easing: EASING,
+       useNativeDriver: true
+-    })]).start(({
+-      finished
+-    }) => {
+-      if (finished) {
+-        focusFirstDOMNode(menuRef.current);
+-        prevRendered.current = true;
+-      }
++    })]).start(() => {
++      // ALWAYS update state even if interrupted
++      focusFirstDOMNode(menuRef.current);
++      prevRendered.current = true;
+     });
+   }, [anchor, attachListeners, measureAnchorLayout, theme]);
+   const hide = React.useCallback(() => {
+@@ -257,15 +254,14 @@ const Menu = ({
+     }).start(({
+       finished
+     }) => {
+-      if (finished) {
+-        setMenuLayout({
+-          width: 0,
+-          height: 0
+-        });
+-        setRendered(false);
+-        prevRendered.current = false;
+-        focusFirstDOMNode(anchorRef.current);
+-      }
++      // ALWAYS update state even if interrupted
++      setMenuLayout({
++        width: 0,
++        height: 0
++      });
++      setRendered(false);
++      prevRendered.current = false;
++      focusFirstDOMNode(anchorRef.current);
+     });
+   }, [removeListeners, theme]);
+   const updateVisibility = React.useCallback(async display => {
+diff --git a/node_modules/react-native-paper/src/components/Menu/Menu.tsx b/node_modules/react-native-paper/src/components/Menu/Menu.tsx
+index 55922c1..b16cfac 100644
+--- a/node_modules/react-native-paper/src/components/Menu/Menu.tsx
++++ b/node_modules/react-native-paper/src/components/Menu/Menu.tsx
+@@ -360,10 +360,9 @@ const Menu = ({
+         useNativeDriver: true,
+       }),
+     ]).start(({ finished }) => {
+-      if (finished) {
+-        focusFirstDOMNode(menuRef.current);
+-        prevRendered.current = true;
+-      }
++      // ALWAYS update state even if interrupted
++      focusFirstDOMNode(menuRef.current);
++      prevRendered.current = true;
+     });
+   }, [anchor, attachListeners, measureAnchorLayout, theme]);
+ 
+@@ -378,12 +377,11 @@ const Menu = ({
+       easing: EASING,
+       useNativeDriver: true,
+     }).start(({ finished }) => {
+-      if (finished) {
+-        setMenuLayout({ width: 0, height: 0 });
+-        setRendered(false);
+-        prevRendered.current = false;
+-        focusFirstDOMNode(anchorRef.current);
+-      }
++      // ALWAYS update state even if interrupted
++      setMenuLayout({ width: 0, height: 0 });
++      setRendered(false);
++      prevRendered.current = false;
++      focusFirstDOMNode(anchorRef.current);
+     });
+   }, [removeListeners, theme]);
+ 

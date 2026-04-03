@@ -100,6 +100,11 @@ class ApiService {
             // Extract custom options to avoid passing them to fetch
             const { skipLoader, ...fetchOptions } = options || {};
 
+            // Implement timeout (10 seconds)
+            const timeout = 10000;
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+
             const response = await fetch(url, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -107,7 +112,10 @@ class ApiService {
                     ...(fetchOptions?.headers ? (fetchOptions.headers as Record<string, string>) : {}),
                 } as HeadersInit,
                 ...fetchOptions,
+                signal: controller.signal,
             });
+
+            clearTimeout(id);
 
             console.log('API Response Status:', response.status);
 
@@ -153,6 +161,12 @@ class ApiService {
             return data;
         } catch (error: any) {
             if (!options?.skipLoader) loaderService.hide();
+            
+            if (error.name === 'AbortError') {
+                console.warn('API request timed out');
+                throw new Error('Connection timed out. Please check your internet or server status.');
+            }
+
             console.warn('API request failed:', error.message);
             // Re-throw so caller handles it, but now with .status property if it was HTTP error
             throw error;
@@ -394,10 +408,10 @@ class ApiService {
     }
 
     // Payment endpoints
-    async recordPayment(userId: number, amount: number, paymentMethod: string, notes?: string, type?: string, transactionDate?: string, billingPeriod?: string, linkToId?: number, transactionType?: string): Promise<any> {
+    async recordPayment(userId: number | null, amount: number, paymentMethod: string, notes?: string, type?: string, transactionDate?: string, billingPeriod?: string, linkToId?: number, transactionType?: string, teamId?: number | null, tournamentId?: number | null): Promise<any> {
         return this.request<any>('/api/finance/payment', {
             method: 'POST',
-            body: JSON.stringify({ user_id: userId, amount, payment_method: paymentMethod, notes, type, transaction_date: transactionDate, billing_period: billingPeriod, link_to_id: linkToId, transaction_type: transactionType }),
+            body: JSON.stringify({ user_id: userId, amount, payment_method: paymentMethod, notes, type, transaction_date: transactionDate, billing_period: billingPeriod, link_to_id: linkToId, transaction_type: transactionType, team_id: teamId, tournament_id: tournamentId }),
         });
     }
 
@@ -435,6 +449,19 @@ class ApiService {
 
         // Direct map to getUserFinancials ledger
         return this.request<any>(`/api/finance/user/${userId}${query}`, { skipLoader: true }).then(data => data.ledger);
+    }
+
+    async getAllLedgers(filters?: any): Promise<any[]> {
+        const params = new URLSearchParams();
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
+                    params.append(key, String(filters[key]));
+                }
+            });
+        }
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return this.request<any[]>(`/api/finance/ledger${query}`);
     }
 
     async updateLedgerEntry(id: number, data: any): Promise<any> {

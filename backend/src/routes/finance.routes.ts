@@ -1,5 +1,5 @@
 import express from 'express';
-import { addPayment, addFine, getUserFinancials, chargeMonthlyFee, updateLedgerEntry, deleteLedgerEntry, checkSubscriptionPayment } from '../controllers/finance.controller.js';
+import { addPayment, addFine, getUserFinancials, getAllLedgers, chargeMonthlyFee, updateLedgerEntry, deleteLedgerEntry, checkSubscriptionPayment } from '../controllers/finance.controller.js';
 
 const router = express.Router();
 
@@ -8,6 +8,7 @@ router.post('/fine', addFine);
 router.post('/monthly-charge', chargeMonthlyFee);
 router.put('/ledger/:id', updateLedgerEntry);
 router.delete('/ledger/:id', deleteLedgerEntry);
+router.get('/ledger', getAllLedgers);
 router.get('/user/:userId', getUserFinancials);
 router.get('/check-subscription', checkSubscriptionPayment);
 

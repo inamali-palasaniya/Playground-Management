@@ -120,7 +120,7 @@ model Attendance {
 
 model FeeLedger {
   id        Int        @id @default(autoincrement())
-  user_id   Int
+  user_id   Int?
   type             LedgerType
   transaction_type TransactionType @default(DEBIT)
   payment_method   PaymentMethod?
@@ -131,13 +131,18 @@ model FeeLedger {
   createdAt        DateTime        @default(now())
   created_by_id Int?
   created_by    User?      @relation("LedgerCreator", fields: [created_by_id], references: [id])
-  user          User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user          User?      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  team_id       Int?
+  team          Team?      @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  tournament_id Int?
+  tournament    Tournament? @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
   
   parent_ledger_id Int?
   parent_ledger    FeeLedger?  @relation("LedgerHierarchy", fields: [parent_ledger_id], references: [id])
   child_ledger     FeeLedger[] @relation("LedgerHierarchy")
 
   @@index([user_id])
+  @@index([team_id])
   @@index([is_paid])
   @@index([parent_ledger_id])
 }
@@ -191,6 +196,7 @@ model Tournament {
   man_of_the_series_id Int?
   matches              Match[]
   teams                Team[]
+  fee_ledgers          FeeLedger[]
   createdAt            DateTime  @default(now())
   created_by_id        Int?
   game                 Game      @relation(fields: [game_id], references: [id])
@@ -209,6 +215,7 @@ model Team {
   matches_batting Match[]      @relation("CurrentBattingTeam")
   createdAt     DateTime   @default(now())
   created_by_id Int?
+  fee_ledgers   FeeLedger[]
   tournament    Tournament   @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
   players       TeamPlayer[]
   created_by    User?      @relation("TeamCreator", fields: [created_by_id], references: [id])
@@ -318,6 +325,7 @@ enum LedgerType {
   DONATION
   MAINTENANCE
   MANUAL_FEE
+  TOURNAMENT_FEE
   OTHER
 }
 

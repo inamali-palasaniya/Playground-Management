@@ -6,10 +6,10 @@ import { AuditService } from '../services/audit.service.js';
 // Add Payment (Credit) with Strict Linking
 export const addPayment = async (req: Request, res: Response) => {
     try {
-        const { user_id, amount, payment_method, notes, type, transaction_date, billing_period, link_to_id, transaction_type } = req.body;
+        const { user_id, team_id, tournament_id, amount, payment_method, notes, type, transaction_date, billing_period, link_to_id, transaction_type } = req.body;
 
-        if (!user_id || !amount) {
-            return res.status(400).json({ error: 'User ID and amount are required' });
+        if ((!user_id && !team_id) || !amount) {
+            return res.status(400).json({ error: 'User ID or Team ID, and amount are required' });
         }
 
         const numericAmount = parseFloat(amount);
@@ -45,7 +45,9 @@ export const addPayment = async (req: Request, res: Response) => {
         // Create Ledger Entry
         const entry = await prisma.feeLedger.create({
             data: {
-                user_id: parseInt(user_id),
+                user_id: user_id ? parseInt(user_id) : undefined,
+                team_id: team_id ? parseInt(team_id) : undefined,
+                tournament_id: tournament_id ? parseInt(tournament_id) : undefined,
                 type: type || (txType === 'DEBIT' ? 'MANUAL_FEE' : 'PAYMENT'),
                 transaction_type: txType,
                 payment_method: txType === 'CREDIT' ? (payment_method || 'CASH') : undefined,
@@ -283,6 +285,46 @@ export const getUserFinancials = async (req: Request, res: Response) => {
     }
 };
 
+export const getAllLedgers = async (req: Request, res: Response) => {
+    try {
+        const { type, startDate, endDate, teamId, userId, isPaid, transactionType } = req.query;
+
+        const where: any = {};
+
+        if (type && type !== 'ALL') where.type = type;
+        if (teamId) where.team_id = Number(teamId);
+        if (userId) where.user_id = Number(userId);
+        if (isPaid !== undefined && isPaid !== '') where.is_paid = isPaid === 'true';
+        if (transactionType) where.transaction_type = transactionType;
+
+        if (startDate || endDate) {
+            where.date = {};
+            if (startDate) where.date.gte = new Date(startDate as string);
+            if (endDate) {
+                const end = new Date(endDate as string);
+                end.setHours(23, 59, 59, 999);
+                where.date.lte = end;
+            }
+        }
+
+        const ledgers = await prisma.feeLedger.findMany({
+            where,
+            include: {
+                user: { select: { name: true } },
+                team: { select: { name: true } },
+                tournament: { select: { name: true } },
+                created_by: { select: { name: true } }
+            },
+            orderBy: { date: 'desc' }
+        });
+
+        res.json(ledgers);
+    } catch (error) {
+        console.error('Error fetching all ledgers:', error);
+        res.status(500).json({ error: 'Failed to fetch ledgers' });
+    }
+};
+
 export const updateLedgerEntry = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
@@ -358,7 +400,7 @@ export const deleteLedgerEntry = async (req: Request, res: Response) => {
         const parentId = entry.parent_ledger_id;
 
         // 2. If it is a FINE, try to find and delete the associated UserFine record
-        if (entry.type === 'FINE') {
+        if (entry.type === 'FINE' && entry.user_id !== null) {
             const potentialFines = await prisma.userFine.findMany({
                 where: {
                     user_id: entry.user_id,

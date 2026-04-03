@@ -36,6 +36,7 @@ export const LedgerType = {
   DONATION: 'DONATION',
   MAINTENANCE: 'MAINTENANCE',
   MANUAL_FEE: 'MANUAL_FEE',
+  TOURNAMENT_FEE: 'TOURNAMENT_FEE',
   OTHER: 'OTHER'
 } as const
 

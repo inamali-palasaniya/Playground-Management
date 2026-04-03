@@ -1024,10 +1024,12 @@ export type UserUpdateOneWithoutCreated_ledgersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreated_ledgersInput, Prisma.UserUpdateWithoutCreated_ledgersInput>, Prisma.UserUncheckedUpdateWithoutCreated_ledgersInput>
 }
 
-export type UserUpdateOneRequiredWithoutFee_ledgerNestedInput = {
+export type UserUpdateOneWithoutFee_ledgerNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutFee_ledgerInput, Prisma.UserUncheckedCreateWithoutFee_ledgerInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutFee_ledgerInput
   upsert?: Prisma.UserUpsertWithoutFee_ledgerInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutFee_ledgerInput, Prisma.UserUpdateWithoutFee_ledgerInput>, Prisma.UserUncheckedUpdateWithoutFee_ledgerInput>
 }

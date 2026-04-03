@@ -17,9 +17,9 @@ export const getFinancialSummary = async (req: Request, res: Response) => {
       if (endDate) where.date.lte = new Date(endDate as string);
     }
 
-    // Total income (payments)
+    // Total income (all credits: payments, tournament fees, etc)
     const income = await prisma.feeLedger.aggregate({
-      where: { ...where, type: 'PAYMENT' },
+      where: { ...where, transaction_type: 'CREDIT' },
       _sum: { amount: true },
     });
 
@@ -265,9 +265,9 @@ export const getIncomeExpenseReport = async (req: Request, res: Response) => {
       if (endDate) where.date.lte = new Date(endDate as string);
     }
 
-    // Get income by period
+    // Get income by period (all credits)
     const income = await prisma.feeLedger.findMany({
-      where: { ...where, type: 'PAYMENT' },
+      where: { ...where, transaction_type: 'CREDIT' },
       select: { date: true, amount: true },
     });
 

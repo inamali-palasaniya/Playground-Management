@@ -183,6 +183,8 @@ export const FeeLedgerScalarFieldEnum = {
   notes: 'notes',
   createdAt: 'createdAt',
   created_by_id: 'created_by_id',
+  team_id: 'team_id',
+  tournament_id: 'tournament_id',
   parent_ledger_id: 'parent_ledger_id'
 } as const
 

@@ -31,6 +31,8 @@ export type FeeLedgerAvgAggregateOutputType = {
   user_id: number | null
   amount: number | null
   created_by_id: number | null
+  team_id: number | null
+  tournament_id: number | null
   parent_ledger_id: number | null
 }
 
@@ -39,6 +41,8 @@ export type FeeLedgerSumAggregateOutputType = {
   user_id: number | null
   amount: number | null
   created_by_id: number | null
+  team_id: number | null
+  tournament_id: number | null
   parent_ledger_id: number | null
 }
 
@@ -54,6 +58,8 @@ export type FeeLedgerMinAggregateOutputType = {
   notes: string | null
   createdAt: Date | null
   created_by_id: number | null
+  team_id: number | null
+  tournament_id: number | null
   parent_ledger_id: number | null
 }
 
@@ -69,6 +75,8 @@ export type FeeLedgerMaxAggregateOutputType = {
   notes: string | null
   createdAt: Date | null
   created_by_id: number | null
+  team_id: number | null
+  tournament_id: number | null
   parent_ledger_id: number | null
 }
 
@@ -84,6 +92,8 @@ export type FeeLedgerCountAggregateOutputType = {
   notes: number
   createdAt: number
   created_by_id: number
+  team_id: number
+  tournament_id: number
   parent_ledger_id: number
   _all: number
 }
@@ -94,6 +104,8 @@ export type FeeLedgerAvgAggregateInputType = {
   user_id?: true
   amount?: true
   created_by_id?: true
+  team_id?: true
+  tournament_id?: true
   parent_ledger_id?: true
 }
 
@@ -102,6 +114,8 @@ export type FeeLedgerSumAggregateInputType = {
   user_id?: true
   amount?: true
   created_by_id?: true
+  team_id?: true
+  tournament_id?: true
   parent_ledger_id?: true
 }
 
@@ -117,6 +131,8 @@ export type FeeLedgerMinAggregateInputType = {
   notes?: true
   createdAt?: true
   created_by_id?: true
+  team_id?: true
+  tournament_id?: true
   parent_ledger_id?: true
 }
 
@@ -132,6 +148,8 @@ export type FeeLedgerMaxAggregateInputType = {
   notes?: true
   createdAt?: true
   created_by_id?: true
+  team_id?: true
+  tournament_id?: true
   parent_ledger_id?: true
 }
 
@@ -147,6 +165,8 @@ export type FeeLedgerCountAggregateInputType = {
   notes?: true
   createdAt?: true
   created_by_id?: true
+  team_id?: true
+  tournament_id?: true
   parent_ledger_id?: true
   _all?: true
 }
@@ -239,7 +259,7 @@ export type FeeLedgerGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
 
 export type FeeLedgerGroupByOutputType = {
   id: number
-  user_id: number
+  user_id: number | null
   type: $Enums.LedgerType
   transaction_type: $Enums.TransactionType
   payment_method: $Enums.PaymentMethod | null
@@ -249,6 +269,8 @@ export type FeeLedgerGroupByOutputType = {
   notes: string | null
   createdAt: Date
   created_by_id: number | null
+  team_id: number | null
+  tournament_id: number | null
   parent_ledger_id: number | null
   _count: FeeLedgerCountAggregateOutputType | null
   _avg: FeeLedgerAvgAggregateOutputType | null
@@ -277,7 +299,7 @@ export type FeeLedgerWhereInput = {
   OR?: Prisma.FeeLedgerWhereInput[]
   NOT?: Prisma.FeeLedgerWhereInput | Prisma.FeeLedgerWhereInput[]
   id?: Prisma.IntFilter<"FeeLedger"> | number
-  user_id?: Prisma.IntFilter<"FeeLedger"> | number
+  user_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
   type?: Prisma.EnumLedgerTypeFilter<"FeeLedger"> | $Enums.LedgerType
   transaction_type?: Prisma.EnumTransactionTypeFilter<"FeeLedger"> | $Enums.TransactionType
   payment_method?: Prisma.EnumPaymentMethodNullableFilter<"FeeLedger"> | $Enums.PaymentMethod | null
@@ -287,16 +309,20 @@ export type FeeLedgerWhereInput = {
   notes?: Prisma.StringNullableFilter<"FeeLedger"> | string | null
   createdAt?: Prisma.DateTimeFilter<"FeeLedger"> | Date | string
   created_by_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
+  team_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
+  tournament_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
   parent_ledger_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
   created_by?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  team?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
+  tournament?: Prisma.XOR<Prisma.TournamentNullableScalarRelationFilter, Prisma.TournamentWhereInput> | null
   parent_ledger?: Prisma.XOR<Prisma.FeeLedgerNullableScalarRelationFilter, Prisma.FeeLedgerWhereInput> | null
   child_ledger?: Prisma.FeeLedgerListRelationFilter
 }
 
 export type FeeLedgerOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  user_id?: Prisma.SortOrder
+  user_id?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   transaction_type?: Prisma.SortOrder
   payment_method?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -306,9 +332,13 @@ export type FeeLedgerOrderByWithRelationInput = {
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   created_by_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  team_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  tournament_id?: Prisma.SortOrderInput | Prisma.SortOrder
   parent_ledger_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_by?: Prisma.UserOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
+  team?: Prisma.TeamOrderByWithRelationInput
+  tournament?: Prisma.TournamentOrderByWithRelationInput
   parent_ledger?: Prisma.FeeLedgerOrderByWithRelationInput
   child_ledger?: Prisma.FeeLedgerOrderByRelationAggregateInput
 }
@@ -318,7 +348,7 @@ export type FeeLedgerWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.FeeLedgerWhereInput | Prisma.FeeLedgerWhereInput[]
   OR?: Prisma.FeeLedgerWhereInput[]
   NOT?: Prisma.FeeLedgerWhereInput | Prisma.FeeLedgerWhereInput[]
-  user_id?: Prisma.IntFilter<"FeeLedger"> | number
+  user_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
   type?: Prisma.EnumLedgerTypeFilter<"FeeLedger"> | $Enums.LedgerType
   transaction_type?: Prisma.EnumTransactionTypeFilter<"FeeLedger"> | $Enums.TransactionType
   payment_method?: Prisma.EnumPaymentMethodNullableFilter<"FeeLedger"> | $Enums.PaymentMethod | null
@@ -328,16 +358,20 @@ export type FeeLedgerWhereUniqueInput = Prisma.AtLeast<{
   notes?: Prisma.StringNullableFilter<"FeeLedger"> | string | null
   createdAt?: Prisma.DateTimeFilter<"FeeLedger"> | Date | string
   created_by_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
+  team_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
+  tournament_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
   parent_ledger_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
   created_by?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  team?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
+  tournament?: Prisma.XOR<Prisma.TournamentNullableScalarRelationFilter, Prisma.TournamentWhereInput> | null
   parent_ledger?: Prisma.XOR<Prisma.FeeLedgerNullableScalarRelationFilter, Prisma.FeeLedgerWhereInput> | null
   child_ledger?: Prisma.FeeLedgerListRelationFilter
 }, "id">
 
 export type FeeLedgerOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  user_id?: Prisma.SortOrder
+  user_id?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   transaction_type?: Prisma.SortOrder
   payment_method?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -347,6 +381,8 @@ export type FeeLedgerOrderByWithAggregationInput = {
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   created_by_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  team_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  tournament_id?: Prisma.SortOrderInput | Prisma.SortOrder
   parent_ledger_id?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.FeeLedgerCountOrderByAggregateInput
   _avg?: Prisma.FeeLedgerAvgOrderByAggregateInput
@@ -360,7 +396,7 @@ export type FeeLedgerScalarWhereWithAggregatesInput = {
   OR?: Prisma.FeeLedgerScalarWhereWithAggregatesInput[]
   NOT?: Prisma.FeeLedgerScalarWhereWithAggregatesInput | Prisma.FeeLedgerScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"FeeLedger"> | number
-  user_id?: Prisma.IntWithAggregatesFilter<"FeeLedger"> | number
+  user_id?: Prisma.IntNullableWithAggregatesFilter<"FeeLedger"> | number | null
   type?: Prisma.EnumLedgerTypeWithAggregatesFilter<"FeeLedger"> | $Enums.LedgerType
   transaction_type?: Prisma.EnumTransactionTypeWithAggregatesFilter<"FeeLedger"> | $Enums.TransactionType
   payment_method?: Prisma.EnumPaymentMethodNullableWithAggregatesFilter<"FeeLedger"> | $Enums.PaymentMethod | null
@@ -370,6 +406,8 @@ export type FeeLedgerScalarWhereWithAggregatesInput = {
   notes?: Prisma.StringNullableWithAggregatesFilter<"FeeLedger"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"FeeLedger"> | Date | string
   created_by_id?: Prisma.IntNullableWithAggregatesFilter<"FeeLedger"> | number | null
+  team_id?: Prisma.IntNullableWithAggregatesFilter<"FeeLedger"> | number | null
+  tournament_id?: Prisma.IntNullableWithAggregatesFilter<"FeeLedger"> | number | null
   parent_ledger_id?: Prisma.IntNullableWithAggregatesFilter<"FeeLedger"> | number | null
 }
 
@@ -383,14 +421,16 @@ export type FeeLedgerCreateInput = {
   notes?: string | null
   createdAt?: Date | string
   created_by?: Prisma.UserCreateNestedOneWithoutCreated_ledgersInput
-  user: Prisma.UserCreateNestedOneWithoutFee_ledgerInput
+  user?: Prisma.UserCreateNestedOneWithoutFee_ledgerInput
+  team?: Prisma.TeamCreateNestedOneWithoutFee_ledgersInput
+  tournament?: Prisma.TournamentCreateNestedOneWithoutFee_ledgersInput
   parent_ledger?: Prisma.FeeLedgerCreateNestedOneWithoutChild_ledgerInput
   child_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutParent_ledgerInput
 }
 
 export type FeeLedgerUncheckedCreateInput = {
   id?: number
-  user_id: number
+  user_id?: number | null
   type: $Enums.LedgerType
   transaction_type?: $Enums.TransactionType
   payment_method?: $Enums.PaymentMethod | null
@@ -400,6 +440,8 @@ export type FeeLedgerUncheckedCreateInput = {
   notes?: string | null
   createdAt?: Date | string
   created_by_id?: number | null
+  team_id?: number | null
+  tournament_id?: number | null
   parent_ledger_id?: number | null
   child_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutParent_ledgerInput
 }
@@ -414,14 +456,16 @@ export type FeeLedgerUpdateInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_by?: Prisma.UserUpdateOneWithoutCreated_ledgersNestedInput
-  user?: Prisma.UserUpdateOneRequiredWithoutFee_ledgerNestedInput
+  user?: Prisma.UserUpdateOneWithoutFee_ledgerNestedInput
+  team?: Prisma.TeamUpdateOneWithoutFee_ledgersNestedInput
+  tournament?: Prisma.TournamentUpdateOneWithoutFee_ledgersNestedInput
   parent_ledger?: Prisma.FeeLedgerUpdateOneWithoutChild_ledgerNestedInput
   child_ledger?: Prisma.FeeLedgerUpdateManyWithoutParent_ledgerNestedInput
 }
 
 export type FeeLedgerUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  user_id?: Prisma.IntFieldUpdateOperationsInput | number
+  user_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
   transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
@@ -431,13 +475,15 @@ export type FeeLedgerUncheckedUpdateInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tournament_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   child_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutParent_ledgerNestedInput
 }
 
 export type FeeLedgerCreateManyInput = {
   id?: number
-  user_id: number
+  user_id?: number | null
   type: $Enums.LedgerType
   transaction_type?: $Enums.TransactionType
   payment_method?: $Enums.PaymentMethod | null
@@ -447,6 +493,8 @@ export type FeeLedgerCreateManyInput = {
   notes?: string | null
   createdAt?: Date | string
   created_by_id?: number | null
+  team_id?: number | null
+  tournament_id?: number | null
   parent_ledger_id?: number | null
 }
 
@@ -463,7 +511,7 @@ export type FeeLedgerUpdateManyMutationInput = {
 
 export type FeeLedgerUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  user_id?: Prisma.IntFieldUpdateOperationsInput | number
+  user_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
   transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
@@ -473,6 +521,8 @@ export type FeeLedgerUncheckedUpdateManyInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tournament_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
@@ -503,6 +553,8 @@ export type FeeLedgerCountOrderByAggregateInput = {
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   created_by_id?: Prisma.SortOrder
+  team_id?: Prisma.SortOrder
+  tournament_id?: Prisma.SortOrder
   parent_ledger_id?: Prisma.SortOrder
 }
 
@@ -511,6 +563,8 @@ export type FeeLedgerAvgOrderByAggregateInput = {
   user_id?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   created_by_id?: Prisma.SortOrder
+  team_id?: Prisma.SortOrder
+  tournament_id?: Prisma.SortOrder
   parent_ledger_id?: Prisma.SortOrder
 }
 
@@ -526,6 +580,8 @@ export type FeeLedgerMaxOrderByAggregateInput = {
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   created_by_id?: Prisma.SortOrder
+  team_id?: Prisma.SortOrder
+  tournament_id?: Prisma.SortOrder
   parent_ledger_id?: Prisma.SortOrder
 }
 
@@ -541,6 +597,8 @@ export type FeeLedgerMinOrderByAggregateInput = {
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   created_by_id?: Prisma.SortOrder
+  team_id?: Prisma.SortOrder
+  tournament_id?: Prisma.SortOrder
   parent_ledger_id?: Prisma.SortOrder
 }
 
@@ -549,6 +607,8 @@ export type FeeLedgerSumOrderByAggregateInput = {
   user_id?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   created_by_id?: Prisma.SortOrder
+  team_id?: Prisma.SortOrder
+  tournament_id?: Prisma.SortOrder
   parent_ledger_id?: Prisma.SortOrder
 }
 
@@ -706,6 +766,90 @@ export type FeeLedgerUncheckedUpdateManyWithoutParent_ledgerNestedInput = {
   deleteMany?: Prisma.FeeLedgerScalarWhereInput | Prisma.FeeLedgerScalarWhereInput[]
 }
 
+export type FeeLedgerCreateNestedManyWithoutTournamentInput = {
+  create?: Prisma.XOR<Prisma.FeeLedgerCreateWithoutTournamentInput, Prisma.FeeLedgerUncheckedCreateWithoutTournamentInput> | Prisma.FeeLedgerCreateWithoutTournamentInput[] | Prisma.FeeLedgerUncheckedCreateWithoutTournamentInput[]
+  connectOrCreate?: Prisma.FeeLedgerCreateOrConnectWithoutTournamentInput | Prisma.FeeLedgerCreateOrConnectWithoutTournamentInput[]
+  createMany?: Prisma.FeeLedgerCreateManyTournamentInputEnvelope
+  connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+}
+
+export type FeeLedgerUncheckedCreateNestedManyWithoutTournamentInput = {
+  create?: Prisma.XOR<Prisma.FeeLedgerCreateWithoutTournamentInput, Prisma.FeeLedgerUncheckedCreateWithoutTournamentInput> | Prisma.FeeLedgerCreateWithoutTournamentInput[] | Prisma.FeeLedgerUncheckedCreateWithoutTournamentInput[]
+  connectOrCreate?: Prisma.FeeLedgerCreateOrConnectWithoutTournamentInput | Prisma.FeeLedgerCreateOrConnectWithoutTournamentInput[]
+  createMany?: Prisma.FeeLedgerCreateManyTournamentInputEnvelope
+  connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+}
+
+export type FeeLedgerUpdateManyWithoutTournamentNestedInput = {
+  create?: Prisma.XOR<Prisma.FeeLedgerCreateWithoutTournamentInput, Prisma.FeeLedgerUncheckedCreateWithoutTournamentInput> | Prisma.FeeLedgerCreateWithoutTournamentInput[] | Prisma.FeeLedgerUncheckedCreateWithoutTournamentInput[]
+  connectOrCreate?: Prisma.FeeLedgerCreateOrConnectWithoutTournamentInput | Prisma.FeeLedgerCreateOrConnectWithoutTournamentInput[]
+  upsert?: Prisma.FeeLedgerUpsertWithWhereUniqueWithoutTournamentInput | Prisma.FeeLedgerUpsertWithWhereUniqueWithoutTournamentInput[]
+  createMany?: Prisma.FeeLedgerCreateManyTournamentInputEnvelope
+  set?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  disconnect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  delete?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  update?: Prisma.FeeLedgerUpdateWithWhereUniqueWithoutTournamentInput | Prisma.FeeLedgerUpdateWithWhereUniqueWithoutTournamentInput[]
+  updateMany?: Prisma.FeeLedgerUpdateManyWithWhereWithoutTournamentInput | Prisma.FeeLedgerUpdateManyWithWhereWithoutTournamentInput[]
+  deleteMany?: Prisma.FeeLedgerScalarWhereInput | Prisma.FeeLedgerScalarWhereInput[]
+}
+
+export type FeeLedgerUncheckedUpdateManyWithoutTournamentNestedInput = {
+  create?: Prisma.XOR<Prisma.FeeLedgerCreateWithoutTournamentInput, Prisma.FeeLedgerUncheckedCreateWithoutTournamentInput> | Prisma.FeeLedgerCreateWithoutTournamentInput[] | Prisma.FeeLedgerUncheckedCreateWithoutTournamentInput[]
+  connectOrCreate?: Prisma.FeeLedgerCreateOrConnectWithoutTournamentInput | Prisma.FeeLedgerCreateOrConnectWithoutTournamentInput[]
+  upsert?: Prisma.FeeLedgerUpsertWithWhereUniqueWithoutTournamentInput | Prisma.FeeLedgerUpsertWithWhereUniqueWithoutTournamentInput[]
+  createMany?: Prisma.FeeLedgerCreateManyTournamentInputEnvelope
+  set?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  disconnect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  delete?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  update?: Prisma.FeeLedgerUpdateWithWhereUniqueWithoutTournamentInput | Prisma.FeeLedgerUpdateWithWhereUniqueWithoutTournamentInput[]
+  updateMany?: Prisma.FeeLedgerUpdateManyWithWhereWithoutTournamentInput | Prisma.FeeLedgerUpdateManyWithWhereWithoutTournamentInput[]
+  deleteMany?: Prisma.FeeLedgerScalarWhereInput | Prisma.FeeLedgerScalarWhereInput[]
+}
+
+export type FeeLedgerCreateNestedManyWithoutTeamInput = {
+  create?: Prisma.XOR<Prisma.FeeLedgerCreateWithoutTeamInput, Prisma.FeeLedgerUncheckedCreateWithoutTeamInput> | Prisma.FeeLedgerCreateWithoutTeamInput[] | Prisma.FeeLedgerUncheckedCreateWithoutTeamInput[]
+  connectOrCreate?: Prisma.FeeLedgerCreateOrConnectWithoutTeamInput | Prisma.FeeLedgerCreateOrConnectWithoutTeamInput[]
+  createMany?: Prisma.FeeLedgerCreateManyTeamInputEnvelope
+  connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+}
+
+export type FeeLedgerUncheckedCreateNestedManyWithoutTeamInput = {
+  create?: Prisma.XOR<Prisma.FeeLedgerCreateWithoutTeamInput, Prisma.FeeLedgerUncheckedCreateWithoutTeamInput> | Prisma.FeeLedgerCreateWithoutTeamInput[] | Prisma.FeeLedgerUncheckedCreateWithoutTeamInput[]
+  connectOrCreate?: Prisma.FeeLedgerCreateOrConnectWithoutTeamInput | Prisma.FeeLedgerCreateOrConnectWithoutTeamInput[]
+  createMany?: Prisma.FeeLedgerCreateManyTeamInputEnvelope
+  connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+}
+
+export type FeeLedgerUpdateManyWithoutTeamNestedInput = {
+  create?: Prisma.XOR<Prisma.FeeLedgerCreateWithoutTeamInput, Prisma.FeeLedgerUncheckedCreateWithoutTeamInput> | Prisma.FeeLedgerCreateWithoutTeamInput[] | Prisma.FeeLedgerUncheckedCreateWithoutTeamInput[]
+  connectOrCreate?: Prisma.FeeLedgerCreateOrConnectWithoutTeamInput | Prisma.FeeLedgerCreateOrConnectWithoutTeamInput[]
+  upsert?: Prisma.FeeLedgerUpsertWithWhereUniqueWithoutTeamInput | Prisma.FeeLedgerUpsertWithWhereUniqueWithoutTeamInput[]
+  createMany?: Prisma.FeeLedgerCreateManyTeamInputEnvelope
+  set?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  disconnect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  delete?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  update?: Prisma.FeeLedgerUpdateWithWhereUniqueWithoutTeamInput | Prisma.FeeLedgerUpdateWithWhereUniqueWithoutTeamInput[]
+  updateMany?: Prisma.FeeLedgerUpdateManyWithWhereWithoutTeamInput | Prisma.FeeLedgerUpdateManyWithWhereWithoutTeamInput[]
+  deleteMany?: Prisma.FeeLedgerScalarWhereInput | Prisma.FeeLedgerScalarWhereInput[]
+}
+
+export type FeeLedgerUncheckedUpdateManyWithoutTeamNestedInput = {
+  create?: Prisma.XOR<Prisma.FeeLedgerCreateWithoutTeamInput, Prisma.FeeLedgerUncheckedCreateWithoutTeamInput> | Prisma.FeeLedgerCreateWithoutTeamInput[] | Prisma.FeeLedgerUncheckedCreateWithoutTeamInput[]
+  connectOrCreate?: Prisma.FeeLedgerCreateOrConnectWithoutTeamInput | Prisma.FeeLedgerCreateOrConnectWithoutTeamInput[]
+  upsert?: Prisma.FeeLedgerUpsertWithWhereUniqueWithoutTeamInput | Prisma.FeeLedgerUpsertWithWhereUniqueWithoutTeamInput[]
+  createMany?: Prisma.FeeLedgerCreateManyTeamInputEnvelope
+  set?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  disconnect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  delete?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  connect?: Prisma.FeeLedgerWhereUniqueInput | Prisma.FeeLedgerWhereUniqueInput[]
+  update?: Prisma.FeeLedgerUpdateWithWhereUniqueWithoutTeamInput | Prisma.FeeLedgerUpdateWithWhereUniqueWithoutTeamInput[]
+  updateMany?: Prisma.FeeLedgerUpdateManyWithWhereWithoutTeamInput | Prisma.FeeLedgerUpdateManyWithWhereWithoutTeamInput[]
+  deleteMany?: Prisma.FeeLedgerScalarWhereInput | Prisma.FeeLedgerScalarWhereInput[]
+}
+
 export type FeeLedgerCreateWithoutUserInput = {
   type: $Enums.LedgerType
   transaction_type?: $Enums.TransactionType
@@ -716,6 +860,8 @@ export type FeeLedgerCreateWithoutUserInput = {
   notes?: string | null
   createdAt?: Date | string
   created_by?: Prisma.UserCreateNestedOneWithoutCreated_ledgersInput
+  team?: Prisma.TeamCreateNestedOneWithoutFee_ledgersInput
+  tournament?: Prisma.TournamentCreateNestedOneWithoutFee_ledgersInput
   parent_ledger?: Prisma.FeeLedgerCreateNestedOneWithoutChild_ledgerInput
   child_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutParent_ledgerInput
 }
@@ -731,6 +877,8 @@ export type FeeLedgerUncheckedCreateWithoutUserInput = {
   notes?: string | null
   createdAt?: Date | string
   created_by_id?: number | null
+  team_id?: number | null
+  tournament_id?: number | null
   parent_ledger_id?: number | null
   child_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutParent_ledgerInput
 }
@@ -754,14 +902,16 @@ export type FeeLedgerCreateWithoutCreated_byInput = {
   is_paid?: boolean
   notes?: string | null
   createdAt?: Date | string
-  user: Prisma.UserCreateNestedOneWithoutFee_ledgerInput
+  user?: Prisma.UserCreateNestedOneWithoutFee_ledgerInput
+  team?: Prisma.TeamCreateNestedOneWithoutFee_ledgersInput
+  tournament?: Prisma.TournamentCreateNestedOneWithoutFee_ledgersInput
   parent_ledger?: Prisma.FeeLedgerCreateNestedOneWithoutChild_ledgerInput
   child_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutParent_ledgerInput
 }
 
 export type FeeLedgerUncheckedCreateWithoutCreated_byInput = {
   id?: number
-  user_id: number
+  user_id?: number | null
   type: $Enums.LedgerType
   transaction_type?: $Enums.TransactionType
   payment_method?: $Enums.PaymentMethod | null
@@ -770,6 +920,8 @@ export type FeeLedgerUncheckedCreateWithoutCreated_byInput = {
   is_paid?: boolean
   notes?: string | null
   createdAt?: Date | string
+  team_id?: number | null
+  tournament_id?: number | null
   parent_ledger_id?: number | null
   child_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutParent_ledgerInput
 }
@@ -805,7 +957,7 @@ export type FeeLedgerScalarWhereInput = {
   OR?: Prisma.FeeLedgerScalarWhereInput[]
   NOT?: Prisma.FeeLedgerScalarWhereInput | Prisma.FeeLedgerScalarWhereInput[]
   id?: Prisma.IntFilter<"FeeLedger"> | number
-  user_id?: Prisma.IntFilter<"FeeLedger"> | number
+  user_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
   type?: Prisma.EnumLedgerTypeFilter<"FeeLedger"> | $Enums.LedgerType
   transaction_type?: Prisma.EnumTransactionTypeFilter<"FeeLedger"> | $Enums.TransactionType
   payment_method?: Prisma.EnumPaymentMethodNullableFilter<"FeeLedger"> | $Enums.PaymentMethod | null
@@ -815,6 +967,8 @@ export type FeeLedgerScalarWhereInput = {
   notes?: Prisma.StringNullableFilter<"FeeLedger"> | string | null
   createdAt?: Prisma.DateTimeFilter<"FeeLedger"> | Date | string
   created_by_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
+  team_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
+  tournament_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
   parent_ledger_id?: Prisma.IntNullableFilter<"FeeLedger"> | number | null
 }
 
@@ -844,13 +998,15 @@ export type FeeLedgerCreateWithoutChild_ledgerInput = {
   notes?: string | null
   createdAt?: Date | string
   created_by?: Prisma.UserCreateNestedOneWithoutCreated_ledgersInput
-  user: Prisma.UserCreateNestedOneWithoutFee_ledgerInput
+  user?: Prisma.UserCreateNestedOneWithoutFee_ledgerInput
+  team?: Prisma.TeamCreateNestedOneWithoutFee_ledgersInput
+  tournament?: Prisma.TournamentCreateNestedOneWithoutFee_ledgersInput
   parent_ledger?: Prisma.FeeLedgerCreateNestedOneWithoutChild_ledgerInput
 }
 
 export type FeeLedgerUncheckedCreateWithoutChild_ledgerInput = {
   id?: number
-  user_id: number
+  user_id?: number | null
   type: $Enums.LedgerType
   transaction_type?: $Enums.TransactionType
   payment_method?: $Enums.PaymentMethod | null
@@ -860,6 +1016,8 @@ export type FeeLedgerUncheckedCreateWithoutChild_ledgerInput = {
   notes?: string | null
   createdAt?: Date | string
   created_by_id?: number | null
+  team_id?: number | null
+  tournament_id?: number | null
   parent_ledger_id?: number | null
 }
 
@@ -878,13 +1036,15 @@ export type FeeLedgerCreateWithoutParent_ledgerInput = {
   notes?: string | null
   createdAt?: Date | string
   created_by?: Prisma.UserCreateNestedOneWithoutCreated_ledgersInput
-  user: Prisma.UserCreateNestedOneWithoutFee_ledgerInput
+  user?: Prisma.UserCreateNestedOneWithoutFee_ledgerInput
+  team?: Prisma.TeamCreateNestedOneWithoutFee_ledgersInput
+  tournament?: Prisma.TournamentCreateNestedOneWithoutFee_ledgersInput
   child_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutParent_ledgerInput
 }
 
 export type FeeLedgerUncheckedCreateWithoutParent_ledgerInput = {
   id?: number
-  user_id: number
+  user_id?: number | null
   type: $Enums.LedgerType
   transaction_type?: $Enums.TransactionType
   payment_method?: $Enums.PaymentMethod | null
@@ -894,6 +1054,8 @@ export type FeeLedgerUncheckedCreateWithoutParent_ledgerInput = {
   notes?: string | null
   createdAt?: Date | string
   created_by_id?: number | null
+  team_id?: number | null
+  tournament_id?: number | null
   child_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutParent_ledgerInput
 }
 
@@ -928,13 +1090,15 @@ export type FeeLedgerUpdateWithoutChild_ledgerInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_by?: Prisma.UserUpdateOneWithoutCreated_ledgersNestedInput
-  user?: Prisma.UserUpdateOneRequiredWithoutFee_ledgerNestedInput
+  user?: Prisma.UserUpdateOneWithoutFee_ledgerNestedInput
+  team?: Prisma.TeamUpdateOneWithoutFee_ledgersNestedInput
+  tournament?: Prisma.TournamentUpdateOneWithoutFee_ledgersNestedInput
   parent_ledger?: Prisma.FeeLedgerUpdateOneWithoutChild_ledgerNestedInput
 }
 
 export type FeeLedgerUncheckedUpdateWithoutChild_ledgerInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  user_id?: Prisma.IntFieldUpdateOperationsInput | number
+  user_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
   transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
@@ -944,6 +1108,8 @@ export type FeeLedgerUncheckedUpdateWithoutChild_ledgerInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tournament_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
@@ -963,6 +1129,124 @@ export type FeeLedgerUpdateManyWithWhereWithoutParent_ledgerInput = {
   data: Prisma.XOR<Prisma.FeeLedgerUpdateManyMutationInput, Prisma.FeeLedgerUncheckedUpdateManyWithoutParent_ledgerInput>
 }
 
+export type FeeLedgerCreateWithoutTournamentInput = {
+  type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
+  amount: number
+  date?: Date | string
+  is_paid?: boolean
+  notes?: string | null
+  createdAt?: Date | string
+  created_by?: Prisma.UserCreateNestedOneWithoutCreated_ledgersInput
+  user?: Prisma.UserCreateNestedOneWithoutFee_ledgerInput
+  team?: Prisma.TeamCreateNestedOneWithoutFee_ledgersInput
+  parent_ledger?: Prisma.FeeLedgerCreateNestedOneWithoutChild_ledgerInput
+  child_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutParent_ledgerInput
+}
+
+export type FeeLedgerUncheckedCreateWithoutTournamentInput = {
+  id?: number
+  user_id?: number | null
+  type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
+  amount: number
+  date?: Date | string
+  is_paid?: boolean
+  notes?: string | null
+  createdAt?: Date | string
+  created_by_id?: number | null
+  team_id?: number | null
+  parent_ledger_id?: number | null
+  child_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutParent_ledgerInput
+}
+
+export type FeeLedgerCreateOrConnectWithoutTournamentInput = {
+  where: Prisma.FeeLedgerWhereUniqueInput
+  create: Prisma.XOR<Prisma.FeeLedgerCreateWithoutTournamentInput, Prisma.FeeLedgerUncheckedCreateWithoutTournamentInput>
+}
+
+export type FeeLedgerCreateManyTournamentInputEnvelope = {
+  data: Prisma.FeeLedgerCreateManyTournamentInput | Prisma.FeeLedgerCreateManyTournamentInput[]
+  skipDuplicates?: boolean
+}
+
+export type FeeLedgerUpsertWithWhereUniqueWithoutTournamentInput = {
+  where: Prisma.FeeLedgerWhereUniqueInput
+  update: Prisma.XOR<Prisma.FeeLedgerUpdateWithoutTournamentInput, Prisma.FeeLedgerUncheckedUpdateWithoutTournamentInput>
+  create: Prisma.XOR<Prisma.FeeLedgerCreateWithoutTournamentInput, Prisma.FeeLedgerUncheckedCreateWithoutTournamentInput>
+}
+
+export type FeeLedgerUpdateWithWhereUniqueWithoutTournamentInput = {
+  where: Prisma.FeeLedgerWhereUniqueInput
+  data: Prisma.XOR<Prisma.FeeLedgerUpdateWithoutTournamentInput, Prisma.FeeLedgerUncheckedUpdateWithoutTournamentInput>
+}
+
+export type FeeLedgerUpdateManyWithWhereWithoutTournamentInput = {
+  where: Prisma.FeeLedgerScalarWhereInput
+  data: Prisma.XOR<Prisma.FeeLedgerUpdateManyMutationInput, Prisma.FeeLedgerUncheckedUpdateManyWithoutTournamentInput>
+}
+
+export type FeeLedgerCreateWithoutTeamInput = {
+  type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
+  amount: number
+  date?: Date | string
+  is_paid?: boolean
+  notes?: string | null
+  createdAt?: Date | string
+  created_by?: Prisma.UserCreateNestedOneWithoutCreated_ledgersInput
+  user?: Prisma.UserCreateNestedOneWithoutFee_ledgerInput
+  tournament?: Prisma.TournamentCreateNestedOneWithoutFee_ledgersInput
+  parent_ledger?: Prisma.FeeLedgerCreateNestedOneWithoutChild_ledgerInput
+  child_ledger?: Prisma.FeeLedgerCreateNestedManyWithoutParent_ledgerInput
+}
+
+export type FeeLedgerUncheckedCreateWithoutTeamInput = {
+  id?: number
+  user_id?: number | null
+  type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
+  amount: number
+  date?: Date | string
+  is_paid?: boolean
+  notes?: string | null
+  createdAt?: Date | string
+  created_by_id?: number | null
+  tournament_id?: number | null
+  parent_ledger_id?: number | null
+  child_ledger?: Prisma.FeeLedgerUncheckedCreateNestedManyWithoutParent_ledgerInput
+}
+
+export type FeeLedgerCreateOrConnectWithoutTeamInput = {
+  where: Prisma.FeeLedgerWhereUniqueInput
+  create: Prisma.XOR<Prisma.FeeLedgerCreateWithoutTeamInput, Prisma.FeeLedgerUncheckedCreateWithoutTeamInput>
+}
+
+export type FeeLedgerCreateManyTeamInputEnvelope = {
+  data: Prisma.FeeLedgerCreateManyTeamInput | Prisma.FeeLedgerCreateManyTeamInput[]
+  skipDuplicates?: boolean
+}
+
+export type FeeLedgerUpsertWithWhereUniqueWithoutTeamInput = {
+  where: Prisma.FeeLedgerWhereUniqueInput
+  update: Prisma.XOR<Prisma.FeeLedgerUpdateWithoutTeamInput, Prisma.FeeLedgerUncheckedUpdateWithoutTeamInput>
+  create: Prisma.XOR<Prisma.FeeLedgerCreateWithoutTeamInput, Prisma.FeeLedgerUncheckedCreateWithoutTeamInput>
+}
+
+export type FeeLedgerUpdateWithWhereUniqueWithoutTeamInput = {
+  where: Prisma.FeeLedgerWhereUniqueInput
+  data: Prisma.XOR<Prisma.FeeLedgerUpdateWithoutTeamInput, Prisma.FeeLedgerUncheckedUpdateWithoutTeamInput>
+}
+
+export type FeeLedgerUpdateManyWithWhereWithoutTeamInput = {
+  where: Prisma.FeeLedgerScalarWhereInput
+  data: Prisma.XOR<Prisma.FeeLedgerUpdateManyMutationInput, Prisma.FeeLedgerUncheckedUpdateManyWithoutTeamInput>
+}
+
 export type FeeLedgerCreateManyUserInput = {
   id?: number
   type: $Enums.LedgerType
@@ -974,12 +1258,14 @@ export type FeeLedgerCreateManyUserInput = {
   notes?: string | null
   createdAt?: Date | string
   created_by_id?: number | null
+  team_id?: number | null
+  tournament_id?: number | null
   parent_ledger_id?: number | null
 }
 
 export type FeeLedgerCreateManyCreated_byInput = {
   id?: number
-  user_id: number
+  user_id?: number | null
   type: $Enums.LedgerType
   transaction_type?: $Enums.TransactionType
   payment_method?: $Enums.PaymentMethod | null
@@ -988,6 +1274,8 @@ export type FeeLedgerCreateManyCreated_byInput = {
   is_paid?: boolean
   notes?: string | null
   createdAt?: Date | string
+  team_id?: number | null
+  tournament_id?: number | null
   parent_ledger_id?: number | null
 }
 
@@ -1001,6 +1289,8 @@ export type FeeLedgerUpdateWithoutUserInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_by?: Prisma.UserUpdateOneWithoutCreated_ledgersNestedInput
+  team?: Prisma.TeamUpdateOneWithoutFee_ledgersNestedInput
+  tournament?: Prisma.TournamentUpdateOneWithoutFee_ledgersNestedInput
   parent_ledger?: Prisma.FeeLedgerUpdateOneWithoutChild_ledgerNestedInput
   child_ledger?: Prisma.FeeLedgerUpdateManyWithoutParent_ledgerNestedInput
 }
@@ -1016,6 +1306,8 @@ export type FeeLedgerUncheckedUpdateWithoutUserInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tournament_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   child_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutParent_ledgerNestedInput
 }
@@ -1031,6 +1323,8 @@ export type FeeLedgerUncheckedUpdateManyWithoutUserInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tournament_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
@@ -1043,14 +1337,16 @@ export type FeeLedgerUpdateWithoutCreated_byInput = {
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  user?: Prisma.UserUpdateOneRequiredWithoutFee_ledgerNestedInput
+  user?: Prisma.UserUpdateOneWithoutFee_ledgerNestedInput
+  team?: Prisma.TeamUpdateOneWithoutFee_ledgersNestedInput
+  tournament?: Prisma.TournamentUpdateOneWithoutFee_ledgersNestedInput
   parent_ledger?: Prisma.FeeLedgerUpdateOneWithoutChild_ledgerNestedInput
   child_ledger?: Prisma.FeeLedgerUpdateManyWithoutParent_ledgerNestedInput
 }
 
 export type FeeLedgerUncheckedUpdateWithoutCreated_byInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  user_id?: Prisma.IntFieldUpdateOperationsInput | number
+  user_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
   transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
@@ -1059,13 +1355,15 @@ export type FeeLedgerUncheckedUpdateWithoutCreated_byInput = {
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tournament_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   child_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutParent_ledgerNestedInput
 }
 
 export type FeeLedgerUncheckedUpdateManyWithoutCreated_byInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  user_id?: Prisma.IntFieldUpdateOperationsInput | number
+  user_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
   transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
@@ -1074,12 +1372,14 @@ export type FeeLedgerUncheckedUpdateManyWithoutCreated_byInput = {
   is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tournament_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type FeeLedgerCreateManyParent_ledgerInput = {
   id?: number
-  user_id: number
+  user_id?: number | null
   type: $Enums.LedgerType
   transaction_type?: $Enums.TransactionType
   payment_method?: $Enums.PaymentMethod | null
@@ -1089,6 +1389,8 @@ export type FeeLedgerCreateManyParent_ledgerInput = {
   notes?: string | null
   createdAt?: Date | string
   created_by_id?: number | null
+  team_id?: number | null
+  tournament_id?: number | null
 }
 
 export type FeeLedgerUpdateWithoutParent_ledgerInput = {
@@ -1101,13 +1403,15 @@ export type FeeLedgerUpdateWithoutParent_ledgerInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_by?: Prisma.UserUpdateOneWithoutCreated_ledgersNestedInput
-  user?: Prisma.UserUpdateOneRequiredWithoutFee_ledgerNestedInput
+  user?: Prisma.UserUpdateOneWithoutFee_ledgerNestedInput
+  team?: Prisma.TeamUpdateOneWithoutFee_ledgersNestedInput
+  tournament?: Prisma.TournamentUpdateOneWithoutFee_ledgersNestedInput
   child_ledger?: Prisma.FeeLedgerUpdateManyWithoutParent_ledgerNestedInput
 }
 
 export type FeeLedgerUncheckedUpdateWithoutParent_ledgerInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  user_id?: Prisma.IntFieldUpdateOperationsInput | number
+  user_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
   transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
@@ -1117,12 +1421,14 @@ export type FeeLedgerUncheckedUpdateWithoutParent_ledgerInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tournament_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   child_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutParent_ledgerNestedInput
 }
 
 export type FeeLedgerUncheckedUpdateManyWithoutParent_ledgerInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  user_id?: Prisma.IntFieldUpdateOperationsInput | number
+  user_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
   transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
@@ -1132,6 +1438,138 @@ export type FeeLedgerUncheckedUpdateManyWithoutParent_ledgerInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tournament_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type FeeLedgerCreateManyTournamentInput = {
+  id?: number
+  user_id?: number | null
+  type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
+  amount: number
+  date?: Date | string
+  is_paid?: boolean
+  notes?: string | null
+  createdAt?: Date | string
+  created_by_id?: number | null
+  team_id?: number | null
+  parent_ledger_id?: number | null
+}
+
+export type FeeLedgerUpdateWithoutTournamentInput = {
+  type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by?: Prisma.UserUpdateOneWithoutCreated_ledgersNestedInput
+  user?: Prisma.UserUpdateOneWithoutFee_ledgerNestedInput
+  team?: Prisma.TeamUpdateOneWithoutFee_ledgersNestedInput
+  parent_ledger?: Prisma.FeeLedgerUpdateOneWithoutChild_ledgerNestedInput
+  child_ledger?: Prisma.FeeLedgerUpdateManyWithoutParent_ledgerNestedInput
+}
+
+export type FeeLedgerUncheckedUpdateWithoutTournamentInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  user_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  child_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutParent_ledgerNestedInput
+}
+
+export type FeeLedgerUncheckedUpdateManyWithoutTournamentInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  user_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  team_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type FeeLedgerCreateManyTeamInput = {
+  id?: number
+  user_id?: number | null
+  type: $Enums.LedgerType
+  transaction_type?: $Enums.TransactionType
+  payment_method?: $Enums.PaymentMethod | null
+  amount: number
+  date?: Date | string
+  is_paid?: boolean
+  notes?: string | null
+  createdAt?: Date | string
+  created_by_id?: number | null
+  tournament_id?: number | null
+  parent_ledger_id?: number | null
+}
+
+export type FeeLedgerUpdateWithoutTeamInput = {
+  type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by?: Prisma.UserUpdateOneWithoutCreated_ledgersNestedInput
+  user?: Prisma.UserUpdateOneWithoutFee_ledgerNestedInput
+  tournament?: Prisma.TournamentUpdateOneWithoutFee_ledgersNestedInput
+  parent_ledger?: Prisma.FeeLedgerUpdateOneWithoutChild_ledgerNestedInput
+  child_ledger?: Prisma.FeeLedgerUpdateManyWithoutParent_ledgerNestedInput
+}
+
+export type FeeLedgerUncheckedUpdateWithoutTeamInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  user_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tournament_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  child_ledger?: Prisma.FeeLedgerUncheckedUpdateManyWithoutParent_ledgerNestedInput
+}
+
+export type FeeLedgerUncheckedUpdateManyWithoutTeamInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  user_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  type?: Prisma.EnumLedgerTypeFieldUpdateOperationsInput | $Enums.LedgerType
+  transaction_type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  payment_method?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  is_paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  tournament_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  parent_ledger_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 
@@ -1177,9 +1615,13 @@ export type FeeLedgerSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   notes?: boolean
   createdAt?: boolean
   created_by_id?: boolean
+  team_id?: boolean
+  tournament_id?: boolean
   parent_ledger_id?: boolean
   created_by?: boolean | Prisma.FeeLedger$created_byArgs<ExtArgs>
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.FeeLedger$userArgs<ExtArgs>
+  team?: boolean | Prisma.FeeLedger$teamArgs<ExtArgs>
+  tournament?: boolean | Prisma.FeeLedger$tournamentArgs<ExtArgs>
   parent_ledger?: boolean | Prisma.FeeLedger$parent_ledgerArgs<ExtArgs>
   child_ledger?: boolean | Prisma.FeeLedger$child_ledgerArgs<ExtArgs>
   _count?: boolean | Prisma.FeeLedgerCountOutputTypeDefaultArgs<ExtArgs>
@@ -1197,9 +1639,13 @@ export type FeeLedgerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   notes?: boolean
   createdAt?: boolean
   created_by_id?: boolean
+  team_id?: boolean
+  tournament_id?: boolean
   parent_ledger_id?: boolean
   created_by?: boolean | Prisma.FeeLedger$created_byArgs<ExtArgs>
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.FeeLedger$userArgs<ExtArgs>
+  team?: boolean | Prisma.FeeLedger$teamArgs<ExtArgs>
+  tournament?: boolean | Prisma.FeeLedger$tournamentArgs<ExtArgs>
   parent_ledger?: boolean | Prisma.FeeLedger$parent_ledgerArgs<ExtArgs>
 }, ExtArgs["result"]["feeLedger"]>
 
@@ -1215,9 +1661,13 @@ export type FeeLedgerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   notes?: boolean
   createdAt?: boolean
   created_by_id?: boolean
+  team_id?: boolean
+  tournament_id?: boolean
   parent_ledger_id?: boolean
   created_by?: boolean | Prisma.FeeLedger$created_byArgs<ExtArgs>
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.FeeLedger$userArgs<ExtArgs>
+  team?: boolean | Prisma.FeeLedger$teamArgs<ExtArgs>
+  tournament?: boolean | Prisma.FeeLedger$tournamentArgs<ExtArgs>
   parent_ledger?: boolean | Prisma.FeeLedger$parent_ledgerArgs<ExtArgs>
 }, ExtArgs["result"]["feeLedger"]>
 
@@ -1233,25 +1683,33 @@ export type FeeLedgerSelectScalar = {
   notes?: boolean
   createdAt?: boolean
   created_by_id?: boolean
+  team_id?: boolean
+  tournament_id?: boolean
   parent_ledger_id?: boolean
 }
 
-export type FeeLedgerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "type" | "transaction_type" | "payment_method" | "amount" | "date" | "is_paid" | "notes" | "createdAt" | "created_by_id" | "parent_ledger_id", ExtArgs["result"]["feeLedger"]>
+export type FeeLedgerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "user_id" | "type" | "transaction_type" | "payment_method" | "amount" | "date" | "is_paid" | "notes" | "createdAt" | "created_by_id" | "team_id" | "tournament_id" | "parent_ledger_id", ExtArgs["result"]["feeLedger"]>
 export type FeeLedgerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   created_by?: boolean | Prisma.FeeLedger$created_byArgs<ExtArgs>
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.FeeLedger$userArgs<ExtArgs>
+  team?: boolean | Prisma.FeeLedger$teamArgs<ExtArgs>
+  tournament?: boolean | Prisma.FeeLedger$tournamentArgs<ExtArgs>
   parent_ledger?: boolean | Prisma.FeeLedger$parent_ledgerArgs<ExtArgs>
   child_ledger?: boolean | Prisma.FeeLedger$child_ledgerArgs<ExtArgs>
   _count?: boolean | Prisma.FeeLedgerCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type FeeLedgerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   created_by?: boolean | Prisma.FeeLedger$created_byArgs<ExtArgs>
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.FeeLedger$userArgs<ExtArgs>
+  team?: boolean | Prisma.FeeLedger$teamArgs<ExtArgs>
+  tournament?: boolean | Prisma.FeeLedger$tournamentArgs<ExtArgs>
   parent_ledger?: boolean | Prisma.FeeLedger$parent_ledgerArgs<ExtArgs>
 }
 export type FeeLedgerIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   created_by?: boolean | Prisma.FeeLedger$created_byArgs<ExtArgs>
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.FeeLedger$userArgs<ExtArgs>
+  team?: boolean | Prisma.FeeLedger$teamArgs<ExtArgs>
+  tournament?: boolean | Prisma.FeeLedger$tournamentArgs<ExtArgs>
   parent_ledger?: boolean | Prisma.FeeLedger$parent_ledgerArgs<ExtArgs>
 }
 
@@ -1259,13 +1717,15 @@ export type $FeeLedgerPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   name: "FeeLedger"
   objects: {
     created_by: Prisma.$UserPayload<ExtArgs> | null
-    user: Prisma.$UserPayload<ExtArgs>
+    user: Prisma.$UserPayload<ExtArgs> | null
+    team: Prisma.$TeamPayload<ExtArgs> | null
+    tournament: Prisma.$TournamentPayload<ExtArgs> | null
     parent_ledger: Prisma.$FeeLedgerPayload<ExtArgs> | null
     child_ledger: Prisma.$FeeLedgerPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
-    user_id: number
+    user_id: number | null
     type: $Enums.LedgerType
     transaction_type: $Enums.TransactionType
     payment_method: $Enums.PaymentMethod | null
@@ -1275,6 +1735,8 @@ export type $FeeLedgerPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     notes: string | null
     createdAt: Date
     created_by_id: number | null
+    team_id: number | null
+    tournament_id: number | null
     parent_ledger_id: number | null
   }, ExtArgs["result"]["feeLedger"]>
   composites: {}
@@ -1671,7 +2133,9 @@ readonly fields: FeeLedgerFieldRefs;
 export interface Prisma__FeeLedgerClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   created_by<T extends Prisma.FeeLedger$created_byArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FeeLedger$created_byArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  user<T extends Prisma.FeeLedger$userArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FeeLedger$userArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  team<T extends Prisma.FeeLedger$teamArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FeeLedger$teamArgs<ExtArgs>>): Prisma.Prisma__TeamClient<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  tournament<T extends Prisma.FeeLedger$tournamentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FeeLedger$tournamentArgs<ExtArgs>>): Prisma.Prisma__TournamentClient<runtime.Types.Result.GetResult<Prisma.$TournamentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   parent_ledger<T extends Prisma.FeeLedger$parent_ledgerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FeeLedger$parent_ledgerArgs<ExtArgs>>): Prisma.Prisma__FeeLedgerClient<runtime.Types.Result.GetResult<Prisma.$FeeLedgerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   child_ledger<T extends Prisma.FeeLedger$child_ledgerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FeeLedger$child_ledgerArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FeeLedgerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1714,6 +2178,8 @@ export interface FeeLedgerFieldRefs {
   readonly notes: Prisma.FieldRef<"FeeLedger", 'String'>
   readonly createdAt: Prisma.FieldRef<"FeeLedger", 'DateTime'>
   readonly created_by_id: Prisma.FieldRef<"FeeLedger", 'Int'>
+  readonly team_id: Prisma.FieldRef<"FeeLedger", 'Int'>
+  readonly tournament_id: Prisma.FieldRef<"FeeLedger", 'Int'>
   readonly parent_ledger_id: Prisma.FieldRef<"FeeLedger", 'Int'>
 }
     
@@ -2127,6 +2593,63 @@ export type FeeLedger$created_byArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   include?: Prisma.UserInclude<ExtArgs> | null
   where?: Prisma.UserWhereInput
+}
+
+/**
+ * FeeLedger.user
+ */
+export type FeeLedger$userArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+}
+
+/**
+ * FeeLedger.team
+ */
+export type FeeLedger$teamArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Team
+   */
+  select?: Prisma.TeamSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Team
+   */
+  omit?: Prisma.TeamOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TeamInclude<ExtArgs> | null
+  where?: Prisma.TeamWhereInput
+}
+
+/**
+ * FeeLedger.tournament
+ */
+export type FeeLedger$tournamentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Tournament
+   */
+  select?: Prisma.TournamentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Tournament
+   */
+  omit?: Prisma.TournamentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TournamentInclude<ExtArgs> | null
+  where?: Prisma.TournamentWhereInput
 }
 
 /**

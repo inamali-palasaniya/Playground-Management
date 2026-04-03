@@ -359,6 +359,17 @@ export default function DashboardScreen() {
                                     </View>
                                 </View>
                             )}
+
+                            {userRole !== 'NORMAL' && (
+                                <View style={{ flexDirection: 'row', gap: 10, marginTop: 15 }}>
+                                    <Button mode="contained-tonal" icon="cash-plus" style={{ flex: 1 }} onPress={() => router.push('/management/ledgers')}>
+                                        Payments
+                                    </Button>
+                                    <Button mode="contained-tonal" icon="cash-minus" style={{ flex: 1 }} buttonColor="#ffebee" textColor="#d32f2f" onPress={() => router.push('/management/expenses')}>
+                                        Expenses
+                                    </Button>
+                                </View>
+                            )}
                         </Card.Content>
                     </Card>
 

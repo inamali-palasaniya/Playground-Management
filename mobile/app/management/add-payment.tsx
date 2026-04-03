@@ -11,10 +11,20 @@ export default function AddPaymentScreen() {
     const params = useLocalSearchParams();
     const { linkedChargeId, linkedAmount, linkedType, editId, initialAmount, initialNotes, initialDate, initialType, initialMethod, initialTxType } = params;
 
-    // User Management
+    // User/Team Management
     const [users, setUsers] = useState<any[]>([]);
     const [selectedUserId, setSelectedUserId] = useState<number | null>(params.userId ? Number(params.userId) : null);
     const [userMenuVisible, setUserMenuVisible] = useState(false);
+
+    const [teams, setTeams] = useState<any[]>([]);
+    const [selectedTeamId, setSelectedTeamId] = useState<number | null>(params.teamId ? Number(params.teamId) : null);
+    const [teamMenuVisible, setTeamMenuVisible] = useState(false);
+
+    const [tournaments, setTournaments] = useState<any[]>([]);
+    const [selectedTournamentId, setSelectedTournamentId] = useState<number | null>(params.tournamentId ? Number(params.tournamentId) : null);
+    const [tournamentMenuVisible, setTournamentMenuVisible] = useState(false);
+
+    const [payerType, setPayerType] = useState<'USER' | 'TEAM'>(params.teamId ? 'TEAM' : 'USER');
 
     // Edit Mode Init
     const isEditing = !!editId;
@@ -31,7 +41,7 @@ export default function AddPaymentScreen() {
     );
     const [type, setType] = useState<string>(
         isEditing ? (initialType as string || 'PAYMENT') :
-            (linkedType ? linkedType.toString() : 'SUBSCRIPTION')
+            (params.teamId ? 'TOURNAMENT_FEE' : (linkedType ? linkedType.toString() : 'SUBSCRIPTION'))
     );
     const [notes, setNotes] = useState(
         isEditing ? (initialNotes as string || '') : ''
@@ -56,22 +66,41 @@ export default function AddPaymentScreen() {
         { label: 'Donation', value: 'DONATION' },
         { label: 'Deposit', value: 'DEPOSIT' },
         { label: 'Maintenance', value: 'MAINTENANCE' },
+        { label: 'Tournament Fee', value: 'TOURNAMENT_FEE' },
     ];
 
     React.useEffect(() => {
-        // Fetch users for the dropdown
+        // Fetch base data
         apiService.getUsers().then(setUsers).catch(console.error);
+        apiService.getTournaments().then(setTournaments).catch(console.error);
     }, []);
+
+    React.useEffect(() => {
+        if (selectedTournamentId) {
+             // Reset team selection when tournament changes, unless it's already set from params payload correctly
+            apiService.getTeamsByTournament(selectedTournamentId).then(setTeams).catch(console.error);
+        } else {
+            setTeams([]);
+        }
+    }, [selectedTournamentId]);
 
     React.useEffect(() => {
         if (params.userId) {
             setSelectedUserId(Number(params.userId));
+            setPayerType('USER');
         }
-    }, [params.userId]);
+        if (params.teamId) {
+            setSelectedTeamId(Number(params.teamId));
+            setPayerType('TEAM');
+        }
+        if (params.tournamentId) {
+            setSelectedTournamentId(Number(params.tournamentId));
+        }
+    }, [params.userId, params.teamId, params.tournamentId]);
 
     const handleSubmit = async () => {
-        if (!amount || !selectedUserId) {
-            Alert.alert('Error', 'Amount and User are required');
+        if (!amount || (payerType === 'USER' && !selectedUserId) || (payerType === 'TEAM' && !selectedTeamId)) {
+            Alert.alert('Error', 'Amount and appropriate Payer (User or Team) are required');
             return;
         }
 
@@ -91,7 +120,7 @@ export default function AddPaymentScreen() {
                     Alert.alert('Success', 'Transaction updated successfully');
                 } else {
                     await apiService.recordPayment(
-                        Number(selectedUserId),
+                        payerType === 'USER' ? Number(selectedUserId) : null,
                         parseFloat(amount),
                         paymentMethod,
                         notes,
@@ -99,7 +128,9 @@ export default function AddPaymentScreen() {
                         date.toISOString(),
                         type === 'SUBSCRIPTION' ? format(billingMonth, 'MMMM yyyy') : undefined,
                         linkedChargeId ? parseInt(linkedChargeId as string) : undefined,
-                        transactionType
+                        transactionType,
+                        payerType === 'TEAM' ? Number(selectedTeamId) : null,
+                        payerType === 'TEAM' && type === 'TOURNAMENT_FEE' ? Number(selectedTournamentId) : null
                     );
                     Alert.alert('Success', 'Payment recorded successfully');
                 }
@@ -165,30 +196,102 @@ export default function AddPaymentScreen() {
         <ScrollView style={styles.container}>
             <Text variant="headlineSmall" style={styles.header}>{isEditing ? 'Edit Transaction' : 'Record Payment'}</Text>
 
-            {/* User Selector */}
-            <View style={{ marginBottom: 15 }}>
-                <Text variant="titleMedium" style={styles.label}>User</Text>
-                <Menu
-                    visible={userMenuVisible}
-                    onDismiss={() => setUserMenuVisible(false)}
-                    anchor={
-                        <Button mode="outlined" onPress={() => !isEditing && setUserMenuVisible(true)} disabled={isEditing}>
-                            {getSelectedUserName()}
-                        </Button>
-                    }
+            <View style={{ flexDirection: 'row', marginBottom: 20 }}>
+                <Button
+                    mode={payerType === 'USER' ? 'contained' : 'outlined'}
+                    onPress={() => setPayerType('USER')}
+                    style={{ flex: 1, marginRight: 5 }}
                 >
-                    {users.map(user => (
-                        <Menu.Item
-                            key={user.id}
-                            onPress={() => {
-                                setSelectedUserId(user.id);
-                                setUserMenuVisible(false);
-                            }}
-                            title={user.name}
-                        />
-                    ))}
-                </Menu>
+                    User
+                </Button>
+                <Button
+                    mode={payerType === 'TEAM' ? 'contained' : 'outlined'}
+                    onPress={() => setPayerType('TEAM')}
+                    style={{ flex: 1, marginLeft: 5 }}
+                >
+                    Team
+                </Button>
             </View>
+
+            {payerType === 'USER' ? (
+                <View style={{ marginBottom: 15 }}>
+                    <Text variant="titleMedium" style={styles.label}>User</Text>
+                    <Menu
+                        visible={userMenuVisible}
+                        onDismiss={() => setUserMenuVisible(false)}
+                        anchor={
+                            <Button mode="outlined" onPress={() => !isEditing && setUserMenuVisible(true)} disabled={isEditing}>
+                                {getSelectedUserName()}
+                            </Button>
+                        }
+                    >
+                        {users.map(user => (
+                            <Menu.Item
+                                key={user.id}
+                                onPress={() => {
+                                    setSelectedUserId(user.id);
+                                    setUserMenuVisible(false);
+                                }}
+                                title={user.name}
+                            />
+                        ))}
+                    </Menu>
+                </View>
+            ) : (
+                <>
+                    <View style={{ marginBottom: 15 }}>
+                        <Text variant="titleMedium" style={styles.label}>Tournament</Text>
+                        <Menu
+                            visible={tournamentMenuVisible}
+                            onDismiss={() => setTournamentMenuVisible(false)}
+                            anchor={
+                                <Button mode="outlined" onPress={() => !isEditing && setTournamentMenuVisible(true)} disabled={isEditing}>
+                                    {selectedTournamentId ? (tournaments.find(t => t.id === selectedTournamentId)?.name || 'Unknown') : 'Select Tournament'}
+                                </Button>
+                            }
+                        >
+                            {tournaments.map(t => (
+                                <Menu.Item
+                                    key={t.id}
+                                    onPress={() => {
+                                        setSelectedTournamentId(t.id);
+                                        setSelectedTeamId(null); // Reset team selection
+                                        setTournamentMenuVisible(false);
+                                    }}
+                                    title={t.name}
+                                />
+                            ))}
+                        </Menu>
+                    </View>
+
+                    {selectedTournamentId && (
+                        <View style={{ marginBottom: 15 }}>
+                            <Text variant="titleMedium" style={styles.label}>Team</Text>
+                            <Menu
+                                visible={teamMenuVisible}
+                                onDismiss={() => setTeamMenuVisible(false)}
+                                anchor={
+                                    <Button mode="outlined" onPress={() => !isEditing && setTeamMenuVisible(true)} disabled={isEditing}>
+                                        {selectedTeamId ? (teams.find(t => t.id === selectedTeamId)?.name || 'Unknown') : 'Select Team'}
+                                    </Button>
+                                }
+                            >
+                                {teams.map(t => (
+                                    <Menu.Item
+                                        key={t.id}
+                                        onPress={() => {
+                                            setSelectedTeamId(t.id);
+                                            setType('TOURNAMENT_FEE'); // Auto-select tournament fee
+                                            setTeamMenuVisible(false);
+                                        }}
+                                        title={t.name}
+                                    />
+                                ))}
+                            </Menu>
+                        </View>
+                    )}
+                </>
+            )}
 
             <View style={{ flexDirection: 'row', marginBottom: 20 }}>
                 <Button
