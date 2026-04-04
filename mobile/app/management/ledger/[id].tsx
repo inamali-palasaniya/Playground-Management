@@ -94,7 +94,7 @@ export default function LedgerDetailScreen() {
             pathname: '/management/add-payment',
             params: {
                 editId: item.id,
-                userId: userId,
+                userId: item.user_id,
                 initialAmount: item.amount,
                 initialNotes: item.notes,
                 initialDate: item.date,
@@ -206,7 +206,7 @@ export default function LedgerDetailScreen() {
                                 <Card
                                     key={child.id}
                                     style={[styles.card, { marginTop: 5 }]}
-                                    onPress={() => router.push({ pathname: '/management/ledger/[id]', params: { id: child.id, userId, teamId: child.team_id, tournamentId: child.tournament_id } })}
+                                    onPress={() => router.push({ pathname: '/management/ledger/[id]', params: { id: child.id, userId: child.user_id, teamId: child.team_id, tournamentId: child.tournament_id } })}
                                 >
                                     <Card.Content style={styles.row}>
                                         <View style={{ flex: 1 }}>
