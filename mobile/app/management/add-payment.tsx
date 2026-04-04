@@ -114,8 +114,9 @@ export default function AddPaymentScreen() {
                         date: date.toISOString(),
                         type: type,
                         payment_method: transactionType === 'CREDIT' ? paymentMethod : undefined,
-                        // transaction_type not updated usually to avoid structural breaks, 
-                        // but logic allows updating fields dependent on it?
+                        user_id: payerType === 'USER' ? Number(selectedUserId) : null,
+                        team_id: payerType === 'TEAM' ? Number(selectedTeamId) : null,
+                        tournament_id: (payerType === 'TEAM' && type === 'TOURNAMENT_FEE') ? Number(selectedTournamentId) : null,
                     });
                     Alert.alert('Success', 'Transaction updated successfully');
                 } else {
@@ -220,7 +221,7 @@ export default function AddPaymentScreen() {
                         visible={userMenuVisible}
                         onDismiss={() => setUserMenuVisible(false)}
                         anchor={
-                            <Button mode="outlined" onPress={() => !isEditing && setUserMenuVisible(true)} disabled={isEditing}>
+                            <Button mode="outlined" onPress={() => setUserMenuVisible(true)}>
                                 {getSelectedUserName()}
                             </Button>
                         }
@@ -245,7 +246,7 @@ export default function AddPaymentScreen() {
                             visible={tournamentMenuVisible}
                             onDismiss={() => setTournamentMenuVisible(false)}
                             anchor={
-                                <Button mode="outlined" onPress={() => !isEditing && setTournamentMenuVisible(true)} disabled={isEditing}>
+                                <Button mode="outlined" onPress={() => setTournamentMenuVisible(true)}>
                                     {selectedTournamentId ? (tournaments.find(t => t.id === selectedTournamentId)?.name || 'Unknown') : 'Select Tournament'}
                                 </Button>
                             }
@@ -271,7 +272,7 @@ export default function AddPaymentScreen() {
                                 visible={teamMenuVisible}
                                 onDismiss={() => setTeamMenuVisible(false)}
                                 anchor={
-                                    <Button mode="outlined" onPress={() => !isEditing && setTeamMenuVisible(true)} disabled={isEditing}>
+                                    <Button mode="outlined" onPress={() => setTeamMenuVisible(true)}>
                                         {selectedTeamId ? (teams.find(t => t.id === selectedTeamId)?.name || 'Unknown') : 'Select Team'}
                                     </Button>
                                 }

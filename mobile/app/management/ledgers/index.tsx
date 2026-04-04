@@ -65,7 +65,7 @@ export default function LedgerListScreen() {
 
     const renderItem = ({ item }: { item: any }) => (
         <Card style={styles.card} onPress={() => {
-            router.push({ pathname: '/management/add-payment', params: { editId: item.id, initialAmount: item.amount, initialNotes: item.notes, initialDate: item.date, initialType: item.type, initialMethod: item.payment_method, initialTxType: item.transaction_type } });
+            router.push({ pathname: '/management/add-payment', params: { editId: item.id, initialAmount: item.amount, initialNotes: item.notes, initialDate: item.date, initialType: item.type, initialMethod: item.payment_method, initialTxType: item.transaction_type, teamId: item.team_id, tournamentId: item.tournament_id } });
         }}>
             <Card.Content style={styles.cardContent}>
                 <View style={{ flex: 1 }}>
@@ -83,7 +83,7 @@ export default function LedgerListScreen() {
                 <View style={{ alignItems: 'flex-end', flexDirection: 'row', gap: 0 }}>
                     <Text variant="titleMedium" style={{ color: 'green', fontWeight: 'bold', marginRight: 10 }}>₹{item.amount}</Text>
                     <IconButton icon="history" size={20} iconColor="#607D8B" onPress={() => { setAuditEntityId(item.id); setAuditVisible(true); }} />
-                    <IconButton icon="pencil" size={20} iconColor="#1976d2" onPress={() => router.push({ pathname: '/management/add-payment', params: { editId: item.id, initialAmount: item.amount, initialNotes: item.notes, initialDate: item.date, initialType: item.type, initialMethod: item.payment_method, initialTxType: item.transaction_type } })} />
+                    <IconButton icon="pencil" size={20} iconColor="#1976d2" onPress={() => router.push({ pathname: '/management/add-payment', params: { editId: item.id, initialAmount: item.amount, initialNotes: item.notes, initialDate: item.date, initialType: item.type, initialMethod: item.payment_method, initialTxType: item.transaction_type, teamId: item.team_id, tournamentId: item.tournament_id } })} />
                     <IconButton icon="delete" size={20} iconColor="red" onPress={() => handleDelete(item.id)} />
                 </View>
             </Card.Content>

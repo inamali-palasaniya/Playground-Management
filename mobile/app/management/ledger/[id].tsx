@@ -100,7 +100,9 @@ export default function LedgerDetailScreen() {
                 initialDate: item.date,
                 initialType: item.type,
                 initialMethod: item.payment_method,
-                initialTxType: item.transaction_type
+                initialTxType: item.transaction_type,
+                teamId: item.team_id,
+                tournamentId: item.tournament_id
             }
         });
     };
@@ -204,7 +206,7 @@ export default function LedgerDetailScreen() {
                                 <Card
                                     key={child.id}
                                     style={[styles.card, { marginTop: 5 }]}
-                                    onPress={() => router.push({ pathname: '/management/ledger/[id]', params: { id: child.id, userId } })}
+                                    onPress={() => router.push({ pathname: '/management/ledger/[id]', params: { id: child.id, userId, teamId: child.team_id, tournamentId: child.tournament_id } })}
                                 >
                                     <Card.Content style={styles.row}>
                                         <View style={{ flex: 1 }}>

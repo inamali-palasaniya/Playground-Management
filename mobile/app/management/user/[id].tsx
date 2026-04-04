@@ -201,7 +201,9 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user }: { userI
                 initialDate: item.date,
                 initialType: item.type,
                 initialMethod: item.payment_method,
-                initialTxType: item.transaction_type
+                initialTxType: item.transaction_type,
+                teamId: item.team_id,
+                tournamentId: item.tournament_id
             }
         });
     };

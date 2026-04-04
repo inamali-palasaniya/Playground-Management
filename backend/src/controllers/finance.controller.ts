@@ -328,7 +328,7 @@ export const getAllLedgers = async (req: Request, res: Response) => {
 export const updateLedgerEntry = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { amount, notes, is_paid, date, type, payment_method } = req.body;
+        const { amount, notes, is_paid, date, type, payment_method, user_id, team_id, tournament_id } = req.body;
         const entryId = parseInt(id);
 
         // Get original to check for relations
@@ -343,7 +343,10 @@ export const updateLedgerEntry = async (req: Request, res: Response) => {
                 is_paid: is_paid !== undefined ? is_paid : undefined,
                 date: date ? new Date(date) : undefined,
                 type: type,
-                payment_method: payment_method
+                payment_method: payment_method,
+                user_id: user_id !== undefined ? (user_id ? parseInt(user_id) : null) : undefined,
+                team_id: team_id !== undefined ? (team_id ? parseInt(team_id) : null) : undefined,
+                tournament_id: tournament_id !== undefined ? (tournament_id ? parseInt(tournament_id) : null) : undefined
             }
         });
 
