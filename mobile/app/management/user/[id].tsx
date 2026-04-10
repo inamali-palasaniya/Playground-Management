@@ -1130,6 +1130,10 @@ export default function UserDetailScreen() {
                 {user.subscription_status === 'EXPIRED' && (
                     <View style={{ backgroundColor: '#ffebee', padding: 10, marginHorizontal: 16, marginBottom: 10, borderRadius: 8, flexDirection: 'row', alignItems: 'center', borderColor: 'red', borderWidth: 1 }}>
                         <MaterialCommunityIcons name="alert-circle" size={24} color="red" />
+                        <Text style={{ marginLeft: 10, color: 'red', fontWeight: 'bold' }}>Subscription Expired</Text>
+                    </View>
+                )}
+
                 {/* Info Card Section */}
                 <Card style={{ margin: 12, borderRadius: 12, elevation: 4 }}>
                     <Card.Content>
