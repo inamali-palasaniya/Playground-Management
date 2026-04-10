@@ -45,9 +45,11 @@ export default function TournamentListScreen() {
                 onPress: async () => {
                     try {
                         await apiService.request(`/api/tournaments/${id}`, { method: 'DELETE' });
-                        loadTournaments();
+                        // Optimistically remove from list immediately
+                        setTournaments(prev => prev.filter(t => t.id !== id));
                     } catch (e) {
                         Alert.alert('Error', 'Failed to delete tournament');
+                        loadTournaments(); // Re-sync on error
                     }
                 }
             }

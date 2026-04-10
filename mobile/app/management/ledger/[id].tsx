@@ -108,7 +108,12 @@ export default function LedgerDetailScreen() {
     };
 
     if (loading && !entry) return <View style={styles.loading}><ActivityIndicator /></View>;
-    if (!entry) return <View style={styles.container}><Text>Entry not found</Text></View>;
+    if (!entry) return (
+        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+            <Text variant="titleMedium" style={{ color: '#999', marginBottom: 16 }}>Entry not found or was deleted.</Text>
+            <Button mode="contained" onPress={() => router.back()}>Go Back</Button>
+        </View>
+    );
 
     const isDebit = entry.transaction_type === 'DEBIT';
     const totalPaid = children.reduce((sum: number, c: any) => sum + c.amount, 0);

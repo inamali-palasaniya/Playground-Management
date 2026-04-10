@@ -12,8 +12,14 @@ const theme = {
     ...MD3LightTheme,
     colors: {
         ...MD3LightTheme.colors,
-        primary: '#6200ee',
-        secondary: '#03dac6',
+        primary: '#1E3A8A', // Deep Sports Navy
+        secondary: '#F97316', // Energetic Orange
+        tertiary: '#38BDF8', // Light Blue accent
+        error: '#EF4444', 
+        primaryContainer: '#DBEAFE',
+        secondaryContainer: '#FFEDD5',
+        surface: '#FFFFFF',
+        background: '#F8FAFC', // Sleek grayish-white background
     },
 };
 

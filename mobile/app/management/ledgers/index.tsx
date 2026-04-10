@@ -8,6 +8,7 @@ import AuditLogDialog from '../../components/AuditLogDialog';
 import { useAuth } from '../../../context/AuthContext';
 import { AuthService } from '../../../services/auth.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LedgerListScreen() {
     const router = useRouter();
@@ -37,7 +38,7 @@ export default function LedgerListScreen() {
 
     useFocusEffect(
         useCallback(() => {
-            if (!['MANAGEMENT', 'SUPER_ADMIN'].includes(user?.role || '')) {
+            if (!AuthService.hasPermission(user, 'ledger', 'view')) {
                 Alert.alert('Access Denied', 'You do not have permission to view this module.', [{ text: 'Go Back', onPress: () => router.back() }]);
                 return;
             }
@@ -46,6 +47,10 @@ export default function LedgerListScreen() {
     );
 
     const handleDelete = (id: number) => {
+        if (!AuthService.hasPermission(user, 'ledger', 'delete')) {
+            Alert.alert('Permission Denied', 'You cannot delete payments.');
+            return;
+        }
         Alert.alert('Delete Payment', 'Are you sure?', [
             { text: 'Cancel' },
             {
@@ -54,9 +59,11 @@ export default function LedgerListScreen() {
                 onPress: async () => {
                     try {
                         await apiService.deleteLedgerEntry(id);
-                        loadLedgers();
+                        // Optimistically remove from list immediately
+                        setLedgers(prev => prev.filter(l => l.id !== id));
                     } catch (e: any) {
                         Alert.alert('Error', 'Failed to delete payment');
+                        loadLedgers(); // Re-sync on error
                     }
                 }
             }
@@ -65,7 +72,9 @@ export default function LedgerListScreen() {
 
     const renderItem = ({ item }: { item: any }) => (
         <Card style={styles.card} onPress={() => {
-            router.push({ pathname: '/management/add-payment', params: { editId: item.id, initialAmount: item.amount, initialNotes: item.notes, initialDate: item.date, initialType: item.type, initialMethod: item.payment_method, initialTxType: item.transaction_type, teamId: item.team_id, tournamentId: item.tournament_id, userId: item.user_id } });
+            if (AuthService.hasPermission(user, 'ledger', 'edit')) {
+                router.push({ pathname: '/management/add-payment', params: { editId: item.id, initialAmount: item.amount, initialNotes: item.notes, initialDate: item.date, initialType: item.type, initialMethod: item.payment_method, initialTxType: item.transaction_type, teamId: item.team_id, tournamentId: item.tournament_id, userId: item.user_id } });
+            }
         }}>
             <Card.Content style={styles.cardContent}>
                 <View style={{ flex: 1 }}>
@@ -82,22 +91,27 @@ export default function LedgerListScreen() {
                 </View>
                 <View style={{ alignItems: 'flex-end', flexDirection: 'row', gap: 0 }}>
                     <Text variant="titleMedium" style={{ color: 'green', fontWeight: 'bold', marginRight: 10 }}>₹{item.amount}</Text>
-                    <IconButton icon="history" size={20} iconColor="#607D8B" onPress={() => { setAuditEntityId(item.id); setAuditVisible(true); }} />
-                    <IconButton icon="pencil" size={20} iconColor="#1976d2" onPress={() => router.push({ pathname: '/management/add-payment', params: { editId: item.id, initialAmount: item.amount, initialNotes: item.notes, initialDate: item.date, initialType: item.type, initialMethod: item.payment_method, initialTxType: item.transaction_type, teamId: item.team_id, tournamentId: item.tournament_id, userId: item.user_id } })} />
-                    <IconButton icon="delete" size={20} iconColor="red" onPress={() => handleDelete(item.id)} />
+                    {AuthService.hasPermission(user, 'ledger', 'view') && <IconButton icon="history" size={20} iconColor="#607D8B" onPress={() => { setAuditEntityId(item.id); setAuditVisible(true); }} />}
+                    {AuthService.hasPermission(user, 'ledger', 'edit') && <IconButton icon="pencil" size={20} iconColor="#1976d2" onPress={() => router.push({ pathname: '/management/add-payment', params: { editId: item.id, initialAmount: item.amount, initialNotes: item.notes, initialDate: item.date, initialType: item.type, initialMethod: item.payment_method, initialTxType: item.transaction_type, teamId: item.team_id, tournamentId: item.tournament_id, userId: item.user_id } })} />}
+                    {AuthService.hasPermission(user, 'ledger', 'delete') && <IconButton icon="delete" size={20} iconColor="red" onPress={() => handleDelete(item.id)} />}
                 </View>
             </Card.Content>
         </Card>
     );
 
-    if (!['MANAGEMENT', 'SUPER_ADMIN'].includes(user?.role || '')) {
-        return <View style={styles.centered}><Text>Access Denied</Text></View>;
+    if (!AuthService.hasPermission(user, 'ledger', 'view')) {
+        return (
+            <View style={styles.centered}>
+                <MaterialCommunityIcons name="shield-lock-outline" size={64} color="gray" />
+                <Text variant="titleMedium" style={{ marginTop: 10, color: 'gray' }}>Access Denied</Text>
+            </View>
+        );
     }
 
     const types = ['PAYMENT', 'SUBSCRIPTION', 'DONATION', 'DEPOSIT', 'MAINTENANCE', 'TOURNAMENT_FEE'];
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <Appbar.Header style={{ backgroundColor: theme.colors.primary }} elevated>
                 <Appbar.BackAction onPress={() => router.back()} color="white" />
                 <Appbar.Content title="Payments" titleStyle={{ color: 'white' }} />
@@ -136,12 +150,14 @@ export default function LedgerListScreen() {
                 />
             )}
 
-            <FAB
-                icon="plus"
-                style={styles.fab}
-                label="Receive Payment"
-                onPress={() => router.push('/management/add-payment')}
-            />
+            {AuthService.hasPermission(user, 'ledger', 'add') && (
+                <FAB
+                    icon="plus"
+                    style={styles.fab}
+                    label="Receive Payment"
+                    onPress={() => router.push('/management/add-payment')}
+                />
+            )}
 
             <AuditLogDialog
                 visible={auditVisible}
@@ -149,12 +165,12 @@ export default function LedgerListScreen() {
                 entityType="LEDGER"
                 entityId={auditEntityId}
             />
-        </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f5f5f5' },
+    container: { flex: 1, backgroundColor: '#f8fafc' },
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     card: { marginBottom: 12, backgroundColor: 'white' },
     cardContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

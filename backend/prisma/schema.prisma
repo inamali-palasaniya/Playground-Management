@@ -92,7 +92,9 @@ model Subscription {
 
   @@index([user_id])
   @@index([plan_id])
+  @@index([status])
 }
+
 
 enum PaymentFrequency {
   DAILY
@@ -146,7 +148,11 @@ model FeeLedger {
   @@index([team_id])
   @@index([is_paid])
   @@index([parent_ledger_id])
+  @@index([date])
+  @@index([transaction_type])
+  @@index([type])
 }
+
 
 model FineRule {
   id                    Int        @id @default(autoincrement())
@@ -186,7 +192,10 @@ model Expense {
   createdAt     DateTime @default(now())
   created_by_id Int?
   created_by    User?    @relation("ExpenseCreator", fields: [created_by_id], references: [id])
+
+  @@index([date])
 }
+
 
 model Tournament {
   id                   Int       @id @default(autoincrement())
@@ -295,7 +304,12 @@ model BallEvent {
   match           Match    @relation(fields: [match_id], references: [id], onDelete: Cascade)
   striker         User     @relation("Striker", fields: [striker_id], references: [id], onDelete: Cascade)
   non_striker     User?    @relation("NonStriker", fields: [non_striker_id], references: [id])
+
+  @@index([match_id])
+  @@index([striker_id])
+  @@index([bowler_id])
 }
+
 
 model Permission {
   id          Int     @id @default(autoincrement())

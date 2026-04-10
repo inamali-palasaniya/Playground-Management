@@ -7,9 +7,10 @@ export const getSubscriptionPlans = async (req: Request, res: Response) => {
         const plans = await prisma.subscriptionPlan.findMany();
         res.json(plans);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch subscription plans' });
+        res.status(500).json({ error: 'Failed to fetch subscription plans', details: error instanceof Error ? error.message : String(error) });
     }
 };
+
 
 export const createSubscriptionPlan = async (req: Request, res: Response) => {
     try {
@@ -19,9 +20,10 @@ export const createSubscriptionPlan = async (req: Request, res: Response) => {
         });
         res.status(201).json(plan);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to create subscription plan' });
+        res.status(500).json({ error: 'Failed to create subscription plan', details: error instanceof Error ? error.message : String(error) });
     }
 };
+
 
 // Subscriptions
 export const createSubscription = async (req: Request, res: Response) => {
@@ -38,9 +40,10 @@ export const createSubscription = async (req: Request, res: Response) => {
         });
         res.status(201).json(subscription);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to create subscription' });
+        res.status(500).json({ error: 'Failed to create subscription', details: error instanceof Error ? error.message : String(error) });
     }
 };
+
 
 // Fees & Fines
 export const addFee = async (req: Request, res: Response) => {

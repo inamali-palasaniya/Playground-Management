@@ -8,17 +8,18 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AuthService } from '../../../services/auth.service';
 import HeaderProfile from '../../../components/HeaderProfile';
 import { useAuth } from '../../../context/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function DashboardScreen() {
     const theme = useTheme();
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const { user: authUser } = useAuth(); // Use Context
     const [user, setUser] = useState<any>(authUser); // Init with context user
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [financials, setFinancials] = useState<any>(null);
     const [attendance, setAttendance] = useState<any>(null);
-    const [userRole, setUserRole] = useState<string>(authUser?.role || 'NORMAL');
 
     const loadData = async () => {
         try {
@@ -30,7 +31,10 @@ export default function DashboardScreen() {
                 return;
             }
 
-            setUserRole(currentUser.role || 'NORMAL');
+            if (!currentUser) {
+                setLoading(false);
+                return;
+            }
 
             // Refresh user details to get latest punch status
             try {
@@ -41,11 +45,15 @@ export default function DashboardScreen() {
                 console.log("Fresh user fetch failed, using auth user");
             }
 
-            const queryParams = (currentUser?.role === 'NORMAL') ? `?userId=${currentUser.id}` : '';
+            const canViewGlobalFinance = AuthService.hasPermission(currentUser, 'ledger', 'view') || AuthService.hasPermission(currentUser, 'expense', 'view');
+            const canViewGlobalAttendance = AuthService.hasPermission(currentUser, 'attendance', 'view');
+
+            const financeQuery = canViewGlobalFinance ? '' : `?userId=${currentUser.id}`;
+            const attendanceQuery = canViewGlobalAttendance ? '' : `?userId=${currentUser.id}`;
 
             const [finData, attData] = await Promise.all([
-                apiService.request(`/api/analytics/financial-summary${queryParams}`, { skipLoader: true }),
-                apiService.request(`/api/analytics/attendance-stats${queryParams}`, { skipLoader: true })
+                apiService.request(`/api/analytics/financial-summary${financeQuery}`, { skipLoader: true }),
+                apiService.request(`/api/analytics/attendance-stats${attendanceQuery}`, { skipLoader: true })
             ]);
             setFinancials(finData);
             setAttendance(attData);
@@ -75,7 +83,7 @@ export default function DashboardScreen() {
 
     return (
         <ScrollView
-            style={styles.container}
+            style={[styles.container, { paddingTop: insets.top }]}
             contentContainerStyle={styles.content}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
@@ -86,7 +94,7 @@ export default function DashboardScreen() {
 
             <View style={styles.header}>
                 <Text variant="headlineMedium" style={styles.greeting}>
-                    {userRole === 'NORMAL' ? 'My Dashboard' : 'Overview'}
+                    {user ? `Welcome, ${user.name}` : 'Overview'}
                 </Text>
                 <Text variant="bodyLarge" style={styles.date}>
                     {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -97,8 +105,8 @@ export default function DashboardScreen() {
                 <ActivityIndicator size="large" style={styles.loader} />
             ) : (
                 <>
-                    {/* NORMAL USER: Personal Status Card */}
-                    {userRole === 'NORMAL' && user && (
+                    {/* Personal Status Card (Visible for everyone) */}
+                    {user && (
                         <Card style={[styles.card, { backgroundColor: user.punch_status === 'IN' ? '#e8f5e9' : '#ffebee', marginBottom: 16 }]}>
                             <Card.Content>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -168,9 +176,8 @@ export default function DashboardScreen() {
                         </Card>
                     )}
 
-                    {/* Live Status Card - Only for Management */}
                     {/* Live Studio Status - Detailed Breakdown */}
-                    {userRole !== 'NORMAL' && attendance && (
+                    {AuthService.hasPermission(authUser, 'attendance', 'view') && attendance && (
                         <Card style={[styles.card, { backgroundColor: '#e3f2fd', marginBottom: 16 }]}>
                             <Card.Content>
                                 <Text variant="titleMedium" style={{ marginBottom: 12, fontWeight: 'bold', color: '#1565c0' }}>
@@ -241,7 +248,7 @@ export default function DashboardScreen() {
                     )}
 
                     {/* Alerts & Actions Widget */}
-                    {userRole !== 'NORMAL' && (
+                    {AuthService.hasPermission(authUser, 'user', 'view') && (
                         <Card style={[styles.card, { marginBottom: 16 }]}>
                             <Card.Title title="Alerts & Actions" left={(props) => <MaterialCommunityIcons {...props} name="bell-ring" color="#f57c00" />} />
                             <Card.Content style={{ gap: 10 }}>
@@ -286,7 +293,7 @@ export default function DashboardScreen() {
                     )}
 
                     {/* Cricket Module Entry */}
-                    {userRole !== 'NORMAL' && (
+                    {AuthService.hasPermission(authUser, 'cricket_scoring', 'view') && (
                         <Card style={[styles.card, { marginBottom: 16 }]}>
                             <Card.Title
                                 title="Cricket Turf Manager"
@@ -311,13 +318,13 @@ export default function DashboardScreen() {
                         <Card.Content>
                             <View style={styles.cardHeader}>
                                 <Text variant="titleMedium" style={styles.cardTitle}>
-                                    {userRole === 'NORMAL' ? 'My Financials' : 'Financial Summary'}
+                                    {AuthService.hasPermission(authUser, 'ledger', 'view') ? 'Financial Summary' : 'My Financials'}
                                 </Text>
                                 <MaterialCommunityIcons name="finance" size={24} color={theme.colors.primary} />
                             </View>
 
                             <View style={styles.statRow}>
-                                {userRole !== 'NORMAL' ? (
+                                {AuthService.hasPermission(authUser, 'ledger', 'view') ? (
                                     <View style={styles.statItem}>
                                         <Text variant="labelMedium" style={styles.statLabel}>Income</Text>
                                         <Text variant="titleLarge" style={[styles.statValue, { color: 'green' }]}>
@@ -335,15 +342,15 @@ export default function DashboardScreen() {
 
                                 <View style={styles.statItem}>
                                     <Text variant="labelMedium" style={styles.statLabel}>
-                                        {userRole === 'NORMAL' ? 'Outstanding' : 'Expenses'}
+                                        {AuthService.hasPermission(authUser, 'expense', 'view') || AuthService.hasPermission(authUser, 'ledger', 'view') ? 'Expenses' : 'Outstanding'}
                                     </Text>
-                                    <Text variant="titleLarge" style={[styles.statValue, { color: userRole === 'NORMAL' ? 'orange' : 'red' }]}>
-                                        {formatCurrency(userRole === 'NORMAL' ? financials?.outstanding_balance : financials?.total_expenses)}
+                                    <Text variant="titleLarge" style={[styles.statValue, { color: AuthService.hasPermission(authUser, 'expense', 'view') ? 'red' : 'orange' }]}>
+                                        {formatCurrency(!AuthService.hasPermission(authUser, 'ledger', 'view') ? financials?.outstanding_balance : financials?.total_expenses)}
                                     </Text>
                                 </View>
                             </View>
 
-                            {userRole !== 'NORMAL' && (
+                            {AuthService.hasPermission(authUser, 'ledger', 'view') && (
                                 <View style={[styles.statRow, { marginTop: 16 }]}>
                                     <View style={styles.statItem}>
                                         <Text variant="labelMedium" style={styles.statLabel}>Net Profit</Text>
@@ -360,14 +367,18 @@ export default function DashboardScreen() {
                                 </View>
                             )}
 
-                            {userRole !== 'NORMAL' && (
+                            {(AuthService.hasPermission(authUser, 'ledger', 'view') || AuthService.hasPermission(authUser, 'expense', 'view')) && (
                                 <View style={{ flexDirection: 'row', gap: 10, marginTop: 15 }}>
-                                    <Button mode="contained-tonal" icon="cash-plus" style={{ flex: 1 }} onPress={() => router.push('/management/ledgers')}>
-                                        Payments
-                                    </Button>
-                                    <Button mode="contained-tonal" icon="cash-minus" style={{ flex: 1 }} buttonColor="#ffebee" textColor="#d32f2f" onPress={() => router.push('/management/expenses')}>
-                                        Expenses
-                                    </Button>
+                                    {AuthService.hasPermission(authUser, 'ledger', 'view') && (
+                                        <Button mode="contained-tonal" icon="cash-plus" style={{ flex: 1 }} onPress={() => router.push('/management/ledgers')}>
+                                            Payments
+                                        </Button>
+                                    )}
+                                    {AuthService.hasPermission(authUser, 'expense', 'view') && (
+                                        <Button mode="contained-tonal" icon="cash-minus" style={{ flex: 1 }} buttonColor="#ffebee" textColor="#d32f2f" onPress={() => router.push('/management/expenses')}>
+                                            Expenses
+                                        </Button>
+                                    )}
                                 </View>
                             )}
                         </Card.Content>
@@ -394,9 +405,9 @@ export default function DashboardScreen() {
 
                             <View style={[styles.statRow, { marginTop: 16 }]}>
                                 <View style={styles.statItem}>
-                                    <Text variant="labelMedium" style={styles.statLabel}>{userRole === 'NORMAL' ? 'Days Present' : 'Unique Users'}</Text>
+                                    <Text variant="labelMedium" style={styles.statLabel}>{AuthService.hasPermission(authUser, 'attendance', 'view') ? 'Unique Users' : 'Days Present'}</Text>
                                     <Text variant="titleLarge" style={styles.statValue}>
-                                        {userRole === 'NORMAL' ? attendance?.present_count : attendance?.unique_users || 0}
+                                        {AuthService.hasPermission(authUser, 'attendance', 'view') ? attendance?.unique_users || 0 : attendance?.present_count || 0}
                                     </Text>
                                 </View>
                                 <View style={styles.statItem}>
@@ -415,8 +426,7 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
-        paddingTop: 50, // Added padding for status bar
+        backgroundColor: '#f8fafc',
     },
     content: {
         padding: 16,

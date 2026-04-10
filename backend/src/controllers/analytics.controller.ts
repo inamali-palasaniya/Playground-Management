@@ -150,18 +150,30 @@ export const getAttendanceStats = async (req: Request, res: Response) => {
       _count: true
     });
 
-    const presentUsersByRole = await prisma.attendance.findMany({
+    // Efficiently get counts of present users by role
+    const presentByRoleRaw = await prisma.attendance.groupBy({
+      by: ['user_id'],
       where: {
         date: { gte: startOfToday, lte: endOfToday },
         is_present: true
-      },
-      include: { user: { select: { role: true } } }
+      }
     });
+
+    const presentUserIds = presentByRoleRaw.map(p => p.user_id);
+    const presentUsersRoles = await prisma.user.findMany({
+      where: { id: { in: presentUserIds } },
+      select: { role: true }
+    });
+
+    const roleCounts = presentUsersRoles.reduce((acc: any, curr) => {
+      acc[curr.role] = (acc[curr.role] || 0) + 1;
+      return acc;
+    }, {});
 
     const breakdownByRole = usersByRole.map(group => {
       const role = group.role;
       const total = group._count;
-      const inCount = presentUsersByRole.filter(a => a.user.role === role).length;
+      const inCount = roleCounts[role] || 0;
       return {
         role,
         total,
@@ -171,13 +183,10 @@ export const getAttendanceStats = async (req: Request, res: Response) => {
     });
 
     // --- Expired Monthly Plans ---
-    // Users whose latest subscription is EXPIRED and plan name contains 'Monthly'
     const expiredMonthlyCount = await prisma.subscription.count({
       where: {
         status: 'EXPIRED',
-        plan: {
-          name: { contains: 'Monthly', mode: 'insensitive' }
-        }
+        plan: { name: { contains: 'Monthly', mode: 'insensitive' } }
       }
     });
 
@@ -187,46 +196,30 @@ export const getAttendanceStats = async (req: Request, res: Response) => {
     const upcomingExpirationsCount = await prisma.subscription.count({
       where: {
         status: 'ACTIVE',
-        end_date: {
-          gte: new Date(),
-          lte: andThreeDays
-        }
+        end_date: { gte: new Date(), lte: andThreeDays }
       }
     });
 
     // --- Outstanding Balance Count ---
-    const userLedgers = await prisma.feeLedger.groupBy({
+    // Efficiently calculate which users have an outstanding balance
+    // We group by user_id and take sum of DEBITs and CREDITs
+    const debits = await prisma.feeLedger.groupBy({
       by: ['user_id'],
-      _sum: {
-        amount: true
-      },
-      where: {
-        transaction_type: 'DEBIT'
-      }
+      where: { transaction_type: 'DEBIT' },
+      _sum: { amount: true }
     });
 
-    // This is a bit complex with Prisma groupBy for balance. 
-    // Let's do a more efficient raw query or fetch all active users and calculate.
-    // Given the scale, fetching all users with their ledger sums might be okay for now, 
-    // but ideally we'd have a balance field on User.
-    const usersWithLedgers = await prisma.user.findMany({
-      where: { is_active: true },
-      select: {
-        id: true,
-        fee_ledger: {
-          select: { amount: true, transaction_type: true }
-        }
-      }
+    const credits = await prisma.feeLedger.groupBy({
+      by: ['user_id'],
+      where: { transaction_type: 'CREDIT' },
+      _sum: { amount: true }
     });
 
-    const outstandingBalanceCount = usersWithLedgers.filter(user => {
-      let totalDebits = 0;
-      let totalCredits = 0;
-      user.fee_ledger.forEach(t => {
-        if (t.transaction_type === 'DEBIT') totalDebits += t.amount;
-        else if (t.transaction_type === 'CREDIT') totalCredits += t.amount;
-      });
-      return (totalDebits - totalCredits) > 0;
+    const creditMap = new Map(credits.map(c => [c.user_id, c._sum.amount || 0]));
+    const outstandingBalanceCount = debits.filter(d => {
+      const dr = d._sum.amount || 0;
+      const cr = creditMap.get(d.user_id) || 0;
+      return (dr - cr) > 0;
     }).length;
 
     res.json({

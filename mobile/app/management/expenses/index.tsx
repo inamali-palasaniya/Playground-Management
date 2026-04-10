@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import AuditLogDialog from '../../components/AuditLogDialog';
 import { useAuth } from '../../../context/AuthContext';
 import { AuthService } from '../../../services/auth.service';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ExpenseListScreen() {
     const router = useRouter();
@@ -63,9 +64,11 @@ export default function ExpenseListScreen() {
                 onPress: async () => {
                     try {
                         await apiService.request(`/api/expenses/${id}`, { method: 'DELETE' });
-                        loadExpenses();
+                        // Optimistically remove from list immediately
+                        setExpenses(prev => prev.filter(e => e.id !== id));
                     } catch (e: any) {
                         Alert.alert('Error', 'Failed to delete expense');
+                        loadExpenses(); // Re-sync on error
                     }
                 }
             }
@@ -102,7 +105,7 @@ export default function ExpenseListScreen() {
     }
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <Appbar.Header style={{ backgroundColor: theme.colors.primary }} elevated>
                 <Appbar.BackAction onPress={() => router.back()} color="white" />
                 <Appbar.Content title="Expenses" titleStyle={{ color: 'white' }} />
@@ -156,12 +159,12 @@ export default function ExpenseListScreen() {
                 entityType="EXPENSE"
                 entityId={auditEntityId}
             />
-        </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f5f5f5' },
+    container: { flex: 1, backgroundColor: '#f8fafc' },
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     card: { marginBottom: 12, backgroundColor: 'white' },
     cardContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

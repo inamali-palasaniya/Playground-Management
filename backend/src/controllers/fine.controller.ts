@@ -37,9 +37,10 @@ export const getFineRuleById = async (req: Request, res: Response) => {
     res.json(rule);
   } catch (error) {
     console.error('Error fetching fine rule:', error);
-    res.status(500).json({ error: 'Failed to fetch fine rule' });
+    res.status(500).json({ error: 'Failed to fetch fine rule', details: error instanceof Error ? error.message : String(error) });
   }
 };
+
 
 export const createFineRule = async (req: Request, res: Response) => {
   try {
@@ -60,9 +61,10 @@ export const createFineRule = async (req: Request, res: Response) => {
     res.status(201).json(rule);
   } catch (error) {
     console.error('Error creating fine rule:', error);
-    res.status(500).json({ error: 'Failed to create fine rule' });
+    res.status(500).json({ error: 'Failed to create fine rule', details: error instanceof Error ? error.message : String(error) });
   }
 };
+
 
 export const updateFineRule = async (req: Request, res: Response) => {
   try {
@@ -81,9 +83,10 @@ export const updateFineRule = async (req: Request, res: Response) => {
     res.json(rule);
   } catch (error) {
     console.error('Error updating fine rule:', error);
-    res.status(500).json({ error: 'Failed to update fine rule' });
+    res.status(500).json({ error: 'Failed to update fine rule', details: error instanceof Error ? error.message : String(error) });
   }
 };
+
 
 export const deleteFineRule = async (req: Request, res: Response) => {
   try {
@@ -96,9 +99,10 @@ export const deleteFineRule = async (req: Request, res: Response) => {
     res.json({ message: 'Fine rule deleted successfully' });
   } catch (error) {
     console.error('Error deleting fine rule:', error);
-    res.status(500).json({ error: 'Failed to delete fine rule' });
+    res.status(500).json({ error: 'Failed to delete fine rule', details: error instanceof Error ? error.message : String(error) });
   }
 };
+
 
 // Apply Fine with Escalation Logic
 export const applyFine = async (req: Request, res: Response) => {
@@ -227,6 +231,7 @@ export const getFineSummary = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error fetching fine summary:', error);
-    res.status(500).json({ error: 'Failed to fetch fine summary' });
+    res.status(500).json({ error: 'Failed to fetch fine summary', details: error instanceof Error ? error.message : String(error) });
   }
 };
+

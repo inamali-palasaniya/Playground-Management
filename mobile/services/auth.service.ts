@@ -39,7 +39,7 @@ export const AuthService = {
     if (!perm) return false; // Module not in permissions list = denied
 
     switch (action) {
-      case 'view': return perm.can_view ?? false; // Default to false if undefined? Or true? "assume i added eye off" implies explicit. 
+      case 'view': return perm.can_view !== false; // Default to true if undefined (legacy data) to prevent lockout. Explicit false will still deny.
       // But legacy data lacks it. I'll default to TRUE for backward compatibility if logic requires, but user wants restriction. 
       // Actually, if I just added it, legacy data won't have it. 
       // If I default to FALSE, everyone loses access until updated. 

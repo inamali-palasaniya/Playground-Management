@@ -5,6 +5,7 @@ import HeaderProfile from '../../components/HeaderProfile';
 import { useTheme } from 'react-native-paper';
 import { useAuth } from '../../context/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AuthService } from '../../services/auth.service';
 
 export default function TabLayout() {
     const router = useRouter();
@@ -12,7 +13,8 @@ export default function TabLayout() {
     const { user } = useAuth();
     const insets = useSafeAreaInsets();
 
-    const isNormalUser = user?.role === 'NORMAL';
+    const canViewUsers = AuthService.hasPermission(user, 'user', 'view');
+    const canViewScoring = AuthService.hasPermission(user, 'cricket_scoring', 'view');
 
     return (
         <Tabs screenOptions={{
@@ -21,7 +23,6 @@ export default function TabLayout() {
             tabBarStyle: {
                 position: 'absolute',
                 borderTopWidth: 0,
-                // elevation: 10, // Removed to avoid duplicate with styles.shadow
                 backgroundColor: 'white',
                 height: 70 + insets.bottom,
                 paddingBottom: insets.bottom,
@@ -32,7 +33,7 @@ export default function TabLayout() {
                 name="users"
                 options={{
                     title: 'Users',
-                    href: isNormalUser ? null : '/(tabs)/users',
+                    href: canViewUsers ? '/(tabs)/users' : null,
                     tabBarIcon: ({ color, size }) => (
                         <View style={{ alignItems: 'center', justifyContent: 'center', top: 15 }}>
                             <MaterialCommunityIcons name="account-group" size={30} color={color} />
@@ -76,6 +77,7 @@ export default function TabLayout() {
                 name="scoring"
                 options={{
                     title: 'Scoring',
+                    href: canViewScoring ? '/(tabs)/scoring' : null,
                     tabBarIcon: ({ color, size }) => (
                         <View style={{ alignItems: 'center', justifyContent: 'center', top: 15 }}>
                             <MaterialCommunityIcons name="cricket" size={30} color={color} />

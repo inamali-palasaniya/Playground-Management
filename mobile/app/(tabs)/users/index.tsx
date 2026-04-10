@@ -9,6 +9,7 @@ import { AuthService } from '../../../services/auth.service';
 import { format } from 'date-fns';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AuditLogDialog from '../../components/AuditLogDialog';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface User {
     id: number;
@@ -42,6 +43,7 @@ export default function PeopleScreen() {
     const theme = useTheme();
     const router = useRouter();
     const isFocused = useIsFocused();
+    const insets = useSafeAreaInsets();
     const { user_type, punch_status, status, filter } = useLocalSearchParams();
     const [users, setUsers] = useState<User[]>([]);
     const [groups, setGroups] = useState<Group[]>([]);
@@ -96,14 +98,12 @@ export default function PeopleScreen() {
                 return;
             }
 
-            if (user?.role === 'NORMAL') {
-                const selfDetails = await apiService.request(`/api/users/${user.id}`);
-                // Check if this is still the latest request
-                if (lastRequestId.current === currentRequestId) {
-                    setUsers([selfDetails as User]);
-                }
-            } else {
-                let queryString = `?dummy=1`;
+            if (!AuthService.hasPermission(user, 'user', 'view')) {
+                setLoading(false);
+                return;
+            }
+
+            let queryString = `?dummy=1`;
                 if (activeFilter) queryString += `&filter=${activeFilter}`;
                 if (selectedGroup) queryString += `&group_id=${selectedGroup.id}`;
                 if (selectedRole) queryString += `&role=${selectedRole}`;
@@ -132,7 +132,6 @@ export default function PeopleScreen() {
 
                 console.log('API returned users:', (usersData as any[])?.length);
                 setUsers(usersData as User[]);
-            }
         } catch (error) {
             console.error('Failed to load data:', error);
         } finally {
@@ -258,8 +257,8 @@ export default function PeopleScreen() {
     };
 
     const filteredUsers = users.filter((u: User) =>
-        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        u.phone.includes(searchQuery)
+        (u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (u.phone || '').includes(searchQuery)
     );
 
     const renderItem = ({ item }: { item: User }) => (
@@ -417,15 +416,26 @@ export default function PeopleScreen() {
         </Card>
     );
 
-    const isManagement = currentUser?.role !== 'NORMAL';
+    const canViewUsers = AuthService.hasPermission(currentUser, 'user', 'view');
+
+    if (currentUser && !canViewUsers) {
+        return (
+            <View style={[styles.container, { paddingTop: insets.top, justifyContent: 'center', alignItems: 'center' }]}>
+                <MaterialCommunityIcons name="shield-lock-outline" size={64} color="gray" />
+                <Text variant="titleMedium" style={{ marginTop: 10, color: 'gray' }}>Access Denied</Text>
+                <Text variant="bodyMedium" style={{ color: 'gray', textAlign: 'center', marginHorizontal: 30, marginTop: 5 }}>
+                    You do not have permission to view the User Directory. Contact your administrator.
+                </Text>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
-            {isManagement ? (
-                <View style={styles.headerContainer}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                        <Searchbar
-                            placeholder="Search Users"
+            <View style={styles.headerContainer}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                    <Searchbar
+                        placeholder="Search Users"
                             onChangeText={setSearchQuery}
                             value={searchQuery}
                             style={[styles.searchBar, { flex: 1, marginRight: 8 }]}
@@ -615,17 +625,12 @@ export default function PeopleScreen() {
                         </ScrollView>
                     </View>
                 </View>
-            ) : (
-                <View style={[styles.headerContainer, { alignItems: 'center' }]}>
-                    <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>My Profile</Text>
-                </View>
-            )}
 
             {loading && !refreshing ? (
                 <ActivityIndicator style={{ marginTop: 20 }} />
             ) : (
                 <FlatList
-                    data={isManagement ? filteredUsers : users} // If normal, users contains only self
+                    data={filteredUsers}
                     renderItem={renderItem}
                     keyExtractor={(item) => item.id.toString()}
                     extraData={users}
@@ -634,7 +639,7 @@ export default function PeopleScreen() {
                 />
             )}
 
-            {isManagement && (
+            {canViewUsers && (
                 <Portal>
                     <FAB.Group
                         open={fabOpen}
@@ -663,7 +668,7 @@ export default function PeopleScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f5f5f5' },
+    container: { flex: 1, backgroundColor: '#f8fafc' },
     headerContainer: { padding: 16, backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: '#e0e0e0' },
     searchBar: { elevation: 0, backgroundColor: '#f5f5f5', borderRadius: 8 },
     filterScroll: { paddingRight: 16 },

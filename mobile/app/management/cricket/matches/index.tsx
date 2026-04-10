@@ -33,8 +33,12 @@ export default function MatchListScreen() {
 
     useFocusEffect(
         useCallback(() => {
+            if (!AuthService.hasPermission(currentUser, 'cricket_scoring', 'view')) {
+                Alert.alert('Access Denied', 'You do not have permission to view matches.', [{ text: 'Go Back', onPress: () => router.back() }]);
+                return;
+            }
             loadMatches();
-        }, [])
+        }, [currentUser])
     );
 
     const getStatusColor = (status: string) => {
@@ -46,6 +50,10 @@ export default function MatchListScreen() {
     };
 
     const handleDelete = async (id: number) => {
+        if (!AuthService.hasPermission(currentUser, 'cricket_scoring', 'delete')) {
+            Alert.alert('Permission Denied', 'You cannot delete matches.');
+            return;
+        }
         Alert.alert('Delete Match', 'Are you sure you want to delete this match?', [
             { text: 'Cancel', style: 'cancel' },
             {
@@ -54,7 +62,8 @@ export default function MatchListScreen() {
                 onPress: async () => {
                     try {
                         await apiService.request(`/api/matches/${id}`, { method: 'DELETE' });
-                        loadMatches();
+                        // Optimistically remove from list immediately
+                        setMatches(prev => prev.filter(m => m.id !== id));
                     } catch (e) {
                         Alert.alert('Error', 'Failed to delete match');
                     }
@@ -115,6 +124,15 @@ export default function MatchListScreen() {
             </Card.Content>
         </Card>
     );
+
+    if (!AuthService.hasPermission(currentUser, 'cricket_scoring', 'view')) {
+        return (
+            <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+                <MaterialCommunityIcons name="shield-lock-outline" size={64} color="gray" />
+                <Text variant="titleMedium" style={{ marginTop: 10, color: 'gray' }}>Access Denied</Text>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.safeArea}>

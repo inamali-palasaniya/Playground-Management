@@ -135,9 +135,10 @@ export const checkOut = async (req: Request, res: Response) => {
     res.json(updated);
   } catch (error) {
     console.error('Error checking out:', error);
-    res.status(500).json({ error: 'Failed to check out' });
+    res.status(500).json({ error: 'Failed to check out', details: error instanceof Error ? error.message : String(error) });
   }
 };
+
 
 export const getUserAttendance = async (req: Request, res: Response) => {
   try {
@@ -227,9 +228,10 @@ export const getAttendanceSummary = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error fetching attendance summary:', error);
-    res.status(500).json({ error: 'Failed to fetch summary' });
+    res.status(500).json({ error: 'Failed to fetch summary', details: error instanceof Error ? error.message : String(error) });
   }
 };
+
 
 export const updateAttendance = async (req: Request, res: Response) => {
   try {
@@ -327,9 +329,10 @@ export const updateAttendance = async (req: Request, res: Response) => {
     res.json(updated);
   } catch (error) {
     console.error('Error updating attendance:', error);
-    res.status(500).json({ error: 'Failed to update attendance' });
+    res.status(500).json({ error: 'Failed to update attendance', details: error instanceof Error ? error.message : String(error) });
   }
 };
+
 
 export const deleteAttendance = async (req: Request, res: Response) => {
   try {
@@ -399,6 +402,7 @@ export const deleteAttendance = async (req: Request, res: Response) => {
     res.json({ message: 'Attendance deleted' });
   } catch (error) {
     console.error('Error deleting attendance:', error);
-    res.status(500).json({ error: 'Failed to delete attendance' });
+    res.status(500).json({ error: 'Failed to delete attendance', details: error instanceof Error ? error.message : String(error) });
   }
 };
+

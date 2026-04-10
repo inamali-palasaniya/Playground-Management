@@ -27,9 +27,10 @@ export const createExpense = async (req: Request, res: Response) => {
         await AuditService.logAction('EXPENSE', expense.id, 'CREATE', performedBy, { name, amount, category });
     } catch (error) {
         console.error('Error creating expense:', error);
-        res.status(500).json({ error: 'Failed to create expense' });
+        res.status(500).json({ error: 'Failed to create expense', details: error instanceof Error ? error.message : String(error) });
     }
 };
+
 
 export const getExpenses = async (req: Request, res: Response) => {
     try {
@@ -57,9 +58,10 @@ export const getExpenses = async (req: Request, res: Response) => {
         res.json(expenses);
     } catch (error) {
         console.error('Error fetching expenses:', error);
-        res.status(500).json({ error: 'Failed to fetch expenses' });
+        res.status(500).json({ error: 'Failed to fetch expenses', details: error instanceof Error ? error.message : String(error) });
     }
 };
+
 
 export const updateExpense = async (req: Request, res: Response) => {
     try {
@@ -83,9 +85,10 @@ export const updateExpense = async (req: Request, res: Response) => {
         await AuditService.logAction('EXPENSE', expense.id, 'UPDATE', performedBy, req.body);
     } catch (error) {
         console.error('Error updating expense:', error);
-        res.status(500).json({ error: 'Failed to update expense' });
+        res.status(500).json({ error: 'Failed to update expense', details: error instanceof Error ? error.message : String(error) });
     }
 };
+
 
 export const deleteExpense = async (req: Request, res: Response) => {
     try {
@@ -101,9 +104,10 @@ export const deleteExpense = async (req: Request, res: Response) => {
         res.json({ message: 'Expense deleted successfully' });
     } catch (error) {
         console.error('Error deleting expense:', error);
-        res.status(500).json({ error: 'Failed to delete expense' });
+        res.status(500).json({ error: 'Failed to delete expense', details: error instanceof Error ? error.message : String(error) });
     }
 };
+
 
 export const getExpenseStats = async (req: Request, res: Response) => {
     try {
@@ -128,6 +132,7 @@ export const getExpenseStats = async (req: Request, res: Response) => {
         });
     } catch (error) {
         console.error('Error fetching expense stats:', error);
-        res.status(500).json({ error: 'Failed to fetch expense stats' });
+        res.status(500).json({ error: 'Failed to fetch expense stats', details: error instanceof Error ? error.message : String(error) });
     }
 };
+

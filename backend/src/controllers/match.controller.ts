@@ -347,46 +347,56 @@ export const undoLastBall = async (req: Request, res: Response) => {
     }
 };
 
-// Get Live Score
 export const getLiveScore = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+        const matchId = parseInt(id);
 
         const match = await prisma.match.findUnique({
-            where: { id: parseInt(id) },
-            include: {
-                ball_events: true,
-            },
+            where: { id: matchId },
+            select: { id: true, status: true, current_innings: true, overs: true }
         });
 
-        if (!match) {
-            return res.status(404).json({ error: 'Match not found' });
-        }
+        if (!match) return res.status(404).json({ error: 'Match not found' });
 
-        // Calculate score per innings
-        const calculateInningsScore = (events: any[]) => {
-            const runs = events.reduce((sum: number, ball: any) => sum + ball.runs_scored + ball.extras, 0);
-            const wickets = events.filter((ball: any) => ball.is_wicket).length;
-            const validBalls = events.filter((ball: any) => ball.extra_type !== 'WD' && ball.extra_type !== 'NB').length;
+        const calculateInnings = async (innings: number) => {
+            const totals = await prisma.ballEvent.aggregate({
+                where: { match_id: matchId, innings: innings },
+                _sum: { runs_scored: true, extras: true }
+            });
+
+            const wickets = await prisma.ballEvent.count({
+                where: { match_id: matchId, innings: innings, is_wicket: true }
+            });
+
+            const validBalls = await prisma.ballEvent.count({
+                where: { 
+                    match_id: matchId, 
+                    innings: innings, 
+                    extra_type: { notIn: ['WD', 'NB'] } 
+                }
+            });
+
+            const runs = (totals._sum.runs_scored || 0) + (totals._sum.extras || 0);
             const overs = Math.floor(validBalls / 6) + (validBalls % 6) / 10;
+
             return { runs, wickets, overs, balls: validBalls };
         };
 
-        const innings1Events = match.ball_events.filter((b: any) => b.innings === 1);
-        const innings2Events = match.ball_events.filter((b: any) => b.innings === 2);
+        const [innings1, innings2] = await Promise.all([
+            calculateInnings(1),
+            calculateInnings(2)
+        ]);
 
         res.json({
             match_id: match.id,
             status: match.status,
             current_innings: match.current_innings || 1,
-            score: {
-                innings1: calculateInningsScore(innings1Events),
-                innings2: calculateInningsScore(innings2Events)
-            }
+            score: { innings1, innings2 }
         });
     } catch (error) {
         console.error('Error getting live score:', error);
-        res.status(500).json({ error: 'Failed to get live score' });
+        res.status(500).json({ error: 'Failed to calculate live score' });
     }
 };
 
@@ -406,84 +416,167 @@ export const deleteMatch = async (req: Request, res: Response) => {
 export const getMatchStats = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+        const matchId = parseInt(id);
+
         const match = await prisma.match.findUnique({
-            where: { id: parseInt(id) },
+            where: { id: matchId },
             include: {
-                tournament: true,
-                team_a: { include: { players: { include: { user: { select: { id: true, name: true } } } } } },
-                team_b: { include: { players: { include: { user: { select: { id: true, name: true } } } } } },
-                ball_events: {
-                    include: {
-                        bowler: { select: { id: true, name: true } },
-                        striker: { select: { id: true, name: true } },
-                        non_striker: { select: { id: true, name: true } }
-                    },
-                    orderBy: [{ over_number: 'asc' }, { ball_number: 'asc' }]
-                },
+                tournament: { select: { name: true } },
+                team_a: { select: { id: true, name: true } },
+                team_b: { select: { id: true, name: true } },
                 man_of_the_match: { select: { id: true, name: true } }
             }
         });
 
         if (!match) return res.status(404).json({ error: 'Match not found' });
 
-        // Process Stats
-        const getBatsmanStats = (teamId: number, innings: number) => {
-            const events = match.ball_events.filter(e => e.batting_team_id === teamId || e.innings === innings);
-            const stats: Record<number, any> = {};
-
-            match.ball_events.forEach(b => {
-                if (b.innings !== innings) return;
-
-                // Striker
-                if (!stats[b.striker_id]) stats[b.striker_id] = { runs: 0, balls: 0, '4s': 0, '6s': 0 };
-                stats[b.striker_id].runs += b.runs_scored;
-                if (b.is_valid_ball) stats[b.striker_id].balls++;
-                if (b.runs_scored === 4) stats[b.striker_id]['4s']++;
-                if (b.runs_scored === 6) stats[b.striker_id]['6s']++;
+        const getInningsStats = async (innings: number) => {
+            // Batsman Stats
+            const batsmanStatsRaw = await prisma.ballEvent.groupBy({
+                by: ['striker_id'],
+                where: { match_id: matchId, innings: innings },
+                _sum: { runs_scored: true },
+                _count: { _all: true }
             });
-            return stats;
+
+            // Need to handle 4s and 6s specifically - Prisma doesn't do "count if" in groupBy easily
+            // But we can get them with separate count or just fetch minimal data and reduce
+            const boundries = await prisma.ballEvent.findMany({
+                where: { 
+                    match_id: matchId, 
+                    innings: innings, 
+                    runs_scored: { in: [4, 6] } 
+                },
+                select: { striker_id: true, runs_scored: true }
+            });
+
+            const validBalls = await prisma.ballEvent.groupBy({
+                by: ['striker_id'],
+                where: { match_id: matchId, innings: innings, is_valid_ball: true },
+                _count: { _all: true }
+            });
+
+            // Bowler Stats
+            const bowlerStatsRaw = await prisma.ballEvent.groupBy({
+                by: ['bowler_id'],
+                where: { match_id: matchId, innings: innings },
+                _sum: { runs_scored: true, extras: true },
+            });
+
+            const bowlerWickets = await prisma.ballEvent.groupBy({
+                by: ['bowler_id'],
+                where: { 
+                    match_id: matchId, 
+                    innings: innings, 
+                    is_wicket: true, 
+                    wicket_type: { not: 'RUN OUT' } 
+                },
+                _count: { _all: true }
+            });
+
+            const bowlerValidBalls = await prisma.ballEvent.groupBy({
+                by: ['bowler_id'],
+                where: { match_id: matchId, innings: innings, is_valid_ball: true },
+                _count: { _all: true }
+            });
+
+            // Handle extras that don't go to bowler (Byes, Leg Byes)
+            const nonBowlerExtras = await prisma.ballEvent.groupBy({
+                by: ['bowler_id'],
+                where: { 
+                    match_id: matchId, 
+                    innings: innings, 
+                    extra_type: { in: ['BYE', 'LB'] } 
+                },
+                _sum: { extras: true }
+            });
+
+            // Map results to meaningful structure
+            // ... (Mapping logic summarized for brevity in this tool call)
+            // For now, I'll implement a robust helper to combine these.
+            
+            return {
+                batsmen: batsmanStatsRaw, // Simplified for brevity in ReplacementContent
+                bowlers: bowlerStatsRaw
+            };
         };
 
-        const getBowlerStats = (teamId: number, innings: number) => {
-            // Bowler is from fielding team
-            const stats: Record<number, any> = {};
-            match.ball_events.forEach(b => {
-                if (b.innings !== innings) return;
-                if (!stats[b.bowler_id]) stats[b.bowler_id] = { overs: 0, runs: 0, wickets: 0, balls: 0 };
+        // For actually returning the rich stats matching previous UI, 
+        // we'll need to fetch user names as well.
+        // Given the scale, I'll optimize the previous logic slightly but keep it clean.
+        
+        // Let's actually refine the original logic to be much faster by NOT fetching the entire ball_events 
+        // with relations, but just the fields we need.
 
-                stats[b.bowler_id].runs += b.runs_scored + b.extras; // Economy includes extras? Usually yes, except leg byes/byes.
-                // Correct logic for bowler runs: 
-                // If extra_type is LB or BYE, it's not bowler's runs.
-                if (b.extra_type === 'LB' || b.extra_type === 'BYE') stats[b.bowler_id].runs -= (b.extras || 0);
+        const ballEvents = await prisma.ballEvent.findMany({
+            where: { match_id: matchId },
+            select: {
+                innings: true,
+                striker_id: true,
+                bowler_id: true,
+                runs_scored: true,
+                is_wicket: true,
+                wicket_type: true,
+                extras: true,
+                extra_type: true,
+                is_valid_ball: true
+            }
+        });
 
-                if (b.is_wicket && b.wicket_type !== 'RUN OUT') stats[b.bowler_id].wickets++;
-                if (b.is_valid_ball) stats[b.bowler_id].balls++;
+        const players = await prisma.user.findMany({
+            where: { 
+                OR: [
+                    { id: { in: ballEvents.map(b => b.striker_id) } },
+                    { id: { in: ballEvents.map(b => b.bowler_id) } }
+                ]
+            },
+            select: { id: true, name: true }
+        });
+        const playerMap = new Map(players.map(p => [p.id, p.name]));
+
+        const processStats = (innings: number) => {
+            const inningsEvents = ballEvents.filter(b => b.innings === innings);
+            const batsmen: any = {};
+            const bowlers: any = {};
+
+            inningsEvents.forEach(b => {
+                // Batsman
+                if (!batsmen[b.striker_id]) batsmen[b.striker_id] = { name: playerMap.get(b.striker_id), runs: 0, balls: 0, '4s': 0, '6s': 0 };
+                batsmen[b.striker_id].runs += b.runs_scored;
+                if (b.is_valid_ball) batsmen[b.striker_id].balls++;
+                if (b.runs_scored === 4) batsmen[b.striker_id]['4s']++;
+                if (b.runs_scored === 6) batsmen[b.striker_id]['6s']++;
+
+                // Bowler
+                if (!bowlers[b.bowler_id]) bowlers[b.bowler_id] = { name: playerMap.get(b.bowler_id), overs: 0, runs: 0, wickets: 0, balls: 0 };
+                
+                let bowlerRuns = b.runs_scored;
+                if (b.extra_type !== 'BYE' && b.extra_type !== 'LB') {
+                    bowlerRuns += (b.extras || 0);
+                }
+                bowlers[b.bowler_id].runs += bowlerRuns;
+
+                if (b.is_wicket && b.wicket_type !== 'RUN OUT') bowlers[b.bowler_id].wickets++;
+                if (b.is_valid_ball) bowlers[b.bowler_id].balls++;
             });
 
-            // Convert balls to overs
-            Object.values(stats).forEach(s => {
+            Object.values(bowlers).forEach((s: any) => {
                 s.overs = Math.floor(s.balls / 6) + (s.balls % 6) / 10;
             });
 
-            return stats;
+            return { batting: batsmen, bowling: bowlers };
         };
 
-        const stats = {
-            innings1: {
-                batting: getBatsmanStats(match.team_a_id, 1), // Assuming Team A batted first? Not guaranteed.
-                bowling: getBowlerStats(match.team_b_id, 1)
-            },
-            innings2: {
-                batting: getBatsmanStats(match.team_b_id, 2),
-                bowling: getBowlerStats(match.team_a_id, 2)
+        res.json({
+            ...match,
+            stats: {
+                innings1: processStats(1),
+                innings2: processStats(2)
             }
-        };
-
-        res.json({ ...match, stats });
-
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed' });
+        console.error('Match Stats Error:', error);
+        res.status(500).json({ error: 'Failed to generate match statistics' });
     }
 };
 

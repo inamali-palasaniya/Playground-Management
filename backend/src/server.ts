@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import morgan from 'morgan';
+import compression from 'compression';
+
 
 dotenv.config();
 
@@ -9,6 +12,9 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(compression());
+app.use(morgan('dev'));
+
 
 import userRoutes from './routes/user.routes.js';
 import subscriptionRoutes from './routes/subscription.routes.js';
@@ -55,6 +61,17 @@ app.use('/api/finance', financeRoutes);
 
 import logRoutes from './routes/log.routes.js';
 app.use('/api/logs', logRoutes);
+
+
+// Error handling middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error('Unhandled Error:', err);
+    res.status(err.status || 500).json({
+        error: err.message || 'Internal Server Error',
+        details: process.env.NODE_ENV === 'development' ? err : undefined
+    });
+});
+
 
 
 app.get('/', (req, res) => {

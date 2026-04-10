@@ -40,8 +40,8 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
 
     if (isSuperAdmin) {
         return (
-            <Tabs.ScrollView style={styles.tabContent}>
-                <View style={{ padding: 16, alignItems: 'center', paddingTop: 140 }}>
+            <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
+                <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100, alignItems: 'center' }}>
                     <MaterialCommunityIcons name="shield-crown" size={64} color="gold" />
                     <Text variant="titleMedium" style={{ marginTop: 10, fontWeight: 'bold' }}>Success Admin Access</Text>
                     <Text style={{ textAlign: 'center', color: 'gray', marginTop: 5 }}>
@@ -54,41 +54,50 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
     }
 
     return (
-        <Tabs.ScrollView style={styles.tabContent}>
-            <View style={{ padding: 16, paddingTop: 140 }}>
-                <PermissionSelector
-                    permissions={permissions || []}
-                    onChange={handleSave}
-                    readonly={!canEdit}
-                />
-                {canEdit && <Text style={{ textAlign: 'center', marginTop: 10, color: 'gray' }}>Tap icons to toggle permissions immediately.</Text>}
-            </View>
-        </Tabs.ScrollView>
+        <View style={{ flex: 1 }}>
+            <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
+                <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100 }}>
+                    <PermissionSelector
+                        permissions={permissions || []}
+                        onChange={handleSave}
+                        readonly={!canEdit}
+                    />
+                    {canEdit && <Text style={{ textAlign: 'center', marginTop: 10, color: 'gray' }}>Tap icons to toggle permissions immediately.</Text>}
+                </View>
+            </Tabs.ScrollView>
+        </View>
     );
 };
 
-const FineRoute = ({ userId, isFocused, currentUser, onUpdate }: { userId: number, isFocused: boolean, currentUser: any, onUpdate?: () => void }) => {
+const FineRoute = ({ userId, isFocused, currentUser, onUpdate, refreshKey }: { userId: number, isFocused: boolean, currentUser: any, onUpdate?: () => void, refreshKey?: number }) => {
     const [fines, setFines] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
     const loadFines = () => {
+        setLoading(true);
         apiService.getUserLedger(userId)
             .then(data => setFines(data.filter((l: any) => l.type === 'FINE' || l.type === 'USER_FINE_LEGACY')))
             .catch(console.error)
             .finally(() => setLoading(false));
     };
 
-    useEffect(() => { if (isFocused) loadFines(); }, [userId, isFocused]);
+    // Re-fetch whenever screen is focused OR any tab triggers a mutation (refreshKey)
+    useEffect(() => { if (isFocused) loadFines(); }, [userId, isFocused, refreshKey]);
 
     const handleDelete = async (id: number) => {
         Alert.alert('Delete Fine', 'Are you sure?', [
             { text: 'Cancel' },
             {
                 text: 'Delete', style: 'destructive', onPress: async () => {
-                    await apiService.deleteLedgerEntry(id);
-                    loadFines();
-                    if (onUpdate) onUpdate();
+                    try {
+                        await apiService.deleteLedgerEntry(id);
+                        // Optimistically remove from local list immediately
+                        setFines(prev => prev.filter(f => f.id !== id));
+                        if (onUpdate) onUpdate();
+                    } catch (e: any) {
+                        Alert.alert('Error', e.message || 'Failed to delete fine');
+                    }
                 }
             }
         ]);
@@ -99,7 +108,7 @@ const FineRoute = ({ userId, isFocused, currentUser, onUpdate }: { userId: numbe
 
     return (
         <View style={{ flex: 1 }}>
-            <Tabs.ScrollView style={styles.tabContent}>
+            <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
                 <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100 }}>
                     {fines.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No fines found.</Text> : (
                         fines.map((item) => (
@@ -134,7 +143,7 @@ const FineRoute = ({ userId, isFocused, currentUser, onUpdate }: { userId: numbe
     );
 };
 
-const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user }: { userId: number, isFocused: boolean, currentUser: any, onUpdate?: () => void, user?: any }) => {
+const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user, refreshKey }: { userId: number, isFocused: boolean, currentUser: any, onUpdate?: () => void, user?: any, refreshKey?: number }) => {
     const [ledger, setLedger] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [fabOpen, setFabOpen] = useState(false);
@@ -162,10 +171,10 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user }: { userI
             .finally(() => setLoading(false));
     }
 
-    // Reload when filters change
+    // Reload when filters change OR any sibling tab triggers a mutation (refreshKey)
     useEffect(() => {
         if (isFocused) loadLedger();
-    }, [userId, isFocused, selectedType, startDate, endDate]);
+    }, [userId, isFocused, selectedType, startDate, endDate, refreshKey]);
 
     const clearFilters = () => {
         setSelectedType('ALL');
@@ -182,9 +191,10 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user }: { userI
                 text: 'Delete', style: 'destructive', onPress: async () => {
                     try {
                         await apiService.deleteLedgerEntry(id);
-                        loadLedger();
+                        // Optimistically remove from local list immediately
+                        setLedger(prev => prev.filter(l => l.id !== id));
                         if (onUpdate) onUpdate();
-                    } catch (e) { alert('Failed to delete'); }
+                    } catch (e: any) { Alert.alert('Error', e.message || 'Failed to delete entry'); }
                 }
             }
         ]);
@@ -284,7 +294,7 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user }: { userI
 
     return (
         <View style={{ flex: 1 }}>
-            <Tabs.ScrollView style={styles.tabContent}>
+            <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
                 <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100 }}>
                     {/* Filters */}
                     <View style={{ marginBottom: 10 }}>
@@ -475,7 +485,7 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user }: { userI
 };
 
 
-const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser }: { userId: number, isFocused: boolean, onUpdate?: () => void, currentUser: any }) => {
+const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser, refreshKey }: { userId: number, isFocused: boolean, onUpdate?: () => void, currentUser: any, refreshKey?: number }) => {
     const isNormalUser = currentUser?.role === 'NORMAL';
     const [attendance, setAttendance] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -503,9 +513,10 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser }: { userId:
             .finally(() => setLoading(false));
     };
 
+    // Reload when screen focused or a sibling tab mutates data (refreshKey)
     useEffect(() => {
-        loadAttendance();
-    }, [userId]);
+        if (isFocused) loadAttendance();
+    }, [userId, isFocused, refreshKey]);
 
     const handleCheckIn = async () => {
         try {
@@ -616,7 +627,7 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser }: { userId:
 
     return (
         <View style={{ flex: 1 }}>
-            <Tabs.ScrollView style={styles.tabContent}>
+            <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
                 <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100 }}>
                     {attendance.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No attendance records.</Text> : (
                         <View style={{ gap: 10 }}>
@@ -812,11 +823,11 @@ const MatchesRoute = ({ userId, isFocused }: { userId: number, isFocused: boolea
     }, [isFocused, loadMatches]);
 
     if (loading) return <ActivityIndicator style={{ marginTop: 20 }} />;
-
     return (
-        <Tabs.ScrollView style={styles.tabContent}>
-            <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 20 }}>
-                {matches.length === 0 ? (
+        <View style={{ flex: 1 }}>
+            <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
+                <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100 }}>
+                    {matches.length === 0 ? (
                     <View style={{ alignItems: 'center', marginTop: 40 }}>
                         <MaterialCommunityIcons name="cricket" size={48} color="#ccc" />
                         <Text style={{ textAlign: 'center', marginTop: 10, color: 'gray' }}>No matches played yet.</Text>
@@ -863,6 +874,7 @@ const MatchesRoute = ({ userId, isFocused }: { userId: number, isFocused: boolea
                 )}
             </View>
         </Tabs.ScrollView>
+        </View>
     );
 };
 
@@ -875,6 +887,9 @@ export default function UserDetailScreen() {
     const isFocused = useIsFocused();
     const insets = useSafeAreaInsets();
     const [user, setUser] = useState<any>(null);
+
+    // Shared refresh counter: incrementing causes ALL tabs to re-fetch their data
+    const [refreshKey, setRefreshKey] = useState(0);
 
     // Calculate duration
     const [todaysAttendance, setTodaysAttendance] = useState<any>(null);
@@ -902,7 +917,7 @@ export default function UserDetailScreen() {
         const end = todaysAttendance.out_time ? new Date(todaysAttendance.out_time).getTime() : new Date().getTime();
 
         let diff = end - start;
-        if (diff < 0) diff = 0; // Prevent negative if system time skew
+        if (diff < 0) diff = 0;
 
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -912,13 +927,13 @@ export default function UserDetailScreen() {
     const isPunchIn = user?.punch_status === 'IN';
 
     useEffect(() => {
-        setLoggedTime(calculateDuration()); // Initial update
+        setLoggedTime(calculateDuration());
 
         let interval: NodeJS.Timeout;
         if (isPunchIn) {
             interval = setInterval(() => {
                 setLoggedTime(calculateDuration());
-            }, 60000); // Update every minute
+            }, 60000);
         }
         return () => clearInterval(interval);
     }, [isPunchIn, todaysAttendance, calculateDuration]);
@@ -928,6 +943,13 @@ export default function UserDetailScreen() {
             apiService.getUserById(Number(id)).then((data: any) => setUser(data));
         }
     }, [id]);
+
+    // Called after any mutation (add/edit/delete) in any tab.
+    // Increments refreshKey so ALL tabs re-fetch, and also refreshes the header.
+    const onMutate = useCallback(() => {
+        setRefreshKey(k => k + 1);
+        refreshUser();
+    }, [refreshUser]);
 
     // Header Menu State
     const [menuVisible, setMenuVisible] = useState(false);
@@ -946,7 +968,7 @@ export default function UserDetailScreen() {
                     <View style={{ paddingBottom: 10, alignItems: 'center' }}>
                         <Avatar.Text
                             size={56}
-                            label={user.name.substring(0, 2).toUpperCase()}
+                            label={(user?.name || '??').substring(0, 2).toUpperCase()}
                             style={{ backgroundColor: 'white', elevation: 4 }}
                             color={theme.colors.primary}
                             labelStyle={{ fontWeight: 'bold' }}
@@ -1165,7 +1187,7 @@ export default function UserDetailScreen() {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: 6 }]}>
             {/* Sticky Top Nav */}
             <View style={{
                 position: 'absolute',
@@ -1232,15 +1254,13 @@ export default function UserDetailScreen() {
                 )}
             >
                 <Tabs.Tab name="ledger" label="Ledger">
-                    <LedgerRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} onUpdate={refreshUser} user={user} />
+                    <LedgerRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} onUpdate={onMutate} user={user} refreshKey={refreshKey} />
                 </Tabs.Tab>
                 <Tabs.Tab name="fine" label="Fines">
-                    <FineRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} onUpdate={refreshUser} />
+                    <FineRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} onUpdate={onMutate} refreshKey={refreshKey} />
                 </Tabs.Tab>
                 <Tabs.Tab name="attendance" label="Attendance">
-                    <AttendanceRoute userId={Number(id)} isFocused={isFocused} onUpdate={() => {
-                        apiService.getUserById(Number(id)).then(setUser);
-                    }} currentUser={currentUser} />
+                    <AttendanceRoute userId={Number(id)} isFocused={isFocused} onUpdate={onMutate} currentUser={currentUser} refreshKey={refreshKey} />
                 </Tabs.Tab>
                 <Tabs.Tab name="matches" label="Matches">
                     <MatchesRoute userId={Number(id)} isFocused={isFocused} />

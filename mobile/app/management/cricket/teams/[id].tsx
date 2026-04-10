@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, Alert } from 'react-native';
 import { Card, Text, Avatar, FAB, Button, Portal, Modal, TextInput, ActivityIndicator, IconButton, useTheme, Appbar, TouchableRipple } from 'react-native-paper';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../../../services/api.service';
 
@@ -36,12 +36,15 @@ export default function TeamDetailScreen() {
         }
     };
 
-    useEffect(() => {
-        if (id) {
-            loadTeam();
-            loadUsers();
-        }
-    }, [id]);
+    // useFocusEffect ensures data refreshes when navigating back to this screen
+    useFocusEffect(
+        useCallback(() => {
+            if (id) {
+                loadTeam();
+                loadUsers();
+            }
+        }, [id])
+    );
 
     const handleAddPlayer = async (userId: number) => {
         try {
@@ -87,7 +90,10 @@ export default function TeamDetailScreen() {
                 <Appbar.BackAction onPress={() => router.back()} />
                 <Appbar.Content title="Team Details" />
             </Appbar.Header>
-            <View style={styles.container}><Text>Team not found</Text></View>
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <Text variant="titleMedium" style={{ color: '#999', marginBottom: 16 }}>Team not found or was deleted.</Text>
+                <Button mode="contained" onPress={() => router.back()}>Go Back</Button>
+            </View>
         </SafeAreaView>
     );
 

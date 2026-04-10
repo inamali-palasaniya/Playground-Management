@@ -77,7 +77,6 @@ class ApiService {
 
     // ... (existing imports)
 
-    // public for direct usage if needed
     public async request<T>(endpoint: string, options?: RequestInit & { skipLoader?: boolean }): Promise<T> {
         // Add loader control
         if (!options?.skipLoader) {
@@ -100,8 +99,8 @@ class ApiService {
             // Extract custom options to avoid passing them to fetch
             const { skipLoader, ...fetchOptions } = options || {};
 
-            // Implement timeout (10 seconds)
-            const timeout = 10000;
+            // Implement timeout (15 seconds - increased slightly for heavier dashboard queries if any)
+            const timeout = 15000;
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
 
@@ -119,46 +118,58 @@ class ApiService {
 
             console.log('API Response Status:', response.status);
 
+            const responseText = await response.text();
+            let responseData: any = null;
+            let isJson = false;
+
+            try {
+                responseData = JSON.parse(responseText);
+                isJson = true;
+            } catch (e) {
+                console.warn('API response is not JSON:', responseText.substring(0, 100));
+            }
+
             if (!response.ok) {
                 if (response.status === 401) {
                     console.warn(`Authentication Error: ${response.status}. Triggering logout.`);
-                    // Import dynamically to avoid circular dependency issues if any, or just use imported
                     const { AuthService } = require('./auth.service');
                     AuthService.emitAuthExpired();
                 }
 
-                const errorText = await response.text();
-                console.warn(`API Error Response (${response.status}):`, errorText);
-
                 let errorMessage = `HTTP error! status: ${response.status}`;
-                try {
-                    const errorJson = JSON.parse(errorText);
-                    if (errorJson.error) errorMessage = errorJson.error;
-                    else if (errorJson.message) errorMessage = errorJson.message;
+                if (isJson && responseData) {
+                    errorMessage = responseData.error || responseData.message || errorMessage;
+                }
 
-                    // Handle server-side forced logout (e.g. user deactivation)
-                    if (errorJson.forceLogout) {
-                        console.warn('Force Logout received from server.');
-                        const { AuthService } = require('./auth.service');
-                        AuthService.emitAuthExpired();
+                // Professional override for 401 Session Expiration
+                if (response.status === 401) {
+                    errorMessage = "Session expired. Please login again.";
+                }
+
+                if (isJson && responseData) {
+                    // Include details if available and descriptive
+                    if (responseData.details && typeof responseData.details === 'string') {
+                        errorMessage = `${errorMessage}: ${responseData.details}`;
                     }
-                } catch (e) {
-                    // Not a JSON response, stick to status
                 }
 
                 const customError: any = new Error(errorMessage);
                 customError.status = response.status;
-                customError.body = errorText;
+                customError.body = responseText;
+                customError.data = responseData;
 
-                if (!options?.skipLoader) loaderService.hide(); // Hide before throw
+                if (!options?.skipLoader) loaderService.hide();
                 throw customError;
             }
 
-            const data = await response.json();
-            console.log('API Response Data:', data);
+            if (!isJson) {
+                throw new Error('Server returned non-JSON response');
+            }
+
+            console.log('API Response Data success');
 
             if (!options?.skipLoader) loaderService.hide();
-            return data;
+            return responseData;
         } catch (error: any) {
             if (!options?.skipLoader) loaderService.hide();
             
@@ -168,7 +179,6 @@ class ApiService {
             }
 
             console.warn('API request failed:', error.message);
-            // Re-throw so caller handles it, but now with .status property if it was HTTP error
             throw error;
         }
     }

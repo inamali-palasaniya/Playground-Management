@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, ScrollView, Alert } from 'react-native';
 import { Card, Text, Avatar, Button, ActivityIndicator, Appbar, useTheme, Chip, Divider, IconButton } from 'react-native-paper';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../../../services/api.service';
 import { format } from 'date-fns';
@@ -34,9 +34,12 @@ export default function TournamentDetailScreen() {
         }
     };
 
-    useEffect(() => {
-        if (id) loadData();
-    }, [id]);
+    // useFocusEffect ensures data refreshes when navigating back to this screen
+    useFocusEffect(
+        useCallback(() => {
+            if (id) loadData();
+        }, [id])
+    );
 
     const renderMatchItem = ({ item }: { item: any }) => (
         <Card
@@ -71,7 +74,10 @@ export default function TournamentDetailScreen() {
                 <Appbar.BackAction onPress={() => router.back()} />
                 <Appbar.Content title="Tournament" />
             </Appbar.Header>
-            <View style={styles.container}><Text>Tournament not found</Text></View>
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                <Text variant="titleMedium" style={{ color: '#999', marginBottom: 16 }}>Tournament not found or was deleted.</Text>
+                <Button mode="contained" onPress={() => router.back()}>Go Back</Button>
+            </View>
         </SafeAreaView>
     );
 

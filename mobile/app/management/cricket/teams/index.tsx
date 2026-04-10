@@ -40,9 +40,11 @@ export default function TeamListScreen() {
                 onPress: async () => {
                     try {
                         await apiService.request(`/api/teams/${id}`, { method: 'DELETE' });
-                        loadTeams();
+                        // Optimistically remove from list immediately
+                        setTeams(prev => prev.filter(t => t.id !== id));
                     } catch (e) {
                         Alert.alert('Error', 'Failed to delete team');
+                        loadTeams(); // Re-sync on error
                     }
                 }
             }

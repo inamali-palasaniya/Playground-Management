@@ -211,16 +211,10 @@ export const getUsers = async (req: Request, res: Response) => {
                     take: 1
                 },
                 permissions: true,
-                fee_ledger: {
-                    select: { amount: true, transaction_type: true, type: true, date: true }
-                },
                 created_by: { select: { name: true } },
                 attendances: {
                     where: {
-                        date: {
-                            gte: startOfToday,
-                            lte: endOfToday
-                        }
+                        date: { gte: startOfToday, lte: endOfToday }
                     },
                     orderBy: { in_time: 'desc' },
                     take: 1
@@ -229,76 +223,74 @@ export const getUsers = async (req: Request, res: Response) => {
             orderBy: { name: 'asc' }
         });
 
+        // Bulk Fetch Balances for these users
+        const userIds = users.map(u => u.id);
+        
+        const debits = await prisma.feeLedger.groupBy({
+            by: ['user_id'],
+            where: { user_id: { in: userIds }, transaction_type: 'DEBIT' },
+            _sum: { amount: true }
+        });
+
+        const credits = await prisma.feeLedger.groupBy({
+            by: ['user_id'],
+            where: { user_id: { in: userIds }, transaction_type: 'CREDIT' },
+            _sum: { amount: true }
+        });
+
+        // Check current month subscription payments in bulk
+        const currentMonthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        const paidSubs = await prisma.feeLedger.findMany({
+            where: {
+                user_id: { in: userIds },
+                transaction_type: 'CREDIT',
+                type: 'SUBSCRIPTION',
+                date: { gte: currentMonthStart }
+            },
+            select: { user_id: true }
+        });
+
+        const debitMap = new Map(debits.map(d => [d.user_id, d._sum.amount || 0]));
+        const creditMap = new Map(credits.map(c => [c.user_id, c._sum.amount || 0]));
+        const paidSubSet = new Set(paidSubs.map(ps => ps.user_id));
+
         const enhancedUsers = users.map(user => {
             const sub = user.subscriptions[0];
             const plan = sub?.plan;
-            let status = 'N/A';
-            let planName = 'No Plan';
+            let subStatus = sub?.status || 'N/A';
+            let planName = plan?.name || 'No Plan';
             let paymentFrequency = sub?.payment_frequency || null;
 
-            if (plan) {
-                planName = plan.name;
-                if (plan.rate_monthly && plan.rate_monthly > 0) {
-                    // Subscription Logic for "EXPIRED"
-                    // User Request: "If monthly subscriber are expire monthly subscription then show status expired... if current month payment not received"
-                    // Existing logic already checks this roughly. Let's refine.
-                    // If plan is monthly, and sub status is ACTIVE, check if current month fee is paid?
-                    // actually sub.status should reflect it.
-                    status = sub.status;
-                } else {
-                    status = 'ACTIVE';
-                }
+            if (plan && !plan.rate_monthly) {
+                subStatus = 'ACTIVE';
             }
 
-            // Check for Expired Subscription Display logic
-            // If subscription is expired, status should be EXPIRED.
-            if (sub?.status === 'EXPIRED') {
-                status = 'EXPIRED';
-            }
-
-            // Financial Balance Calculation
-            let totalDebits = 0;
-            let totalCredits = 0;
-            user.fee_ledger.forEach(t => {
-                if (t.transaction_type === 'DEBIT') totalDebits += t.amount;
-                else if (t.transaction_type === 'CREDIT') totalCredits += t.amount;
-            });
+            // Financial Totals from Maps
+            const totalDebits = debitMap.get(user.id) || 0;
+            const totalCredits = creditMap.get(user.id) || 0;
             const balance = totalDebits - totalCredits;
 
-            // Attendance Status
-            const attendance = user.attendances[0];
-            let punchStatus = 'NONE';
-            if (attendance) {
-                if (attendance.out_time) punchStatus = 'OUT';
-                else punchStatus = 'IN';
-            }
-
-            // Remove large ledger array from response to save bandwidth
-            const { fee_ledger, ...userWithoutLedger } = user;
-
+            // Filters applied after calculation
             if (filter === 'NEGATIVE_BALANCE' && balance <= 0) return null;
             if (filter === 'SETTLED' && balance > 0) return null;
 
             return {
                 ...user,
                 plan_name: planName,
-                subscription_status: status,
+                subscription_status: subStatus,
                 balance,
                 total_debits: totalDebits,
                 total_credits: totalCredits,
                 todays_attendance_id: user.attendances[0]?.id || null,
-                punch_status: user.attendances[0]?.is_present ? (user.attendances[0]?.out_time ? 'OUT' : 'IN') : 'NONE',
+                punch_status: user.attendances[0] ? (user.attendances[0].out_time ? 'OUT' : 'IN') : 'NONE',
                 payment_frequency: paymentFrequency,
-                is_subscription_paid: user.fee_ledger.some(t =>
-                    t.transaction_type === 'CREDIT' &&
-                    t.type === 'SUBSCRIPTION' &&
-                    new Date(t.date) >= new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-                ),
+                is_subscription_paid: paidSubSet.has(user.id),
                 created_by_name: (user as any).created_by?.name || 'System'
             };
         }).filter(u => u !== null);
 
         res.json(enhancedUsers);
+
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).json({ error: 'Failed to fetch users' });

@@ -36,79 +36,63 @@ export const processBallEvent = async (data: BallEventData) => {
             isValidBall
         } = data;
 
-        // 1. Fetch Match State for Validation
+        // 1. Fetch All Validation Data in Parallel/Combined to reduce DB round trips
         const match = await prisma.match.findUnique({
             where: { id: matchId },
-            include: { ball_events: { orderBy: { id: 'desc' }, take: 1 } }
-        });
-
-        if (!match) throw new Error("Match not found");
-
-        if (match.is_completed) throw new Error("Match is already completed");
-
-        // 2. Validate Over Limit (Prevent adding balls if max overs reached)
-        // Note: overNumber is 0-indexed or 1-indexed? usually 0.whatever or just sequential. 
-        // Assuming integer over numbers (1, 2, 3...)
-        if (overNumber > match.overs) {
-            throw new Error(`Cannot bowl over ${overNumber}. Max overs is ${match.overs}`);
-        }
-
-        // Check if previous over was completed and we are trying to add to a "new" over beyond limit
-        // Current logic relies on client sending correct numbers.
-        // Let's strictly check: If existing balls for this innings imply overs are done.
-
-        // 3. Validate Over Limit (Prevent adding balls if existing valid balls >= 6)
-        // Count existing valid balls for this over
-        const existingValidBalls = await prisma.ballEvent.count({
-            where: {
-                match_id: matchId,
-                innings: innings,
-                over_number: overNumber,
-                is_valid_ball: true
+            include: {
+                // Fetch last ball of previous over for consecutive-bowler check
+                ball_events: {
+                    where: {
+                        innings: innings,
+                        OR: [
+                            { over_number: overNumber }, // current over for count check
+                            { over_number: overNumber - 1 } // prev over for consecutive check
+                        ]
+                    },
+                    orderBy: [{ over_number: 'desc' }, { ball_number: 'desc' }]
+                },
+                // Fetch bowler's team info to validate they aren't bowling to their own team
+                team_a: { include: { players: { where: { user_id: bowlerId }, select: { user_id: true } } } },
+                team_b: { include: { players: { where: { user_id: bowlerId }, select: { user_id: true } } } }
             }
         });
 
-        if (existingValidBalls >= 6 && (isValidBall !== false)) {
-            // If we already have 6 valid balls, we cannot add another valid ball to this over.
-            // The client must increment overNumber.
-            throw new Error("Over is complete. Please select next bowler.");
+        if (!match) throw new Error("Match not found");
+        if (match.is_completed) throw new Error("Match is already completed");
+
+        // 2. Validate Over Limit
+        const currentOverValidBalls = match.ball_events.filter(b => b.over_number === overNumber && b.is_valid_ball).length;
+        if (currentOverValidBalls >= 6 && (isValidBall !== false)) {
+            throw new Error(`Over ${overNumber} is complete. Please update over number or change bowler.`);
         }
 
-        // 4. Validate Bowler (Cannot be same as previous over)
-        // Find last ball of *previous* over. 
-        // If this is the *first ball* of a new over, check the bowler of the *last ball* of the *previous over*.
+        if (overNumber > match.overs) {
+            throw new Error(`Maximum overs (${match.overs}) reached for this match.`);
+        }
+
+        // 3. Validate Bowler (Cannot bowl consecutive overs)
         if (ballNumber === 1 && overNumber > 1) {
-            const previousOverLastBall = await prisma.ballEvent.findFirst({
-                where: {
-                    match_id: matchId,
-                    innings: innings,
-                    over_number: overNumber - 1
-                },
-                orderBy: { ball_number: 'desc' }
-            });
+            const lastOverBalls = match.ball_events.filter(b => b.over_number === overNumber - 1);
+            const previousOverLastBall = lastOverBalls[0]; // Already ordered desc
 
             if (previousOverLastBall && previousOverLastBall.bowler_id === bowlerId) {
-                throw new Error("The same bowler cannot bowl two consecutive overs.");
+                throw new Error("Consecutive Over Violation: The same bowler cannot bowl two overs in a row.");
             }
         }
 
         // 4. Validate Batsman (Current Striker != Current Non-Striker)
         if (Number(strikerId) === Number(nonStrikerId)) {
-            throw new Error("Striker and Non-Striker cannot be the same player.");
+            throw new Error("Invalid Alignment: Striker and Non-Striker cannot be the same player.");
         }
 
         // 5. Validate Bowler Team (Bowler cannot be from Batting Team)
         if (battingTeamId) {
-            // Check if bowler belongs to the batting team
-            const bowlerInBattingTeam = await prisma.teamPlayer.findFirst({
-                where: {
-                    team_id: battingTeamId,
-                    user_id: bowlerId
-                }
-            });
+            const isTeamA = Number(battingTeamId) === match.team_a_id;
+            const targetTeam = isTeamA ? match.team_a : match.team_b;
+            const bowlerInBattingTeam = targetTeam.players.length > 0;
 
             if (bowlerInBattingTeam) {
-                throw new Error("Invalid Bowler: The bowler cannot belong to the current batting team.");
+                throw new Error("Illegal Bowler: A player cannot bowl against their own team.");
             }
         }
 
