@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../../../services/api.service';
 import { format } from 'date-fns';
 import { AuthService, User } from '../../../../services/auth.service';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function MatchListScreen() {
     const router = useRouter();
