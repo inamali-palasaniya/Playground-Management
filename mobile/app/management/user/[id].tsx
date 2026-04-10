@@ -40,8 +40,8 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
 
     if (isSuperAdmin) {
         return (
-            <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
-                <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100, alignItems: 'center' }}>
+            <Tabs.ScrollView style={[{ flex: 1 }, { flex: 1 }]}>
+                <View style={{ paddingHorizontal: 16, paddingBottom: 100, alignItems: 'center' }}>
                     <MaterialCommunityIcons name="shield-crown" size={64} color="gold" />
                     <Text variant="titleMedium" style={{ marginTop: 10, fontWeight: 'bold' }}>Success Admin Access</Text>
                     <Text style={{ textAlign: 'center', color: 'gray', marginTop: 5 }}>
@@ -55,8 +55,8 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
 
     return (
         <View style={{ flex: 1 }}>
-            <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
-                <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100 }}>
+            <Tabs.ScrollView style={[{ flex: 1 }, { flex: 1 }]}>
+                <View style={{ paddingHorizontal: 16, paddingBottom: 100 }}>
                     <PermissionSelector
                         permissions={permissions || []}
                         onChange={handleSave}
@@ -108,11 +108,11 @@ const FineRoute = ({ userId, isFocused, currentUser, onUpdate, refreshKey }: { u
 
     return (
         <View style={{ flex: 1 }}>
-            <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
-                <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100 }}>
+            <Tabs.ScrollView style={[{ flex: 1 }, { flex: 1 }]}>
+                <View style={{ paddingHorizontal: 16, paddingBottom: 100 }}>
                     {fines.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No fines found.</Text> : (
                         fines.map((item) => (
-                            <Card key={item.id} style={styles.ledgerCard}>
+                            <Card key={item.id} style={{ marginBottom: 10, backgroundColor: "white", elevation: 2, borderRadius: 8 }}>
                                 <Card.Content style={{ paddingVertical: 8 }}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <View style={{ flex: 1 }}>
@@ -137,7 +137,7 @@ const FineRoute = ({ userId, isFocused, currentUser, onUpdate, refreshKey }: { u
 
 
             {isFocused && canAdd && (
-                <FAB icon="plus" color="white" style={styles.fab} onPress={() => router.push({ pathname: '/management/apply-fine', params: { userId } })} label="Apply Fine" visible={isFocused} />
+                <FAB icon="plus" color="white" style={{ position: "absolute", margin: 16, right: 0, bottom: 0, backgroundColor: "#6200ee" }} onPress={() => router.push({ pathname: '/management/apply-fine', params: { userId } })} label="Apply Fine" visible={isFocused} />
             )}
         </View>
     );
@@ -295,7 +295,7 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user, refreshKe
     return (
         <View style={{ flex: 1 }}>
             <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
-                <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100 }}>
+                <View style={{ paddingHorizontal: 16, paddingBottom: 100 }}>
                     {/* Filters */}
                     <View style={{ marginBottom: 10 }}>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
@@ -335,7 +335,7 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user, refreshKe
                             return (
                                 <Card
                                     key={item.id}
-                                    style={[styles.ledgerCard, { borderLeftColor: item.is_paid ? 'green' : 'red', borderLeftWidth: 4 }]}
+                                    style={[{ marginBottom: 10, backgroundColor: "white", elevation: 2, borderRadius: 8 }, { borderLeftColor: item.is_paid ? 'green' : 'red', borderLeftWidth: 4 }]}
                                     onPress={() => router.push({ pathname: '/management/ledger/[id]', params: { id: item.id, userId } })}
                                 >
                                     <Card.Content>
@@ -628,7 +628,7 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser, refreshKey 
     return (
         <View style={{ flex: 1 }}>
             <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
-                <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100 }}>
+                <View style={{ paddingHorizontal: 16, paddingBottom: 100 }}>
                     {attendance.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No attendance records.</Text> : (
                         <View style={{ gap: 10 }}>
                             {attendance.map((record) => (
@@ -705,7 +705,7 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser, refreshKey 
                     color="white"
                     icon="account-clock"
                     label="Manual Check-In"
-                    style={styles.fab}
+                    style={{ position: "absolute", margin: 16, right: 0, bottom: 0, backgroundColor: "#6200ee" }}
                     onPress={() => {
                         setCheckInDate(new Date());
                         setShowCheckInDialog(true);
@@ -826,7 +826,7 @@ const MatchesRoute = ({ userId, isFocused }: { userId: number, isFocused: boolea
     return (
         <View style={{ flex: 1 }}>
             <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
-                <View style={{ paddingHorizontal: 16, paddingTop: 140, paddingBottom: 100 }}>
+                <View style={{ paddingHorizontal: 16, paddingBottom: 100 }}>
                     {matches.length === 0 ? (
                     <View style={{ alignItems: 'center', marginTop: 40 }}>
                         <MaterialCommunityIcons name="cricket" size={48} color="#ccc" />
@@ -1130,37 +1130,26 @@ export default function UserDetailScreen() {
                 {user.subscription_status === 'EXPIRED' && (
                     <View style={{ backgroundColor: '#ffebee', padding: 10, marginHorizontal: 16, marginBottom: 10, borderRadius: 8, flexDirection: 'row', alignItems: 'center', borderColor: 'red', borderWidth: 1 }}>
                         <MaterialCommunityIcons name="alert-circle" size={24} color="red" />
-                        <Text style={{ marginLeft: 10, color: 'red', fontWeight: 'bold', flex: 1 }}>Subscription Expired! Payment Due.</Text>
-                    </View>
-                )}
-
-                {/* Subscription & Financial Breakdown Block */}
-                <Card style={{ marginHorizontal: 16, marginBottom: 15, backgroundColor: 'white', elevation: 2 }}>
-                    <Card.Content style={{ paddingVertical: 10 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                            <MaterialCommunityIcons name="wallet-membership" size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
-                            <Text variant="titleSmall" style={{ fontWeight: 'bold', flex: 1 }}>Subscription & Financials</Text>
+                {/* Info Card Section */}
+                <Card style={{ margin: 12, borderRadius: 12, elevation: 4 }}>
+                    <Card.Content>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                            <MaterialCommunityIcons name="bus-side" size={24} color={theme.colors.primary} />
+                            <Text variant="titleMedium" style={{ marginLeft: 10, fontWeight: 'bold' }}>Subscription & Financials</Text>
                         </View>
-                        {/* Plan Details */}
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
+
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
                             <View>
                                 <Text variant="labelSmall" style={{ color: 'gray' }}>Current Plan</Text>
-                                <Text variant="bodyMedium" style={{ fontWeight: 'bold' }}>
-                                    {user.plan_name || 'Standard Plan'}
-                                </Text>
+                                <Text variant="bodyLarge" style={{ fontWeight: 'bold' }}>{user.subscription_plan?.name || 'No Plan'}</Text>
                             </View>
                             <View style={{ alignItems: 'flex-end' }}>
                                 <Text variant="labelSmall" style={{ color: 'gray' }}>Rate</Text>
-                                <Text variant="bodyMedium" style={{ fontWeight: 'bold', color: theme.colors.primary }}>
-                                    {user.subscriptions && user.subscriptions.length > 0
-                                        ? `₹${user.subscriptions[0].plan?.amount || 0}/${user.subscriptions[0].plan?.frequency === 'DAILY' ? 'day' : 'month'}`
-                                        : 'No Active Plan'}
-                                </Text>
+                                <Text variant="bodyLarge" style={{ color: theme.colors.primary }}>₹{user.subscription_plan?.price || 0}/month</Text>
                             </View>
                         </View>
 
-                        {/* Financial Stats Grid */}
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <View style={{ flexDirection: 'row', paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#f0f0f0' }}>
                             <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#f0f0f0' }}>
                                 <Text variant="labelSmall" style={{ color: 'gray' }}>Total Paid</Text>
                                 <Text variant="titleMedium" style={{ color: 'green', fontWeight: 'bold' }}>
@@ -1187,52 +1176,10 @@ export default function UserDetailScreen() {
     };
 
     return (
-        <View style={[styles.container, { paddingTop: 6 }]}>
-            {/* Sticky Top Nav */}
-            <View style={{
-                position: 'absolute',
-                top: 0, left: 0, right: 0,
-                zIndex: 100,
-                backgroundColor: theme.colors.primary,
-                paddingTop: insets.top,
-                height: 60 + insets.top, // Fixed height for stable sticky header
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 8,
-                elevation: 4
-            }}>
-                <StatusBar barStyle="light-content" backgroundColor={theme.colors.primary} />
-                <IconButton icon="arrow-left" iconColor="white" size={24} onPress={() => router.back()} />
-
-                {/* Sticky User Info */}
-                <View style={{ flex: 1, marginLeft: 0 }}>
-                    <Text variant="titleMedium" style={{ color: 'white', fontWeight: 'bold' }} numberOfLines={1}>
-                        {user.name}
-                    </Text>
-                    <Text variant="bodySmall" style={{ color: 'rgba(255,255,255,0.8)' }} numberOfLines={1}>
-                        {user.phone || user.email || 'No Contact'}
-                    </Text>
-                </View>
-
-                {(AuthService.hasPermission(currentUser, 'payment', 'add') || AuthService.hasPermission(currentUser, 'charge', 'add')) && (
-                    <Menu
-                        visible={menuVisible}
-                        onDismiss={closeMenu}
-                        anchor={<IconButton icon="dots-vertical" iconColor="white" onPress={openMenu} />}
-                    >
-                        {AuthService.hasPermission(currentUser, 'payment', 'add') && (
-                            <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id, initialTxType: 'CREDIT' } }) }} title="Add Payment" leadingIcon="cash-plus" />
-                        )}
-                        {AuthService.hasPermission(currentUser, 'charge', 'add') && (
-                            <Menu.Item onPress={() => { closeMenu(); router.push({ pathname: '/management/add-payment', params: { userId: user.id, initialTxType: 'DEBIT' } }) }} title="Add Charge" leadingIcon="cash-minus" />
-                        )}
-                    </Menu>
-                )}
-            </View>
-
+        <View style={{ flex: 1, backgroundColor: "#f8f9fa" }}>
             <Tabs.Container
                 renderHeader={renderHeader}
-                headerContainerStyle={{ backgroundColor: theme.colors.background, paddingTop: 60 + insets.top }}
+                headerContainerStyle={{ backgroundColor: theme.colors.background }}
                 minHeaderHeight={60 + insets.top}
                 revealHeaderOnScroll={true}
                 pagerProps={{ scrollEnabled: true }}
