@@ -32,17 +32,21 @@ export default function AddUserScreen() {
                 try {
                     const groupsData = await apiService.getGroups();
                     setGroups(groupsData || []);
-                } catch (e) {
-                    console.error('Failed to fetch groups:', e);
+                } catch (e: any) {
+                    if (e.status !== 401) {
+                        console.error('Failed to fetch groups:', e);
+                    }
                 }
 
                 // Fetch Plans
                 try {
                     const plansData = await apiService.getSubscriptionPlans();
                     setPlans(plansData || []);
-                } catch (e) {
-                    console.error('Failed to fetch plans:', e);
-                    Alert.alert('Error', 'Failed to load subscription plans. Please check connection.');
+                } catch (e: any) {
+                    if (e.status !== 401) {
+                        console.error('Failed to fetch plans:', e);
+                        Alert.alert('Error', 'Failed to load subscription plans. Please check connection.');
+                    }
                 }
             } catch (err) {
                 console.error('Global fetch error:', err);
@@ -83,7 +87,9 @@ export default function AddUserScreen() {
             // Alert.alert('Success', 'User created successfully');
             router.replace('/(tabs)/users');
         } catch (error: any) {
-            Alert.alert('Error', error.message || 'Failed to create user');
+            if (error.status !== 401) {
+                Alert.alert('Error', error.message || 'Failed to create user');
+            }
         } finally {
             setLoading(false);
         }

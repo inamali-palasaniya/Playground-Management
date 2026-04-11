@@ -71,14 +71,20 @@ export default function AddPaymentScreen() {
 
     React.useEffect(() => {
         // Fetch base data
-        apiService.getUsers().then(setUsers).catch(console.error);
-        apiService.getTournaments().then(setTournaments).catch(console.error);
+        apiService.getUsers().then(setUsers).catch((e: any) => {
+            if (e.status !== 401) console.error(e);
+        });
+        apiService.getTournaments().then(setTournaments).catch((e: any) => {
+            if (e.status !== 401) console.error(e);
+        });
     }, []);
 
     React.useEffect(() => {
         if (selectedTournamentId) {
              // Reset team selection when tournament changes, unless it's already set from params payload correctly
-            apiService.getTeamsByTournament(selectedTournamentId).then(setTeams).catch(console.error);
+            apiService.getTeamsByTournament(selectedTournamentId).then(setTeams).catch((e: any) => {
+                if (e.status !== 401) console.error(e);
+            });
         } else {
             setTeams([]);
         }
@@ -136,9 +142,11 @@ export default function AddPaymentScreen() {
                     Alert.alert('Success', 'Payment recorded successfully');
                 }
                 router.back();
-            } catch (error) {
-                console.error(error);
-                Alert.alert('Error', isEditing ? 'Failed to update' : 'Failed to record payment');
+            } catch (error: any) {
+                if (error.status !== 401) {
+                    console.error(error);
+                    Alert.alert('Error', isEditing ? 'Failed to update' : 'Failed to record payment');
+                }
             } finally {
                 setLoading(false);
             }

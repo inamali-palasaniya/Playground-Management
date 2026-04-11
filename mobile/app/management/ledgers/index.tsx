@@ -28,9 +28,11 @@ export default function LedgerListScreen() {
             setLoading(true);
             const data = await apiService.getAllLedgers(selectedType ? { type: selectedType, transactionType: 'CREDIT' } : { transactionType: 'CREDIT' });
             setLedgers(data);
-        } catch (error) {
-            console.error(error);
-            Alert.alert('Error', 'Failed to load payments');
+        } catch (error: any) {
+            if (error.status !== 401) {
+                console.error(error);
+                Alert.alert('Error', 'Failed to load payments');
+            }
         } finally {
             setLoading(false);
         }
@@ -38,6 +40,8 @@ export default function LedgerListScreen() {
 
     useFocusEffect(
         useCallback(() => {
+            if (!user) return; // Wait for user to load
+
             if (!AuthService.hasPermission(user, 'ledger', 'view')) {
                 Alert.alert('Access Denied', 'You do not have permission to view this module.', [{ text: 'Go Back', onPress: () => router.back() }]);
                 return;

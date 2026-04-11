@@ -132,8 +132,10 @@ export default function PeopleScreen() {
 
                 console.log('API returned users:', (usersData as any[])?.length);
                 setUsers(usersData as User[]);
-        } catch (error) {
-            console.error('Failed to load data:', error);
+        } catch (error: any) {
+            if (error.status !== 401) {
+                console.error('Failed to load data:', error);
+            }
         } finally {
             // Only stop loading if we are the latest request (or if verified above)
             // Ideally, we just check again or let the latest one handle it. 

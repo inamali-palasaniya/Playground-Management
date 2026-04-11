@@ -57,6 +57,20 @@ interface CreateUserData {
     is_active?: boolean;
 }
 
+export class ApiError extends Error {
+    status: number;
+    body: string;
+    data: any;
+
+    constructor(message: string, status: number, body: string, data: any) {
+        super(message);
+        this.name = 'ApiError';
+        this.status = status;
+        this.body = body;
+        this.data = data;
+    }
+}
+
 class ApiService {
     private currentUser: User | null = null;
 
@@ -147,16 +161,12 @@ class ApiService {
                 }
 
                 if (isJson && responseData) {
-                    // Include details if available and descriptive
                     if (responseData.details && typeof responseData.details === 'string') {
                         errorMessage = `${errorMessage}: ${responseData.details}`;
                     }
                 }
 
-                const customError: any = new Error(errorMessage);
-                customError.status = response.status;
-                customError.body = responseText;
-                customError.data = responseData;
+                const customError = new ApiError(errorMessage, response.status, responseText, responseData);
 
                 if (!options?.skipLoader) loaderService.hide();
                 throw customError;

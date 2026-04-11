@@ -25,8 +25,11 @@ export default function MatchListScreen() {
             setLoading(true);
             const data = await apiService.request<any[]>('/api/matches');
             setMatches(data);
-        } catch (error) {
-            console.error(error);
+        } catch (error: any) {
+            // Ignore 401 errors as they are handled globally
+            if (error.status !== 401) {
+                console.error(error);
+            }
         } finally {
             setLoading(false);
         }
@@ -34,6 +37,8 @@ export default function MatchListScreen() {
 
     useFocusEffect(
         useCallback(() => {
+            if (!currentUser) return; // Wait for user to load
+
             if (!AuthService.hasPermission(currentUser, 'cricket_scoring', 'view')) {
                 Alert.alert('Access Denied', 'You do not have permission to view matches.', [{ text: 'Go Back', onPress: () => router.back() }]);
                 return;

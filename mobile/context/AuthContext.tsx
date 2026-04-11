@@ -104,7 +104,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         const unsubscribe = AuthService.subscribeToAuthExpired(() => {
             console.log('Session expired, logging out...');
-            logout();
+            
+            // Show a professional, non-technical alert
+            const { Alert } = require('react-native');
+            Alert.alert(
+                "Session Expired",
+                "Your session has expired. Please login again to continue.",
+                [
+                    { 
+                        text: "Login Again", 
+                        onPress: () => logout() 
+                    }
+                ],
+                { cancelable: false }
+            );
         });
         return () => unsubscribe();
     }, []);
