@@ -11,6 +11,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AuditLogDialog from '../../components/AuditLogDialog';
 import { ErrorDialog } from '../../../components/ErrorDialog';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { safeFormatDate } from '../../../utils/date.utils';
 
 interface User {
     id: number;
@@ -134,8 +135,13 @@ export default function PeopleScreen() {
                 if (groups.length === 0 && results.length > 1) setGroups(results[1] as Group[]);
                 if (plans.length === 0 && results.length > 2) setPlans(results[2] as SubscriptionPlan[]);
 
-                console.log('API returned users:', (usersData as any[])?.length);
-                setUsers(usersData as User[]);
+                if (Array.isArray(usersData)) {
+                    console.log('API returned users:', usersData.length);
+                    setUsers(usersData as User[]);
+                } else {
+                    console.error('API returned non-array users data:', usersData);
+                    setUsers([]);
+                }
         } catch (error: any) {
             if (error.status === 403) {
                 setErrorMessage(error.message || 'Access Denied');
@@ -293,7 +299,7 @@ export default function PeopleScreen() {
                     </Text>
                 }
                 subtitleStyle={{ marginTop: -2 }}
-                left={(props) => <Avatar.Text {...props} size={40} label={item.name.substring(0, 2).toUpperCase()} />}
+                left={(props) => <Avatar.Text {...props} size={40} label={(item.name || 'U').substring(0, 2).toUpperCase()} />}
                 right={(props) => {
                     const canEdit = AuthService.hasPermission(currentUser, 'user', 'edit');
                     const canDelete = AuthService.hasPermission(currentUser, 'user', 'delete');
@@ -410,7 +416,7 @@ export default function PeopleScreen() {
                     {/* Footer: Created By + Inactive Status */}
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 0.5, borderTopColor: '#f0f0f0', paddingTop: 6 }}>
                         <Text style={{ fontSize: 10, color: '#999', fontStyle: 'italic' }}>
-                            Added by {item.created_by_name || 'System'} • {item.createdAt ? format(new Date(item.createdAt), 'dd MMM') : ''}
+                            Added by {item.created_by_name || 'System'} • {safeFormatDate(item.createdAt, 'dd MMM')}
                         </Text>
                         {(item as any).is_active === false && (
                             <View style={{ backgroundColor: '#ffebee', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10 }}>
@@ -646,7 +652,7 @@ export default function PeopleScreen() {
                 />
             )}
 
-            {canViewUsers && (
+            {canViewUsers && isFocused && (
                 <Portal>
                     <FAB.Group
                         open={fabOpen}
@@ -659,7 +665,7 @@ export default function PeopleScreen() {
                                 ? [{ icon: 'database-cog', label: 'Manage Masters', onPress: () => router.push('/management/masters') }] : []),
                         ]}
                         onStateChange={({ open }) => setFabOpen(open)}
-                        style={{ paddingBottom: 90 }} // Approx TabBar height + spacing
+                        style={{ paddingBottom: Platform.OS === 'ios' ? 90 : 70 }} // Adjusted for relative bar
                     />
                 </Portal>
             )}

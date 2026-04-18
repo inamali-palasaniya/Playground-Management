@@ -21,12 +21,11 @@ export default function TabLayout() {
             tabBarActiveTintColor: theme.colors.primary,
             tabBarShowLabel: false,
             tabBarStyle: {
-                position: 'absolute',
-                borderTopWidth: 0,
+                borderTopWidth: 1,
+                borderTopColor: '#f0f0f0',
                 backgroundColor: 'white',
-                height: 70 + insets.bottom,
-                paddingBottom: insets.bottom,
-                ...styles.shadow
+                height: 60 + (Platform.OS === 'ios' ? insets.bottom : 0),
+                ...styles.shadow,
             }
         }}>
             <Tabs.Screen
@@ -35,8 +34,8 @@ export default function TabLayout() {
                     title: 'Users',
                     href: canViewUsers ? '/(tabs)/users' : null,
                     tabBarIcon: ({ color, size }) => (
-                        <View style={{ alignItems: 'center', justifyContent: 'center', top: 15 }}>
-                            <MaterialCommunityIcons name="account-group" size={30} color={color} />
+                        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                            <MaterialCommunityIcons name="account-group" size={28} color={color} />
                         </View>
                     ),
                     headerShown: false,
@@ -51,22 +50,22 @@ export default function TabLayout() {
                     tabBarIcon: ({ focused }) => (
                         // Custom Floating Button with Curve Effect
                         <View style={{
-                            top: -25, // Adjusted for docked bar
+                            top: -15, // Reduced offset for relative bar
                             justifyContent: 'center',
                             alignItems: 'center',
                         }}>
                             <View style={{
-                                width: 70,
-                                height: 70,
-                                borderRadius: 35,
+                                width: 62,
+                                height: 62,
+                                borderRadius: 31,
                                 backgroundColor: theme.colors.primary,
                                 justifyContent: 'center',
                                 alignItems: 'center',
                                 ...styles.shadow,
-                                borderWidth: 5, // Thicker border
-                                borderColor: 'white' // Match bar background to simulate seamless curve
+                                borderWidth: 4,
+                                borderColor: 'white'
                             }}>
-                                <MaterialCommunityIcons name="view-dashboard-outline" size={32} color="white" />
+                                <MaterialCommunityIcons name="view-dashboard-outline" size={28} color="white" />
                             </View>
                         </View>
                     ),
@@ -79,8 +78,8 @@ export default function TabLayout() {
                     title: 'Scoring',
                     href: canViewScoring ? '/(tabs)/scoring' : null,
                     tabBarIcon: ({ color, size }) => (
-                        <View style={{ alignItems: 'center', justifyContent: 'center', top: 15 }}>
-                            <MaterialCommunityIcons name="cricket" size={30} color={color} />
+                        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                            <MaterialCommunityIcons name="cricket" size={28} color={color} />
                         </View>
                     ),
                 }}

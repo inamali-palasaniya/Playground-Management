@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import apiService from '../../../services/api.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
+import { safeFormatDate } from '../../../utils/date.utils';
 
 export default function ScoringDashboard() {
     const router = useRouter();
@@ -16,8 +17,12 @@ export default function ScoringDashboard() {
     const fetchMatches = async () => {
         try {
             const data = await apiService.getMatches();
+            if (!Array.isArray(data)) {
+                setMatches([]);
+                return;
+            }
             // Sort by status (LIVE first) then by ID
-            const sorted = data.sort((a, b) => {
+            const sorted = data.sort((a: any, b: any) => {
                 if (a.status === 'LIVE' && b.status !== 'LIVE') return -1;
                 if (a.status !== 'LIVE' && b.status === 'LIVE') return 1;
                 return b.id - a.id;
@@ -78,7 +83,7 @@ export default function ScoringDashboard() {
 
                     <View style={styles.matchTeams}>
                         <View style={styles.teamSide}>
-                            <Avatar.Text size={40} label={item.team_a?.name?.substring(0, 2).toUpperCase() || 'A'} />
+                            <Avatar.Text size={40} label={(item.team_a?.name || 'A').substring(0, 2).toUpperCase()} />
                             <Text variant="titleSmall" style={styles.teamText} numberOfLines={1}>{item.team_a?.name}</Text>
                         </View>
 
@@ -87,7 +92,7 @@ export default function ScoringDashboard() {
                         </View>
 
                         <View style={[styles.teamSide, { alignItems: 'flex-end' }]}>
-                            <Avatar.Text size={40} label={item.team_b?.name?.substring(0, 2).toUpperCase() || 'B'} />
+                            <Avatar.Text size={40} label={(item.team_b?.name || 'B').substring(0, 2).toUpperCase()} />
                             <Text variant="titleSmall" style={[styles.teamText, { textAlign: 'right' }]} numberOfLines={1}>{item.team_b?.name}</Text>
                         </View>
                     </View>
@@ -98,7 +103,7 @@ export default function ScoringDashboard() {
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <MaterialCommunityIcons name="clock-outline" size={14} color="gray" />
                             <Text variant="bodySmall" style={styles.matchDate}>
-                                {format(new Date(item.start_time), 'MMM dd, p')}
+                                {safeFormatDate(item.start_time, 'MMM dd, p')}
                             </Text>
                         </View>
                         <Text variant="bodySmall" style={{ color: '#888', fontStyle: 'italic' }}>

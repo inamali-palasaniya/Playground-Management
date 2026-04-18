@@ -31,8 +31,7 @@
     "updates": {
       "url": "https://u.expo.dev/e5e85584-29de-45fb-bf8c-4383144f0691",
       "enabled": true,
-      "fallbackToCacheTimeout": 5000,
-      "checkOnLaunch": "ALWAYS"
+      "fallbackToCacheTimeout": 5000
     },
     "runtimeVersion": {
       "policy": "appVersion"
@@ -40,7 +39,9 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      "@react-native-community/datetimepicker",
+      "expo-sharing"
     ],
     "extra": {
       "router": {},
