@@ -10,22 +10,25 @@ import {
     updateSubscriptionStatus,
     getSubscriptionById,
 } from '../controllers/subscription.controller.js';
+import { authenticateToken } from '../middleware/auth.middleware.js';
+import { checkPermission } from '../middleware/permission.middleware.js';
 
 const router = Router();
+router.use(authenticateToken);
 
 // Subscription Plans
-router.get('/plans', getSubscriptionPlans);
-router.post('/plans', createSubscriptionPlan);
+router.get('/plans', checkPermission('master_plans', 'view'), getSubscriptionPlans);
+router.post('/plans', checkPermission('master_plans', 'add'), createSubscriptionPlan);
 
 // User Subscriptions
-router.get('/user/:userId', getUserSubscriptions);
-router.get('/active/:userId', getActiveSubscription);
-router.get('/:id', getSubscriptionById);
-router.post('/', createSubscription);
-router.put('/:id/status', updateSubscriptionStatus);
+router.get('/user/:userId', checkPermission('user', 'view'), getUserSubscriptions);
+router.get('/active/:userId', checkPermission('user', 'view'), getActiveSubscription);
+router.get('/:id', checkPermission('user', 'view'), getSubscriptionById);
+router.post('/', checkPermission('user', 'add'), createSubscription);
+router.put('/:id/status', checkPermission('user', 'edit'), updateSubscriptionStatus);
 
 // Fee Ledger
-router.post('/fees', addFee);
-router.get('/fees/:user_id', getFeeLedger);
+router.post('/fees', checkPermission('finance', 'add'), addFee);
+router.get('/fees/:user_id', checkPermission('finance', 'view'), getFeeLedger);
 
 export default router;

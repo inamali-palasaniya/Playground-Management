@@ -9,6 +9,7 @@ import { AuthService } from '../../../services/auth.service';
 import HeaderProfile from '../../../components/HeaderProfile';
 import { useAuth } from '../../../context/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ErrorDialog } from '../../../components/ErrorDialog';
 
 export default function DashboardScreen() {
     const theme = useTheme();
@@ -20,6 +21,8 @@ export default function DashboardScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [financials, setFinancials] = useState<any>(null);
     const [attendance, setAttendance] = useState<any>(null);
+    const [errorVisible, setErrorVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
     const loadData = async () => {
         try {
@@ -57,8 +60,10 @@ export default function DashboardScreen() {
             ]);
             setFinancials(finData);
             setAttendance(attData);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to load dashboard data:', error);
+            setErrorMessage(error.message || 'Failed to load dashboard data');
+            setErrorVisible(true);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -419,6 +424,11 @@ export default function DashboardScreen() {
                     </Card>
                 </>
             )}
+            <ErrorDialog
+                visible={errorVisible}
+                message={errorMessage}
+                onDismiss={() => setErrorVisible(false)}
+            />
         </ScrollView>
     );
 }

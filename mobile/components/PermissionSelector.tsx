@@ -18,7 +18,7 @@ interface PermissionSelectorProps {
     readonly?: boolean;
 }
 
-const MODULES = ['user', 'expense', 'payment', 'charge', 'scoring', 'master_plans', 'master_fines', 'master_groups'];
+const MODULES = ['user', 'expense', 'payment', 'finance', 'attendance', 'cricket_scoring', 'master_plans', 'master_fines', 'master_groups', 'audit'];
 
 export const PermissionSelector = ({ permissions, onChange, readonly = false }: PermissionSelectorProps) => {
     const theme = useTheme();
@@ -49,11 +49,11 @@ export const PermissionSelector = ({ permissions, onChange, readonly = false }: 
         if (type === 'can_edit') { iconName = 'pencil-circle'; color = isActive ? '#FFC107' : '#e0e0e0'; }
         if (type === 'can_delete') { iconName = 'delete-circle'; color = isActive ? '#F44336' : '#e0e0e0'; }
 
-        // Filled preference
-        if (isActive) {
-            // keep color
-        } else {
-            color = '#e0e0e0'; // Light gray disabled
+        // Increase contrast for active but readonly icons so they don't look "off"
+        if (readonly && isActive) {
+            // Keep the vibrant color
+        } else if (!isActive) {
+            color = '#e0e0e0';
         }
 
         return (
@@ -61,8 +61,10 @@ export const PermissionSelector = ({ permissions, onChange, readonly = false }: 
                 icon={isActive ? iconName.replace('-outline', '') : iconName}
                 iconColor={color}
                 size={26}
-                onPress={() => togglePermission(module, type)}
-                disabled={readonly}
+                onPress={() => !readonly && togglePermission(module, type)}
+                // Removed disabled={readonly} to keep state visible
+                // but added rippleColor to prevent interaction feedback
+                rippleColor={readonly ? 'transparent' : undefined}
             />
         );
     };
@@ -79,7 +81,10 @@ export const PermissionSelector = ({ permissions, onChange, readonly = false }: 
             <Divider />
             {MODULES.map((module) => (
                 <View key={module} style={styles.row}>
-                    <Text style={[styles.col, styles.moduleCol, { textTransform: 'capitalize' }]}>{module.replace('master_', 'Master: ')}</Text>
+                    <Text style={[styles.col, styles.moduleCol, { textTransform: 'capitalize' }]}>
+                        {module === 'cricket_scoring' ? 'Scoring (Cricket)' : 
+                         module.replace('master_', 'Master: ').replace(/_/g, ' ')}
+                    </Text>
                     <View style={styles.col}>{renderIcon(module, 'can_view')}</View>
                     <View style={styles.col}>{renderIcon(module, 'can_add')}</View>
                     <View style={styles.col}>{renderIcon(module, 'can_edit')}</View>

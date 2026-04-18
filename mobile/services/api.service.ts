@@ -99,7 +99,7 @@ class ApiService {
 
         try {
             const url = `${API_BASE_URL}${endpoint}`;
-            console.log('API Request:', url);
+            // console.log('API Request:', url);
 
             // Auto-inject token
             let token;
@@ -130,7 +130,7 @@ class ApiService {
 
             clearTimeout(id);
 
-            console.log('API Response Status:', response.status);
+            // console.log('API Response Status:', response.status);
 
             const responseText = await response.text();
             let responseData: any = null;
@@ -152,7 +152,7 @@ class ApiService {
 
                 let errorMessage = `HTTP error! status: ${response.status}`;
                 if (isJson && responseData) {
-                    errorMessage = responseData.error || responseData.message || errorMessage;
+                    errorMessage = responseData.message || responseData.error || errorMessage;
                 }
 
                 // Professional override for 401 Session Expiration
@@ -161,8 +161,11 @@ class ApiService {
                 }
 
                 if (isJson && responseData) {
-                    if (responseData.details && typeof responseData.details === 'string') {
-                        errorMessage = `${errorMessage}: ${responseData.details}`;
+                    // Handle descriptive permission errors from backend
+                    if (responseData.code === 'PERMISSION_DENIED') {
+                        errorMessage = `${responseData.error}: ${responseData.message}`;
+                    } else if (responseData.details && typeof responseData.details === 'string') {
+                        errorMessage = `${errorMessage}\n${responseData.details}`;
                     }
                 }
 
@@ -176,7 +179,7 @@ class ApiService {
                 throw new Error('Server returned non-JSON response');
             }
 
-            console.log('API Response Data success');
+            // console.log('API Response Data success');
 
             if (!options?.skipLoader) loaderService.hide();
             return responseData;

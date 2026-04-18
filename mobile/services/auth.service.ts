@@ -39,14 +39,10 @@ export const AuthService = {
     if (!perm) return false; // Module not in permissions list = denied
 
     switch (action) {
-      case 'view': return perm.can_view !== false; // Default to true if undefined (legacy data) to prevent lockout. Explicit false will still deny.
-      // But legacy data lacks it. I'll default to TRUE for backward compatibility if logic requires, but user wants restriction. 
-      // Actually, if I just added it, legacy data won't have it. 
-      // If I default to FALSE, everyone loses access until updated. 
-      // I'll default to FALSE to be safe, user can update permissions.
-      case 'add': return perm.can_add;
-      case 'edit': return perm.can_edit;
-      case 'delete': return perm.can_delete;
+      case 'view': return !!perm.can_view; // Strict: Must be explicitly true
+      case 'add': return !!perm.can_add;
+      case 'edit': return !!perm.can_edit;
+      case 'delete': return !!perm.can_delete;
       default: return false;
     }
   },

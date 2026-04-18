@@ -5,6 +5,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../services/api.service';
 import { PermissionSelector } from '../../components/PermissionSelector';
+import { ErrorDialog } from '../../components/ErrorDialog';
+import { useAuth } from '../../context/AuthContext';
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -12,6 +14,7 @@ export default function EditUserScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
     const theme = useTheme();
+    const { user: loggedInUser } = useAuth();
 
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
@@ -29,8 +32,9 @@ export default function EditUserScreen() {
     const [paymentFrequency, setPaymentFrequency] = useState('MONTHLY');
     const [permissions, setPermissions] = useState<any[]>([]);
     const [isActive, setIsActive] = useState(true);
-    const [currentUser, setCurrentUser] = useState<any>(null); // To check if Super Admin is editing?
-    // Actually we rely on backend to block. But for UI, we might default 'SUPER_ADMIN' to disabled fields.
+    const [errorVisible, setErrorVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const isSelfEdit = loggedInUser?.id === Number(id);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -112,7 +116,8 @@ export default function EditUserScreen() {
             // Alert.alert('Success', 'User updated successfully');
             router.back();
         } catch (error: any) {
-            Alert.alert('Error', error.message || 'Failed to update user');
+            setErrorMessage(error.message || 'Failed to update user');
+            setErrorVisible(true);
         } finally {
             setLoading(false);
         }
@@ -161,6 +166,11 @@ export default function EditUserScreen() {
                     <View style={{ flexDirection: 'row', alignItems: 'center', padding: 8, backgroundColor: '#fff3cd', borderRadius: 8 }}>
                         <MaterialCommunityIcons name="shield-crown" size={20} color="gold" />
                         <Text style={{ marginLeft: 8, fontWeight: 'bold', color: '#856404' }}>Super Admin (Immutable)</Text>
+                    </View>
+                ) : isSelfEdit ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', padding: 8, backgroundColor: '#f0f0f0', borderRadius: 8 }}>
+                        <MaterialCommunityIcons name="lock" size={20} color="gray" />
+                        <Text style={{ marginLeft: 8, fontWeight: 'bold', color: 'gray' }}>Your Role ({role})</Text>
                     </View>
                 ) : (
                     <RadioButton.Group onValueChange={value => setRole(value)} value={role}>
@@ -221,6 +231,11 @@ export default function EditUserScreen() {
                             <MaterialCommunityIcons name="check-circle" size={20} color="green" />
                             <Text style={{ marginLeft: 8, color: 'green', fontWeight: 'bold' }}>Active (Protected)</Text>
                         </View>
+                    ) : isSelfEdit ? (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0f0f0', padding: 10, borderRadius: 8, alignSelf: 'flex-start' }}>
+                            <MaterialCommunityIcons name="lock" size={20} color="gray" />
+                            <Text style={{ marginLeft: 8, color: 'gray', fontWeight: 'bold' }}>{isActive ? 'Active' : 'Inactive'} (Protected)</Text>
+                        </View>
                     ) : (
                         <View style={styles.radioRow}>
                             <Button mode={isActive ? 'contained' : 'outlined'} onPress={() => setIsActive(true)} style={styles.typeButton} compact buttonColor={isActive ? 'green' : undefined}>Active</Button>
@@ -229,12 +244,21 @@ export default function EditUserScreen() {
                     )}
                 </View>
 
+                {isSelfEdit && (
+                    <View style={{ padding: 10, backgroundColor: '#fff3cd', borderRadius: 8, marginTop: 15 }}>
+                        <Text variant="bodySmall" style={{ color: '#856404' }}>
+                           Note: You cannot modify your own role, status, or permissions to prevent accidental lockout.
+                        </Text>
+                    </View>
+                )}
+
                 {role === 'MANAGEMENT' && (
                     <View style={{ marginTop: 20 }}>
                         <Text variant="titleMedium" style={{ marginBottom: 10 }}>Permissions</Text>
                         <PermissionSelector
                             permissions={permissions}
                             onChange={setPermissions}
+                            readonly={isSelfEdit}
                         />
                     </View>
                 )}
@@ -243,6 +267,11 @@ export default function EditUserScreen() {
                     Update User
                 </Button>
             </ScrollView>
+            <ErrorDialog
+                visible={errorVisible}
+                message={errorMessage}
+                onDismiss={() => setErrorVisible(false)}
+            />
         </SafeAreaView>
     );
 }

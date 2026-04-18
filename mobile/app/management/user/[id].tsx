@@ -12,27 +12,36 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Linking } from 'react-native';
 import { PermissionSelector } from '../../../components/PermissionSelector';
 import { generateReceipt, shareReceiptFile } from '../../../utils/receiptGenerator';
+import { ErrorDialog } from '../../../components/ErrorDialog';
 import { useAuth } from '../../../context/AuthContext';
 import { AuthService } from '../../../services/auth.service';
 import { LinearGradient } from 'expo-linear-gradient';
 
 // --- Sub-Components for Tabs ---
 
-const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: { userId: number, permissions: any[], onUpdate: () => void, canEdit: boolean, userRole?: string }) => {
+const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole, currentUser }: { userId: number, permissions: any[], onUpdate: () => void, canEdit: boolean, userRole?: string, currentUser: any }) => {
     const [saving, setSaving] = useState(false);
+    const [errorVisible, setErrorVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
     const isSuperAdmin = userRole === 'SUPER_ADMIN';
+    const isSelf = currentUser && currentUser.id === userId;
+    const canModify = canEdit && !isSuperAdmin && !isSelf;
 
     const handleSave = async (updatedPermissions: any[]) => {
-        if (!canEdit || isSuperAdmin) return;
+        if (!canModify) {
+            Alert.alert('Restricted', 'You cannot modify your own permissions.');
+            return;
+        }
         setSaving(true);
         try {
             await apiService.updateUser(userId, { permissions: updatedPermissions });
             onUpdate();
             Alert.alert('Success', 'Permissions updated');
-        } catch (e) {
-            console.error(e);
-            Alert.alert('Error', 'Failed to update permissions');
+        } catch (error: any) {
+            console.error('Failed to update permissions:', error);
+            setErrorMessage(error.message || 'Failed to update permissions');
+            setErrorVisible(true);
         } finally {
             setSaving(false);
         }
@@ -60,11 +69,17 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
                     <PermissionSelector
                         permissions={permissions || []}
                         onChange={handleSave}
-                        readonly={!canEdit}
+                        readonly={!canModify}
                     />
-                    {canEdit && <Text style={{ textAlign: 'center', marginTop: 10, color: 'gray' }}>Tap icons to toggle permissions immediately.</Text>}
+                    {isSelf && <Text style={{ textAlign: 'center', marginTop: 10, color: 'orange', fontWeight: 'bold' }}>You cannot modify your own permissions.</Text>}
+                    {canModify && <Text style={{ textAlign: 'center', marginTop: 10, color: 'gray' }}>Tap icons to toggle permissions immediately.</Text>}
                 </View>
             </Tabs.ScrollView>
+            <ErrorDialog
+                visible={errorVisible}
+                message={errorMessage}
+                onDismiss={() => setErrorVisible(false)}
+            />
         </View>
     );
 };
@@ -72,13 +87,18 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole }: 
 const FineRoute = ({ userId, isFocused, currentUser, onUpdate, refreshKey }: { userId: number, isFocused: boolean, currentUser: any, onUpdate?: () => void, refreshKey?: number }) => {
     const [fines, setFines] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [errorVisible, setErrorVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     const router = useRouter();
 
     const loadFines = () => {
         setLoading(true);
         apiService.getUserLedger(userId)
             .then(data => setFines(data.filter((l: any) => l.type === 'FINE' || l.type === 'USER_FINE_LEGACY')))
-            .catch(console.error)
+            .catch(e => {
+                setErrorMessage(e.message || 'Failed to load fines');
+                setErrorVisible(true);
+            })
             .finally(() => setLoading(false));
     };
 
@@ -146,6 +166,8 @@ const FineRoute = ({ userId, isFocused, currentUser, onUpdate, refreshKey }: { u
 const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user, refreshKey }: { userId: number, isFocused: boolean, currentUser: any, onUpdate?: () => void, user?: any, refreshKey?: number }) => {
     const [ledger, setLedger] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [errorVisible, setErrorVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     const [fabOpen, setFabOpen] = useState(false);
     const router = useRouter();
 
@@ -167,7 +189,10 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user, refreshKe
 
         apiService.getUserLedger(userId, start, end, selectedType)
             .then(data => setLedger(data))
-            .catch(console.error)
+            .catch(e => {
+                setErrorMessage(e.message || 'Failed to load ledger');
+                setErrorVisible(true);
+            })
             .finally(() => setLoading(false));
     }
 
@@ -480,6 +505,11 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user, refreshKe
                     onChange={(e, d) => { setShowEndPicker(false); if (d) setEndDate(d); }}
                 />
             )}
+            <ErrorDialog
+                visible={errorVisible}
+                message={errorMessage}
+                onDismiss={() => setErrorVisible(false)}
+            />
         </View>
     );
 };
@@ -489,6 +519,8 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser, refreshKey 
     const isNormalUser = currentUser?.role === 'NORMAL';
     const [attendance, setAttendance] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [errorVisible, setErrorVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
     // Check-In State
     const [showCheckInDialog, setShowCheckInDialog] = useState(false);
@@ -507,9 +539,12 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser, refreshKey 
     const [pickerTarget, setPickerTarget] = useState<'checkin' | 'edit_in' | 'edit_out'>('checkin');
 
     const loadAttendance = () => {
-        apiService.getUserAttendance(userId) // Skip loader here? Maybe not, it's tab content.
+        apiService.getUserAttendance(userId)
             .then((data: any) => setAttendance(data))
-            .catch(console.error)
+            .catch(e => {
+                setErrorMessage(e.message || 'Failed to load attendance');
+                setErrorVisible(true);
+            })
             .finally(() => setLoading(false));
     };
 
@@ -798,6 +833,11 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser, refreshKey 
                     onChange={handlePickerChange}
                 />
             )}
+            <ErrorDialog
+                visible={errorVisible}
+                message={errorMessage}
+                onDismiss={() => setErrorVisible(false)}
+            />
         </View>
     );
 };
@@ -806,13 +846,18 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser, refreshKey 
 const MatchesRoute = ({ userId, isFocused }: { userId: number, isFocused: boolean }) => {
     const [matches, setMatches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [errorVisible, setErrorVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     const router = useRouter();
 
     const loadMatches = useCallback(() => {
         setLoading(true);
         apiService.request<any[]>(`/api/users/${userId}/matches`)
             .then(data => setMatches(data))
-            .catch(console.error)
+            .catch(e => {
+                setErrorMessage(e.message || 'Failed to load matches');
+                setErrorVisible(true);
+            })
             .finally(() => setLoading(false));
     }, [userId]);
 
@@ -874,21 +919,28 @@ const MatchesRoute = ({ userId, isFocused }: { userId: number, isFocused: boolea
                 )}
             </View>
         </Tabs.ScrollView>
+        <ErrorDialog
+            visible={errorVisible}
+            message={errorMessage}
+            onDismiss={() => setErrorVisible(false)}
+        />
         </View>
     );
 };
 
 
 export default function UserDetailScreen() {
-    const { id } = useLocalSearchParams();
+    const { id: paramId } = useLocalSearchParams();
+    const [id] = useState(paramId); // Stability
     const theme = useTheme();
     const router = useRouter();
     const { user: currentUser } = useAuth();
     const isFocused = useIsFocused();
     const insets = useSafeAreaInsets();
     const [user, setUser] = useState<any>(null);
-
-    // Shared refresh counter: incrementing causes ALL tabs to re-fetch their data
+    const [loading, setLoading] = useState(true);
+    const [errorVisible, setErrorVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     const [refreshKey, setRefreshKey] = useState(0);
 
     // Calculate duration
@@ -898,7 +950,14 @@ export default function UserDetailScreen() {
     useFocusEffect(
         useCallback(() => {
             if (id) {
-                apiService.getUserById(Number(id)).then((data: any) => setUser(data));
+                setLoading(true);
+                apiService.getUserById(Number(id))
+                    .then((data: any) => setUser(data))
+                    .catch((e: any) => {
+                        setErrorMessage(e.message || 'Failed to load user details');
+                        setErrorVisible(true);
+                    })
+                    .finally(() => setLoading(false));
             }
         }, [id])
     );
@@ -956,7 +1015,8 @@ export default function UserDetailScreen() {
     const openMenu = () => setMenuVisible(true);
     const closeMenu = () => setMenuVisible(false);
 
-    if (!user) return <View style={styles.loadingContainer}><ActivityIndicator /></View>;
+    if (loading && !user) return <View style={styles.loadingContainer}><ActivityIndicator /></View>;
+    if (!user) return <View style={styles.loadingContainer}><Text>User not found</Text></View>;
 
     const renderHeader = () => {
         return (
@@ -1223,10 +1283,19 @@ export default function UserDetailScreen() {
                         onUpdate={() => apiService.getUserById(Number(id)).then(setUser)}
                         canEdit={currentUser?.role === 'MANAGEMENT' || currentUser?.role === 'SUPER_ADMIN'}
                         userRole={user?.role}
+                        currentUser={currentUser}
                     />
                 </Tabs.Tab>
             </Tabs.Container>
-        </View >
+            <ErrorDialog
+                visible={errorVisible}
+                message={errorMessage}
+                onDismiss={() => {
+                    setErrorVisible(false);
+                    if (errorMessage.includes('load user details')) router.back();
+                }}
+            />
+        </View>
     );
 }
 

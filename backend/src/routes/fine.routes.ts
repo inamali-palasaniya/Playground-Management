@@ -9,19 +9,22 @@ import {
   getUserFines,
   getFineSummary,
 } from '../controllers/fine.controller.js';
+import { authenticateToken } from '../middleware/auth.middleware.js';
+import { checkPermission } from '../middleware/permission.middleware.js';
 
 const router = Router();
+router.use(authenticateToken);
 
 // Fine Rules
-router.get('/rules', getFineRules);
-router.get('/rules/:id', getFineRuleById);
-router.post('/rules', createFineRule);
-router.put('/rules/:id', updateFineRule);
-router.delete('/rules/:id', deleteFineRule);
+router.get('/rules', checkPermission('master_fines', 'view'), getFineRules);
+router.get('/rules/:id', checkPermission('master_fines', 'view'), getFineRuleById);
+router.post('/rules', checkPermission('master_fines', 'add'), createFineRule);
+router.put('/rules/:id', checkPermission('master_fines', 'edit'), updateFineRule);
+router.delete('/rules/:id', checkPermission('master_fines', 'delete'), deleteFineRule);
 
 // User Fines
-router.post('/apply', applyFine);
-router.get('/user/:userId', getUserFines);
-router.get('/summary/:userId', getFineSummary);
+router.post('/apply', checkPermission('finance', 'add'), applyFine);
+router.get('/user/:userId', checkPermission('finance', 'view'), getUserFines);
+router.get('/summary/:userId', checkPermission('finance', 'view'), getFineSummary);
 
 export default router;

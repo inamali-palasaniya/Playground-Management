@@ -9,6 +9,7 @@ import { AuthService } from '../../../services/auth.service';
 import { format } from 'date-fns';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AuditLogDialog from '../../components/AuditLogDialog';
+import { ErrorDialog } from '../../../components/ErrorDialog';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface User {
@@ -80,6 +81,9 @@ export default function PeopleScreen() {
     const [auditVisible, setAuditVisible] = useState(false);
     const [auditEntityId, setAuditEntityId] = useState<number | null>(null);
 
+    const [errorVisible, setErrorVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
     // Race Condition Fix: Track the latest request ID
     const lastRequestId = React.useRef(0);
 
@@ -133,14 +137,15 @@ export default function PeopleScreen() {
                 console.log('API returned users:', (usersData as any[])?.length);
                 setUsers(usersData as User[]);
         } catch (error: any) {
-            if (error.status !== 401) {
+            if (error.status === 403) {
+                setErrorMessage(error.message || 'Access Denied');
+                setErrorVisible(true);
+            } else if (error.status !== 401) {
                 console.error('Failed to load data:', error);
+                setErrorMessage(error.message || 'Failed to load user list');
+                setErrorVisible(true);
             }
         } finally {
-            // Only stop loading if we are the latest request (or if verified above)
-            // Ideally, we just check again or let the latest one handle it. 
-            // Simple approach: unsetting loading is fine, UI will just show current data until new data arrives.
-            // But to avoid flickering spinner:
             setLoading(false);
             setRefreshing(false);
         }
@@ -659,11 +664,10 @@ export default function PeopleScreen() {
                 </Portal>
             )}
 
-            <AuditLogDialog
-                visible={auditVisible}
-                onDismiss={() => setAuditVisible(false)}
-                entityType="USER"
-                entityId={auditEntityId}
+            <ErrorDialog
+                visible={errorVisible}
+                message={errorMessage}
+                onDismiss={() => setErrorVisible(false)}
             />
         </View>
     );

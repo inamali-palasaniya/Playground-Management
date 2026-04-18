@@ -4,8 +4,8 @@ import { TextInput, Button, RadioButton, Text, useTheme, Appbar } from 'react-na
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../services/api.service';
-
 import { PermissionSelector } from '../../components/PermissionSelector';
+import { ErrorDialog } from '../../components/ErrorDialog';
 
 export default function AddUserScreen() {
     const router = useRouter();
@@ -24,6 +24,8 @@ export default function AddUserScreen() {
     const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
     const [paymentFrequency, setPaymentFrequency] = useState('MONTHLY');
     const [permissions, setPermissions] = useState<any[]>([]);
+    const [errorVisible, setErrorVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -88,7 +90,8 @@ export default function AddUserScreen() {
             router.replace('/(tabs)/users');
         } catch (error: any) {
             if (error.status !== 401) {
-                Alert.alert('Error', error.message || 'Failed to create user');
+                setErrorMessage(error.message || 'Failed to create user');
+                setErrorVisible(true);
             }
         } finally {
             setLoading(false);
@@ -181,6 +184,11 @@ export default function AddUserScreen() {
                     Create User
                 </Button>
             </ScrollView>
+            <ErrorDialog
+                visible={errorVisible}
+                message={errorMessage}
+                onDismiss={() => setErrorVisible(false)}
+            />
         </SafeAreaView>
     );
 }

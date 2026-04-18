@@ -67,6 +67,27 @@ function AuthProtection({ children }: { children: ReactNode }) {
     return <>{children}</>;
 }
 
+function MandatoryUpdateScreen({ status, error }: { status: string, error?: string }) {
+    return (
+        <View style={{ flex: 1, backgroundColor: '#1E3A8A', justifyContent: 'center', alignItems: 'center', padding: 30 }}>
+            <MaterialCommunityIcons name="cloud-download" size={80} color="white" />
+            <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold', marginTop: 20, textAlign: 'center' }}>
+                Update Required
+            </Text>
+            <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 16, marginTop: 10, textAlign: 'center' }}>
+                {status}
+            </Text>
+            {error ? (
+                <Text style={{ color: '#FF9999', marginTop: 20, textAlign: 'center' }}>{error}</Text>
+            ) : (
+                <ActivityIndicator color="white" style={{ marginTop: 30 }} size="large" />
+            )}
+        </View>
+    );
+}
+
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 const styles = StyleSheet.create({
     container: { flex: 1, justifyContent: 'center', padding: 20 },
     title: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
@@ -74,39 +95,67 @@ const styles = StyleSheet.create({
 });
 
 export default function Layout() {
+    const [updateStatus, setUpdateStatus] = useState<{ isRequired: boolean, status: string, error?: string }>({ 
+        isRequired: false, 
+        status: 'Checking for updates...' 
+    });
+
     useEffect(() => {
         async function checkUpdates() {
             try {
                 if (__DEV__) return;
 
+                console.log("Checking for updates...");
                 const update = await Updates.checkForUpdateAsync();
+                
                 if (update.isAvailable) {
-                    Alert.alert(
-                        'Update Available',
-                        'A new version of the app is available. Would you like to update now?',
-                        [
-                            { text: 'Later', style: 'cancel' },
-                            {
-                                text: 'Update',
-                                onPress: async () => {
-                                    try {
-                                        await Updates.fetchUpdateAsync();
-                                        await Updates.reloadAsync();
-                                    } catch (e) {
-                                        Alert.alert('Error', 'Failed to fetch update');
-                                    }
-                                }
+                    setUpdateStatus({ isRequired: true, status: 'New version found. Preparing download...' });
+                    
+                    try {
+                        console.log("Fetching update...");
+                        await Updates.fetchUpdateAsync();
+                        setUpdateStatus({ isRequired: true, status: 'Update downloaded successfully. Applying changes...' });
+                        
+                        // Small delay to ensure the user sees the success message
+                        setTimeout(async () => {
+                            try {
+                                await Updates.reloadAsync();
+                            } catch (error) {
+                                console.error("Reload failed:", error);
+                                setUpdateStatus({ 
+                                    isRequired: true, 
+                                    status: 'Download complete but restart failed.', 
+                                    error: 'Please close and reopen the app manually to apply the update.' 
+                                });
                             }
-                        ]
-                    );
+                        }, 1500);
+                        
+                    } catch (e: any) {
+                        console.error("Fetch error:", e);
+                        setUpdateStatus({ 
+                            isRequired: true, 
+                            status: 'Failed to download update.', 
+                            error: 'Please check your internet connection. If this persists, avoid using public WiFi.' 
+                        });
+                    }
+                } else {
+                    console.log("No update available.");
                 }
             } catch (error) {
-                console.log('Error checking for updates:', error);
+                console.error('Update check error:', error);
             }
         }
 
         checkUpdates();
     }, []);
+
+    if (updateStatus.isRequired) {
+        return (
+            <PaperProvider theme={theme}>
+                <MandatoryUpdateScreen status={updateStatus.status} error={updateStatus.error} />
+            </PaperProvider>
+        );
+    }
 
     return (
         <ErrorBoundary>

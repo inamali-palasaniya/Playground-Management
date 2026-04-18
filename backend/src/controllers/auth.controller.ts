@@ -81,7 +81,8 @@ export const login = async (req: Request, res: Response) => {
     const user = await prisma.user.findFirst({
       where: {
         OR: searchConditions
-      }
+      },
+      include: { permissions: true }
     });
 
     if (!user) {
@@ -130,7 +131,8 @@ export const getMe = async (req: Request, res: Response) => {
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const user = await prisma.user.findUnique({
-      where: { id: userId }
+      where: { id: userId },
+      include: { permissions: true }
     });
 
     if (!user) return res.status(404).json({ error: 'User not found' });

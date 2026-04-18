@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import prisma from '../utils/prisma.js';
 import bcrypt from 'bcrypt';
 import { AuditService } from '../services/audit.service.js';
@@ -393,7 +394,7 @@ export const getUserById = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { name, phone, email, role, group_id, age, user_type, plan_id, payment_frequency, password, is_active, permissions } = req.body;
+        let { name, phone, email, role, group_id, age, user_type, plan_id, payment_frequency, password, is_active, permissions } = req.body;
 
         if (phone && !/^\d{10}$/.test(phone)) {
             return res.status(400).json({ error: 'Phone number must be exactly 10 digits.' });
@@ -402,35 +403,35 @@ export const updateUser = async (req: Request, res: Response) => {
         const existingUser = await prisma.user.findUnique({ where: { id: parseInt(id) } });
         if (!existingUser) return res.status(404).json({ error: 'User not found' });
 
+        const currentUser = (req as any).user;
+        const isSelfUpdate = currentUser && currentUser.userId === existingUser.id;
+
         // PROTECT SUPER ADMIN
-        // If target is Super Admin (by email or role), prevent changing critical fields by anyone (even self?)
-        // User Request: "no one can change super admin type and its permission (include self super admin)"
         const isSuperAdminTarget = existingUser.email === '91inamali@gmail.com' || existingUser.role === 'SUPER_ADMIN';
 
         if (isSuperAdminTarget) {
-            // Cancel any attempt to explicitly *change* role, permissions, active status
-            // We only error if the new value is explicitly provided AND different from the current value
-            // Note: permissions comparison is simplified; for Super Admin it should be considered unchanged if not provided or effectively same intent
-
             const isRoleChanging = role !== undefined && role !== existingUser.role;
             const isActiveChanging = is_active !== undefined && is_active !== existingUser.is_active;
-            // For permissions, it's complex to compare deeply. 
-            // Better strategy: simply ignore `permissions`, `role`, `is_active` fields for Super Admin in the update query 
-            // rather than throwing 403, effectively "silently enforcing" the lock.
-            // BUT, if the user *intent* was to change them, a 403 warning is better feedback than silent ignore.
-            // Let's stick to 403 if they try to CHANGE it.
 
             if (isRoleChanging || isActiveChanging) {
                 return res.status(403).json({ error: 'Cannot modify Super Admin permissions, role, or active status.' });
             }
-            // For permissions, checking difference is hard. Let's just block strictly if permissions is sent
-            // UNLESS we just strip these fields from the update object later for Super Admin?
-            // "no one can change super admin type and its permission"
-            // If we just DELETE these keys from the input for Super Admin, we achieve the goal safely.
 
-            if (role !== undefined) delete req.body.role;
-            if (is_active !== undefined) delete req.body.is_active;
-            if (permissions !== undefined) delete req.body.permissions;
+            role = undefined;
+            is_active = undefined;
+            permissions = undefined;
+        } else if (isSelfUpdate) {
+            // A user cannot change their own privileges, role or active status.
+            const isRoleChanging = role !== undefined && role !== existingUser.role;
+            const isActiveChanging = is_active !== undefined && is_active !== existingUser.is_active;
+            const isPermissionsChanging = permissions !== undefined;
+
+            if (isRoleChanging || isActiveChanging || isPermissionsChanging) {
+                return res.status(403).json({ 
+                    error: 'Self-modification Restricted',
+                    message: 'You cannot modify your own role, active status, or permissions. Please contact another administrator.' 
+                });
+            }
         }
 
         let hashedPassword = undefined;
@@ -541,10 +542,8 @@ export const updateUser = async (req: Request, res: Response) => {
 
         // If the user updated themselves, issue a new token to reflect potential role/email changes
         let newToken = undefined;
-        const currentUser = (req as any).user;
         if (currentUser && currentUser.userId === user.id) {
-            // Using direct jwt sign to ensure circular deps don't break simple controller logic
-            const jwt = require('jsonwebtoken'); // Import at top ideally, but ensuring safety here
+            // Using fresh jwt payload
             const JWT_SECRET = process.env.JWT_SECRET;
             if (!JWT_SECRET) {
                 throw new Error('JWT_SECRET is not defined in environment variables');

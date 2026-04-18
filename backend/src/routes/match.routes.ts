@@ -10,20 +10,22 @@ import {
     deleteMatch,
     getMatchStats
 } from '../controllers/match.controller.js';
+import { authenticateToken } from '../middleware/auth.middleware.js';
+import { checkPermission } from '../middleware/permission.middleware.js';
 
 const router = Router();
 
-router.post('/', createMatch);
-router.get('/', getMatches);
-router.get('/:id', getMatchById);
-router.put('/:id', updateMatch); // Generic update
-router.put('/:id/status', updateMatch); // Legacy support
-router.post('/:id/ball-event', recordBallEvent);
-router.get('/:id/live-score', getLiveScore);
-router.delete('/:id/undo', undoLastBall);
-router.delete('/:id', deleteMatch);
+router.post('/', authenticateToken, checkPermission('cricket_scoring', 'add'), createMatch);
+router.get('/', authenticateToken, checkPermission('cricket_scoring', 'view'), getMatches);
+router.get('/:id', authenticateToken, checkPermission('cricket_scoring', 'view'), getMatchById);
+router.put('/:id', authenticateToken, checkPermission('cricket_scoring', 'edit'), updateMatch); 
+router.put('/:id/status', authenticateToken, checkPermission('cricket_scoring', 'edit'), updateMatch);
+router.post('/:id/ball-event', authenticateToken, checkPermission('cricket_scoring', 'edit'), recordBallEvent);
+router.get('/:id/live-score', getLiveScore); // Publicly viewable? For now, allowing without separate permission if auth exists.
+router.delete('/:id/undo', authenticateToken, checkPermission('cricket_scoring', 'edit'), undoLastBall);
+router.delete('/:id', authenticateToken, checkPermission('cricket_scoring', 'delete'), deleteMatch);
 
 // Analytics
-router.get('/:id/stats', getMatchStats);
+router.get('/:id/stats', authenticateToken, checkPermission('cricket_scoring', 'view'), getMatchStats);
 
 export default router;

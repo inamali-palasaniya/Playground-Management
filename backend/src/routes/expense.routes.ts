@@ -8,9 +8,9 @@ const router = Router();
 router.use(authenticateToken); // Ensure all are authenticated
 
 router.post('/', checkPermission('expense', 'add'), createExpense);
-router.get('/', getExpenses); // View permission? Maybe add 'view' later, but usually list is open or restricted by role. User list is open.
+router.get('/', checkPermission('expense', 'view'), getExpenses);
 router.put('/:id', checkPermission('expense', 'edit'), updateExpense);
 router.delete('/:id', checkPermission('expense', 'delete'), deleteExpense);
-router.get('/stats', getExpenseStats); // For dashboard or specific expense view
+router.get('/stats', checkPermission('expense', 'view'), getExpenseStats);
 
 export default router;
