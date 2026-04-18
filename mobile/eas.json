@@ -24,7 +24,7 @@
     "production": {
       "channel": "production",
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "apk"
       },
       "env": {
         "NPM_INSTALL_ARGS": "--legacy-peer-deps",
