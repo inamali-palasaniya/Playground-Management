@@ -141,9 +141,19 @@ export default function PeopleScreen() {
                     return;
                 }
 
-                const usersData = results[0];
-                if (groups.length === 0 && results.length > 1) setGroups(results[1] as Group[]);
-                if (plans.length === 0 && results.length > 2) setPlans(results[2] as SubscriptionPlan[]);
+                // Robust result handling: Mapping results back to their purpose
+                let resultIdx = 0;
+                const usersData = results[resultIdx++];
+                
+                if (groups.length === 0) {
+                    const groupsData = results[resultIdx++];
+                    if (Array.isArray(groupsData)) setGroups(groupsData);
+                }
+                
+                if (plans.length === 0) {
+                    const plansData = results[resultIdx++];
+                    if (Array.isArray(plansData)) setPlans(plansData);
+                }
 
                 if (Array.isArray(usersData)) {
                     console.log('API returned users:', usersData.length);
