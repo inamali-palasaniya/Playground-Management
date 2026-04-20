@@ -7,6 +7,7 @@ import apiService from '../../services/api.service';
 import { PermissionSelector } from '../../components/PermissionSelector';
 import { ErrorDialog } from '../../components/ErrorDialog';
 import { useAuth } from '../../context/AuthContext';
+import { SearchableDropdown } from '../../components/SearchableDropdown';
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -181,19 +182,13 @@ export default function EditUserScreen() {
                     </RadioButton.Group>
                 )}
 
-                <Text variant="titleMedium" style={{ marginTop: 10 }}>Group</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.groupScroll}>
-                    {groups.map(g => (
-                        <Button
-                            key={g.id}
-                            mode={selectedGroup === g.id ? 'contained' : 'outlined'}
-                            onPress={() => setSelectedGroup(g.id)}
-                            style={{ marginRight: 8 }}
-                        >
-                            {g.name}
-                        </Button>
-                    ))}
-                </ScrollView>
+                <SearchableDropdown
+                    label="Group"
+                    data={groups.map((g: any) => ({ label: g.name, value: g.id }))}
+                    value={selectedGroup}
+                    onSelect={setSelectedGroup}
+                    placeholder="Search Groups..."
+                />
 
                 <Text variant="titleMedium" style={{ marginTop: 10 }}>Plan Selection (Update)</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.groupScroll}>

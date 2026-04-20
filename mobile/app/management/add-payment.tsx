@@ -215,7 +215,10 @@ export default function AddPaymentScreen() {
                 </Button>
                 <Button
                     mode={payerType === 'TEAM' ? 'contained' : 'outlined'}
-                    onPress={() => setPayerType('TEAM')}
+                    onPress={() => {
+                        setPayerType('TEAM');
+                        setType('TOURNAMENT_FEE');
+                    }}
                     style={{ flex: 1, marginLeft: 5 }}
                 >
                     Team

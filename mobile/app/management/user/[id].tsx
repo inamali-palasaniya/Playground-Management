@@ -310,7 +310,7 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user, refreshKe
                     {/* Filters */}
                     <View style={{ marginBottom: 10 }}>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
-                            {['ALL', 'SUBSCRIPTION', 'MONTHLY_FEE', 'FINE', 'PAYMENT', 'DEPOSIT', 'MAINTENANCE', 'OTHER'].map(type => (
+                            {['ALL', 'SUBSCRIPTION', 'MONTHLY_FEE', 'FINE', 'PAYMENT', 'DONATION', 'TOURNAMENT_FEE', 'DEPOSIT', 'MAINTENANCE', 'OTHER'].map(type => (
                                 <Chip
                                     key={type}
                                     selected={selectedType === type}
@@ -1060,7 +1060,7 @@ export default function UserDetailScreen() {
                                 <MaterialCommunityIcons name="tag-outline" size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
                                 <View>
                                     <Text variant="bodySmall" style={{ color: 'gray', fontSize: 10 }}>Current Plan</Text>
-                                    <Text variant="bodyMedium" style={{ fontWeight: 'bold', color: '#333' }}>{user.plan_name || 'No Plan'}</Text>
+                                    <Text variant="bodyMedium" style={{ fontWeight: 'bold', color: '#333' }}>{user.subscription_plan?.name || user.plan_name || 'No Plan'}</Text>
                                 </View>
                             </View>
 
