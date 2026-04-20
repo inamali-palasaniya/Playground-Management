@@ -37,7 +37,6 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole, cu
         try {
             await apiService.updateUser(userId, { permissions: updatedPermissions });
             onUpdate();
-            Alert.alert('Success', 'Permissions updated');
         } catch (error: any) {
             console.error('Failed to update permissions:', error);
             setErrorMessage(error.message || 'Failed to update permissions');
@@ -47,21 +46,6 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole, cu
         }
     };
 
-    if (isSuperAdmin) {
-        return (
-            <Tabs.ScrollView style={[{ flex: 1 }, { flex: 1 }]}>
-                <View style={{ paddingHorizontal: 16, paddingBottom: 100, alignItems: 'center' }}>
-                    <MaterialCommunityIcons name="shield-crown" size={64} color="gold" />
-                    <Text variant="titleMedium" style={{ marginTop: 10, fontWeight: 'bold' }}>Success Admin Access</Text>
-                    <Text style={{ textAlign: 'center', color: 'gray', marginTop: 5 }}>
-                        This user is a Super Admin and has full access to all features.
-                        Permissions cannot be modified.
-                    </Text>
-                </View>
-            </Tabs.ScrollView>
-        );
-    }
-
     return (
         <View style={{ flex: 1 }}>
             <Tabs.ScrollView style={[{ flex: 1 }, { flex: 1 }]}>
@@ -70,8 +54,10 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole, cu
                         permissions={permissions || []}
                         onChange={handleSave}
                         readonly={!canModify}
+                        userRole={userRole}
                     />
-                    {isSelf && <Text style={{ textAlign: 'center', marginTop: 10, color: 'orange', fontWeight: 'bold' }}>You cannot modify your own permissions.</Text>}
+                    {isSuperAdmin && <Text style={{ textAlign: 'center', marginTop: 10, color: 'gray' }}>This user is a Super Admin and has full access. Permissions cannot be modified.</Text>}
+                    {isSelf && !isSuperAdmin && <Text style={{ textAlign: 'center', marginTop: 10, color: 'orange', fontWeight: 'bold' }}>You cannot modify your own permissions.</Text>}
                     {canModify && <Text style={{ textAlign: 'center', marginTop: 10, color: 'gray' }}>Tap icons to toggle permissions immediately.</Text>}
                 </View>
             </Tabs.ScrollView>

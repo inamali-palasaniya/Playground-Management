@@ -48,7 +48,7 @@ export default function DashboardScreen() {
                 console.log("Fresh user fetch failed, using auth user");
             }
 
-            const canViewGlobalFinance = AuthService.hasPermission(currentUser, 'ledger', 'view') || AuthService.hasPermission(currentUser, 'expense', 'view');
+            const canViewGlobalFinance = AuthService.hasPermission(currentUser, 'finance', 'view') || AuthService.hasPermission(currentUser, 'expense', 'view');
             const canViewGlobalAttendance = AuthService.hasPermission(currentUser, 'attendance', 'view');
 
             const financeQuery = canViewGlobalFinance ? '' : `?userId=${currentUser.id}`;
@@ -323,13 +323,13 @@ export default function DashboardScreen() {
                         <Card.Content>
                             <View style={styles.cardHeader}>
                                 <Text variant="titleMedium" style={styles.cardTitle}>
-                                    {AuthService.hasPermission(authUser, 'ledger', 'view') ? 'Financial Summary' : 'My Financials'}
+                                    {AuthService.hasPermission(authUser, 'finance', 'view') ? 'Financial Summary' : 'My Financials'}
                                 </Text>
                                 <MaterialCommunityIcons name="finance" size={24} color={theme.colors.primary} />
                             </View>
 
                             <View style={styles.statRow}>
-                                {AuthService.hasPermission(authUser, 'ledger', 'view') ? (
+                                {AuthService.hasPermission(authUser, 'finance', 'view') ? (
                                     <View style={styles.statItem}>
                                         <Text variant="labelMedium" style={styles.statLabel}>Income</Text>
                                         <Text variant="titleLarge" style={[styles.statValue, { color: 'green' }]}>
@@ -347,15 +347,15 @@ export default function DashboardScreen() {
 
                                 <View style={styles.statItem}>
                                     <Text variant="labelMedium" style={styles.statLabel}>
-                                        {AuthService.hasPermission(authUser, 'expense', 'view') || AuthService.hasPermission(authUser, 'ledger', 'view') ? 'Expenses' : 'Outstanding'}
+                                        {AuthService.hasPermission(authUser, 'expense', 'view') || AuthService.hasPermission(authUser, 'finance', 'view') ? 'Expenses' : 'Outstanding'}
                                     </Text>
                                     <Text variant="titleLarge" style={[styles.statValue, { color: AuthService.hasPermission(authUser, 'expense', 'view') ? 'red' : 'orange' }]}>
-                                        {formatCurrency(!AuthService.hasPermission(authUser, 'ledger', 'view') ? financials?.outstanding_balance : financials?.total_expenses)}
+                                        {formatCurrency(!AuthService.hasPermission(authUser, 'finance', 'view') ? financials?.outstanding_balance : financials?.total_expenses)}
                                     </Text>
                                 </View>
                             </View>
 
-                            {AuthService.hasPermission(authUser, 'ledger', 'view') && (
+                            {AuthService.hasPermission(authUser, 'finance', 'view') && (
                                 <View style={[styles.statRow, { marginTop: 16 }]}>
                                     <View style={styles.statItem}>
                                         <Text variant="labelMedium" style={styles.statLabel}>Net Profit</Text>
@@ -372,9 +372,9 @@ export default function DashboardScreen() {
                                 </View>
                             )}
 
-                            {(AuthService.hasPermission(authUser, 'ledger', 'view') || AuthService.hasPermission(authUser, 'expense', 'view')) && (
+                            {(AuthService.hasPermission(authUser, 'finance', 'view') || AuthService.hasPermission(authUser, 'expense', 'view')) && (
                                 <View style={{ flexDirection: 'row', gap: 10, marginTop: 15 }}>
-                                    {AuthService.hasPermission(authUser, 'ledger', 'view') && (
+                                    {AuthService.hasPermission(authUser, 'finance', 'view') && (
                                         <Button mode="contained-tonal" icon="cash-plus" style={{ flex: 1 }} onPress={() => router.push('/management/ledgers')}>
                                             Payments
                                         </Button>

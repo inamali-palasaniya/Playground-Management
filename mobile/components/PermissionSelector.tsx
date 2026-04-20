@@ -16,14 +16,18 @@ interface PermissionSelectorProps {
     permissions: PermissionItem[];
     onChange: (updatedPermissions: PermissionItem[]) => void;
     readonly?: boolean;
+    userRole?: string;
 }
 
-const MODULES = ['user', 'expense', 'payment', 'finance', 'attendance', 'cricket_scoring', 'master_plans', 'master_fines', 'master_groups', 'audit'];
+const MODULES = ['user', 'expense', 'payment', 'finance', 'attendance', 'cricket_scoring', 'tournament', 'team', 'match', 'group', 'subscription', 'report', 'master_plans', 'master_fines', 'master_groups', 'audit'];
 
-export const PermissionSelector = ({ permissions, onChange, readonly = false }: PermissionSelectorProps) => {
+export const PermissionSelector = ({ permissions, onChange, readonly = false, userRole }: PermissionSelectorProps) => {
     const theme = useTheme();
 
     const getPermission = (module: string) => {
+        if (userRole === 'SUPER_ADMIN') {
+            return { module_name: module, can_view: true, can_add: true, can_edit: true, can_delete: true };
+        }
         return permissions.find(p => p.module_name === module) || { module_name: module, can_view: false, can_add: false, can_edit: false, can_delete: false };
     };
 
@@ -36,6 +40,16 @@ export const PermissionSelector = ({ permissions, onChange, readonly = false }: 
         const otherPermissions = permissions.filter(p => p.module_name !== module);
         const updatedPermission = { ...current, [type]: newValue };
 
+        onChange([...otherPermissions, updatedPermission]);
+    };
+
+    const toggleAll = (module: string) => {
+        if (readonly) return;
+        const current = getPermission(module);
+        const allActive = current.can_view && current.can_add && current.can_edit && current.can_delete;
+        const newValue = !allActive;
+        const otherPermissions = permissions.filter(p => p.module_name !== module);
+        const updatedPermission = { ...current, can_view: newValue, can_add: newValue, can_edit: newValue, can_delete: newValue };
         onChange([...otherPermissions, updatedPermission]);
     };
 
@@ -69,6 +83,20 @@ export const PermissionSelector = ({ permissions, onChange, readonly = false }: 
         );
     };
 
+    const renderToggleAllIcon = (module: string) => {
+        const current = getPermission(module);
+        const allActive = current.can_view && current.can_add && current.can_edit && current.can_delete;
+        return (
+            <IconButton
+                icon={allActive ? 'check-all' : 'checkbox-multiple-blank-outline'}
+                iconColor={allActive ? '#9C27B0' : '#e0e0e0'}
+                size={26}
+                onPress={() => !readonly && toggleAll(module)}
+                rippleColor={readonly ? 'transparent' : undefined}
+            />
+        );
+    };
+
     return (
         <View style={styles.container}>
             <View style={styles.headerRow}>
@@ -77,6 +105,7 @@ export const PermissionSelector = ({ permissions, onChange, readonly = false }: 
                 <Text style={styles.col}>Add</Text>
                 <Text style={styles.col}>Edit</Text>
                 <Text style={styles.col}>Del</Text>
+                <Text style={styles.col}>All</Text>
             </View>
             <Divider />
             {MODULES.map((module) => (
@@ -89,6 +118,7 @@ export const PermissionSelector = ({ permissions, onChange, readonly = false }: 
                     <View style={styles.col}>{renderIcon(module, 'can_add')}</View>
                     <View style={styles.col}>{renderIcon(module, 'can_edit')}</View>
                     <View style={styles.col}>{renderIcon(module, 'can_delete')}</View>
+                    <View style={styles.col}>{renderToggleAllIcon(module)}</View>
                 </View>
             ))}
         </View>
