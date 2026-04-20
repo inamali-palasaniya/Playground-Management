@@ -1060,7 +1060,7 @@ export default function UserDetailScreen() {
                                 <MaterialCommunityIcons name="tag-outline" size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
                                 <View>
                                     <Text variant="bodySmall" style={{ color: 'gray', fontSize: 10 }}>Current Plan</Text>
-                                    <Text variant="bodyMedium" style={{ fontWeight: 'bold', color: '#333' }}>{user.subscription_plan?.name || user.plan_name || 'No Plan'}</Text>
+                                    <Text variant="bodyMedium" style={{ fontWeight: 'bold', color: '#333' }}>{user.subscriptions?.[0]?.plan?.name || user.plan_name || 'No Plan'}</Text>
                                 </View>
                             </View>
 
@@ -1191,11 +1191,11 @@ export default function UserDetailScreen() {
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
                             <View>
                                 <Text variant="labelSmall" style={{ color: 'gray' }}>Current Plan</Text>
-                                <Text variant="bodyLarge" style={{ fontWeight: 'bold' }}>{user.subscription_plan?.name || 'No Plan'}</Text>
+                                <Text variant="bodyLarge" style={{ fontWeight: 'bold' }}>{user.subscriptions?.[0]?.plan?.name || user.plan_name || 'No Plan'}</Text>
                             </View>
                             <View style={{ alignItems: 'flex-end' }}>
                                 <Text variant="labelSmall" style={{ color: 'gray' }}>Rate</Text>
-                                <Text variant="bodyLarge" style={{ color: theme.colors.primary }}>₹{user.subscription_plan?.price || 0}/month</Text>
+                                <Text variant="bodyLarge" style={{ color: theme.colors.primary }}>₹{user.subscriptions?.[0]?.plan?.rate_monthly || 0}/month</Text>
                             </View>
                         </View>
 
