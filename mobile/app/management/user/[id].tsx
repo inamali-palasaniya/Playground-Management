@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { View, StyleSheet, ScrollView, useWindowDimensions, Alert, Platform, TouchableOpacity, StatusBar } from 'react-native';
-import { Text, Avatar, Button, Card, useTheme, DataTable, FAB, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Menu, Divider, Chip } from 'react-native-paper';
+import { Text, Avatar, Button, Card, useTheme, DataTable, FAB, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Menu, Divider, Chip, Switch } from 'react-native-paper';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Tabs, MaterialTabBar } from 'react-native-collapsible-tab-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -501,7 +501,7 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user, refreshKe
 };
 
 
-const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser, refreshKey }: { userId: number, isFocused: boolean, onUpdate?: () => void, currentUser: any, refreshKey?: number }) => {
+const AttendanceRoute = ({ userId, user, isFocused, onUpdate, currentUser, refreshKey }: { userId: number, user?: any, isFocused: boolean, onUpdate?: () => void, currentUser: any, refreshKey?: number }) => {
     const isNormalUser = currentUser?.role === 'NORMAL';
     const [attendance, setAttendance] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -511,6 +511,8 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser, refreshKey 
     // Check-In State
     const [showCheckInDialog, setShowCheckInDialog] = useState(false);
     const [checkInDate, setCheckInDate] = useState(new Date());
+    const [bookFeeDebit, setBookFeeDebit] = useState(true);
+    const [markFeePaid, setMarkFeePaid] = useState(false);
 
     // Edit State
     const [editingRecord, setEditingRecord] = useState<any>(null);
@@ -541,7 +543,13 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser, refreshKey 
 
     const handleCheckIn = async () => {
         try {
-            await apiService.checkIn(userId, checkInDate.toISOString());
+            await apiService.checkIn(
+                userId, 
+                checkInDate.toISOString(),
+                bookFeeDebit,
+                markFeePaid,
+                user?.payment_frequency === 'MONTHLY'
+            );
             setShowCheckInDialog(false);
             loadAttendance();
             if (onUpdate) onUpdate();
@@ -749,7 +757,28 @@ const AttendanceRoute = ({ userId, isFocused, onUpdate, currentUser, refreshKey 
                                 {format(checkInDate, 'HH:mm')}
                             </Button>
                         </View>
-                        <Text variant="bodySmall">Note: This will spark a daily fee charge if applicable.</Text>
+                        
+                        {(user?.payment_frequency === 'DAILY' || user?.payment_frequency === 'MONTHLY') && (
+                            <View style={{ marginTop: 15 }}>
+                                <Text style={{ marginBottom: 10, color: 'gray' }}>Fast-track `{user.payment_frequency === 'MONTHLY' ? 'Monthly' : 'Daily'}` billing for this punch:</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                                    <View>
+                                        <Text variant="titleMedium">Book Fee</Text>
+                                        <Text variant="bodySmall" style={{ color: 'gray' }}>Record as DEBIT</Text>
+                                    </View>
+                                    <Switch value={bookFeeDebit} onValueChange={setBookFeeDebit} />
+                                </View>
+                                {bookFeeDebit && (
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <View>
+                                            <Text variant="titleMedium">Mark Paid</Text>
+                                            <Text variant="bodySmall" style={{ color: 'gray' }}>Instant payment (CREDIT)</Text>
+                                        </View>
+                                        <Switch value={markFeePaid} onValueChange={setMarkFeePaid} />
+                                    </View>
+                                )}
+                            </View>
+                        )}
                     </Dialog.Content>
                     <Dialog.Actions>
                         <Button onPress={() => setShowCheckInDialog(false)}>Cancel</Button>
@@ -1257,7 +1286,7 @@ export default function UserDetailScreen() {
                     <FineRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} onUpdate={onMutate} refreshKey={refreshKey} />
                 </Tabs.Tab>
                 <Tabs.Tab name="attendance" label="Attendance">
-                    <AttendanceRoute userId={Number(id)} isFocused={isFocused} onUpdate={onMutate} currentUser={currentUser} refreshKey={refreshKey} />
+                    <AttendanceRoute userId={Number(id)} user={user} isFocused={isFocused} onUpdate={onMutate} currentUser={currentUser} refreshKey={refreshKey} />
                 </Tabs.Tab>
                 <Tabs.Tab name="matches" label="Matches">
                     <MatchesRoute userId={Number(id)} isFocused={isFocused} />

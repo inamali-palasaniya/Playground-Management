@@ -135,13 +135,10 @@ export const getUsers = async (req: Request, res: Response) => {
 
         // Filter by specific plan (via plan_id)
         if (plan_id) {
-            // Ensure we are filtering by a plan that is currently ACTIVE or EXPIRED for the user
-            // Actually, usually filters imply "Users who HAVE this plan"
             where.subscriptions = {
                 some: {
-                    plan_id: parseInt(plan_id as string)
-                    // We might want to filter only active? or any status? 
-                    // Let's assume generally users currently associated with this plan.
+                    plan_id: parseInt(plan_id as string),
+                    status: 'ACTIVE'
                 }
             };
         }

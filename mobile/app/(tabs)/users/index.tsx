@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { View, StyleSheet, FlatList, RefreshControl, Alert, ScrollView, TouchableOpacity, Platform } from 'react-native';
-import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button, Portal } from 'react-native-paper';
+import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button, Portal, Dialog, Switch } from 'react-native-paper';
 import { useRouter, useFocusEffect, useLocalSearchParams, Stack } from 'expo-router';
 import * as Updates from 'expo-updates';
 import apiService from '../../../services/api.service';
@@ -81,6 +81,12 @@ export default function PeopleScreen() {
     // Audit Dialog State
     const [auditVisible, setAuditVisible] = useState(false);
     const [auditEntityId, setAuditEntityId] = useState<number | null>(null);
+
+    // Punch Modal State
+    const [punchModalVisible, setPunchModalVisible] = useState(false);
+    const [punchTargetUser, setPunchTargetUser] = useState<User | null>(null);
+    const [bookFeeDebit, setBookFeeDebit] = useState(true);
+    const [markFeePaid, setMarkFeePaid] = useState(false);
 
     const [errorVisible, setErrorVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -220,27 +226,65 @@ export default function PeopleScreen() {
         loadData();
     };
 
-    const handlePunch = async (user: User) => {
+    const handlePunchClick = (item: User) => {
+        if (item.punch_status === 'IN') {
+             // If already IN, just Punch OUT silently (no fee logic needed for OUT usually)
+             handlePunchConfirm(item, false, false);
+        } else {
+             // User is OUT, open Punch IN Modal to handle Fast-Track billing
+             setPunchTargetUser(item);
+             setBookFeeDebit(true); // Default to booking fee
+             setMarkFeePaid(false); // Default to unpaid
+             setPunchModalVisible(true);
+        }
+    };
+
+    const handlePunchConfirm = async (user: User, debit: boolean, credit: boolean) => {
+        setPunchModalVisible(false);
+        const previousStatus = user.punch_status;
+        const newStatus = previousStatus === 'IN' ? 'OUT' : 'IN';
+        
+        // Optimistic UI Update
+        setUsers(users.map(u => u.id === user.id ? { ...u, punch_status: newStatus } : u));
+
         try {
-            if (user.punch_status === 'IN') {
+            if (previousStatus === 'IN') {
                 await apiService.checkOut(user.id);
             } else {
-                await apiService.checkIn(user.id, new Date().toISOString());
+                await apiService.checkIn(
+                     user.id, 
+                     new Date().toISOString(), 
+                     debit, 
+                     credit, 
+                     user.payment_frequency === 'MONTHLY'
+                );
             }
-            // Refresh to show new status
-            loadData();
         } catch (error: any) {
             console.error('Punch failed', error);
+            // Revert optimistic update on failure
+            setUsers(users.map(u => u.id === user.id ? { ...u, punch_status: previousStatus } : u));
+            
             let message = 'Failed to update attendance';
-            if (error.body) {
-                try {
-                    const parsed = JSON.parse(error.body);
-                    if (parsed.error) message = parsed.error;
-                } catch (e) {
-                    message = String(error.body);
+            
+            // Graceful error stringification to prevent black debug crash
+            if (error && error.status === 409) {
+                message = 'User has already been checked in for this date.';
+            } else if (error && error.body) {
+                if (typeof error.body === 'string') {
+                    try {
+                        const parsed = JSON.parse(error.body);
+                        if (parsed.error) message = parsed.error;
+                    } catch (e) {
+                         message = error.body;
+                    }
+                } else if (error.body.error) {
+                    message = error.body.error;
                 }
+            } else if (error && error.message) {
+                message = error.message;
             }
-            Alert.alert('Error', message);
+            
+            Alert.alert('Attendance Error', message);
         }
     };
 
@@ -291,12 +335,20 @@ export default function PeopleScreen() {
                 title={item.name}
                 titleStyle={{ fontSize: 16, fontWeight: 'bold' }}
                 subtitle={
-                    <Text style={{ fontSize: 12, color: '#555' }}>
-                        <Text style={{ fontWeight: item.role === 'SUPER_ADMIN' ? 'bold' : 'normal', color: item.role === 'SUPER_ADMIN' ? '#d32f2f' : '#333' }}>
-                            {item.role === 'SUPER_ADMIN' ? 'Super Admin' : item.role}
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <MaterialCommunityIcons 
+                             name="circle" 
+                             size={10} 
+                             color={item.punch_status === 'IN' ? '#4CAF50' : '#F44336'} 
+                             style={{ marginRight: 6 }} 
+                        />
+                        <Text style={{ fontSize: 12, color: '#555' }}>
+                            <Text style={{ fontWeight: item.role === 'SUPER_ADMIN' ? 'bold' : 'normal', color: item.role === 'SUPER_ADMIN' ? '#d32f2f' : '#333' }}>
+                                {item.role === 'SUPER_ADMIN' ? 'Super Admin' : item.role}
+                            </Text>
+                            <Text style={{ color: '#888' }}> • {item.group?.name || 'No Group'}</Text>
                         </Text>
-                        <Text style={{ color: '#888' }}> • {item.group?.name || 'No Group'}</Text>
-                    </Text>
+                    </View>
                 }
                 subtitleStyle={{ marginTop: -2 }}
                 left={(props) => <Avatar.Text {...props} size={40} label={(item.name || 'U').substring(0, 2).toUpperCase()} />}
@@ -314,11 +366,11 @@ export default function PeopleScreen() {
                                         <IconButton
                                             icon={item.punch_status === 'IN' ? 'logout' : 'login'}
                                             mode="contained"
-                                            containerColor={item.punch_status === 'IN' ? '#FF5252' : '#4CAF50'}
+                                            containerColor={item.punch_status === 'IN' ? '#FF5252' : '#2196F3'}
                                             iconColor="white"
                                             size={18}
                                             style={{ margin: 0, marginRight: 4 }}
-                                            onPress={(e) => { e.stopPropagation(); handlePunch(item); }}
+                                            onPress={(e) => { e.stopPropagation(); handlePunchClick(item); }}
                                         />
                                     )}
                                     {canEdit && (
@@ -376,11 +428,10 @@ export default function PeopleScreen() {
 
                     {/* Financials & Plan Row */}
                     <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-                        {item.plan_name && (
-                            <View style={{ backgroundColor: '#f0f0f0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                                <Text style={{ fontSize: 10, color: '#555' }}>{item.plan_name}</Text>
-                            </View>
-                        )}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e3f2fd', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                            <MaterialCommunityIcons name="tag" size={12} color="#1565c0" style={{ marginRight: 4 }} />
+                            <Text style={{ fontSize: 10, color: '#1565c0', fontWeight: 'bold' }}>{item.plan_name || 'No Plan'}</Text>
+                        </View>
                         {item.payment_frequency && (
                             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: item.payment_frequency === 'MONTHLY' ? '#e0f2f1' : '#fff3e0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
                                 <MaterialCommunityIcons
@@ -669,6 +720,61 @@ export default function PeopleScreen() {
                     />
                 </Portal>
             )}
+
+            <Portal>
+                <Dialog visible={punchModalVisible} onDismiss={() => setPunchModalVisible(false)} style={{ backgroundColor: 'white' }}>
+                    <Dialog.Title>Punch IN - {punchTargetUser?.name || 'User'}</Dialog.Title>
+                    <Dialog.Content>
+                        {punchTargetUser?.payment_frequency === 'DAILY' ? (
+                            <View>
+                                <Text style={{ marginBottom: 12, color: 'gray' }}>This user is on a Daily plan. A daily fee will be calculated based on their plan configuration.</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                                    <View>
+                                        <Text variant="titleMedium">Book Daily Fee</Text>
+                                        <Text variant="bodySmall" style={{ color: 'gray' }}>Record fee as DEBIT in ledger</Text>
+                                    </View>
+                                    <Switch value={bookFeeDebit} onValueChange={setBookFeeDebit} />
+                                </View>
+                                {bookFeeDebit && (
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <View>
+                                            <Text variant="titleMedium">Mark Fee as Paid</Text>
+                                            <Text variant="bodySmall" style={{ color: 'gray' }}>Instantly record payment (CREDIT)</Text>
+                                        </View>
+                                        <Switch value={markFeePaid} onValueChange={setMarkFeePaid} />
+                                    </View>
+                                )}
+                            </View>
+                        ) : punchTargetUser?.payment_frequency === 'MONTHLY' ? (
+                            <View>
+                                <Text style={{ marginBottom: 12, color: 'gray' }}>This user is on a Monthly plan. If they haven't been billed this month, you can initiate the charge now to fast-track their monthly fee.</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                                    <View>
+                                        <Text variant="titleMedium">Book Monthly Fee</Text>
+                                        <Text variant="bodySmall" style={{ color: 'gray' }}>Record monthly fee as DEBIT</Text>
+                                    </View>
+                                    <Switch value={bookFeeDebit} onValueChange={setBookFeeDebit} />
+                                </View>
+                                {bookFeeDebit && (
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <View>
+                                            <Text variant="titleMedium">Mark Fee as Paid</Text>
+                                            <Text variant="bodySmall" style={{ color: 'gray' }}>Instantly record payment (CREDIT)</Text>
+                                        </View>
+                                        <Switch value={markFeePaid} onValueChange={setMarkFeePaid} />
+                                    </View>
+                                )}
+                            </View>
+                        ) : (
+                            <Text>Punching in user with no configured frequency.</Text>
+                        )}
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button onPress={() => setPunchModalVisible(false)} textColor="gray">Cancel</Button>
+                        <Button onPress={() => { if(punchTargetUser) handlePunchConfirm(punchTargetUser, bookFeeDebit, markFeePaid); }} mode="contained">Confirm Punch IN</Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
 
             <ErrorDialog
                 visible={errorVisible}

@@ -4,7 +4,7 @@ import { AuditService } from '../services/audit.service.js';
 
 export const checkIn = async (req: Request, res: Response) => {
   try {
-    const { user_id, date, lat, lng } = req.body;
+    const { user_id, date, lat, lng, book_fee_debit, mark_fee_paid, is_monthly } = req.body;
     // Prefer user_id from auth if available, else from body (admin mode or unprotected)
     // For now keeping user_id from body for flexibility or matching existing API style
     const targetUserId = user_id ? parseInt(user_id) : (req as any).user?.userId;
@@ -54,12 +54,17 @@ export const checkIn = async (req: Request, res: Response) => {
     });
 
     let dailyFee = 0;
+    let monthlyFee = 0;
 
-    // Calculate daily fee based on subscription PAYMENT FREQUENCY
-    if (activeSubscription?.plan) {
-      if (activeSubscription.payment_frequency === 'DAILY') {
+    // Calculate fees if requested
+    if (activeSubscription?.plan && book_fee_debit) {
+      if (activeSubscription.payment_frequency === 'DAILY' || !is_monthly) {
         if (activeSubscription.plan.rate_daily && activeSubscription.plan.rate_daily > 0) {
           dailyFee = activeSubscription.plan.rate_daily;
+        }
+      } else if (activeSubscription.payment_frequency === 'MONTHLY' || is_monthly) {
+        if (activeSubscription.plan.rate_monthly && activeSubscription.plan.rate_monthly > 0) {
+          monthlyFee = activeSubscription.plan.rate_monthly;
         }
       }
     }
@@ -82,19 +87,73 @@ export const checkIn = async (req: Request, res: Response) => {
       },
     });
 
-    // If there's a daily fee, create a ledger entry
+    const createdById = (req as any).user?.userId || null;
+
+    // Fast-track billing execution
     if (dailyFee > 0) {
-      await prisma.feeLedger.create({
+      // Create DEBIT
+      const debitEntry = await prisma.feeLedger.create({
         data: {
           user_id: targetUserId,
           type: 'DAILY_FEE',
           transaction_type: 'DEBIT',
           amount: dailyFee,
           date: checkInDate,
-          is_paid: false,
+          is_paid: mark_fee_paid ? true : false,
           notes: `Daily fee for ${checkInDate.toISOString().split('T')[0]}`,
+          created_by_id: createdById
         },
       });
+
+      // Create CREDIT if paid directly
+      if (mark_fee_paid) {
+        await prisma.feeLedger.create({
+          data: {
+            user_id: targetUserId,
+            type: 'PAYMENT',
+            transaction_type: 'CREDIT',
+            amount: dailyFee,
+            date: checkInDate,
+            is_paid: true,
+            notes: `Fast-Track Payment for Daily Fee`,
+            created_by_id: createdById,
+            parent_id: debitEntry.id
+          },
+        });
+      }
+    }
+
+    if (monthlyFee > 0) {
+      // Create DEBIT
+      const debitEntry = await prisma.feeLedger.create({
+        data: {
+          user_id: targetUserId,
+          type: 'MONTHLY_FEE',
+          transaction_type: 'DEBIT',
+          amount: monthlyFee,
+          date: checkInDate,
+          is_paid: mark_fee_paid ? true : false,
+          notes: `Monthly fee (Plan: ${activeSubscription?.plan.name})`,
+          created_by_id: createdById
+        },
+      });
+
+      // Create CREDIT if paid directly
+      if (mark_fee_paid) {
+        await prisma.feeLedger.create({
+          data: {
+            user_id: targetUserId,
+            type: 'SUBSCRIPTION',
+            transaction_type: 'CREDIT',
+            amount: monthlyFee,
+            date: checkInDate,
+            is_paid: true,
+            notes: `Fast-Track Payment for Monthly Fee`,
+            created_by_id: createdById,
+            parent_id: debitEntry.id
+          },
+        });
+      }
     }
 
     res.status(201).json(attendance);
