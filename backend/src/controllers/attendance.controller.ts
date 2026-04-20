@@ -117,7 +117,7 @@ export const checkIn = async (req: Request, res: Response) => {
             is_paid: true,
             notes: `Fast-Track Payment for Daily Fee`,
             created_by_id: createdById,
-            parent_id: debitEntry.id
+            parent_ledger_id: debitEntry.id
           },
         });
       }
@@ -150,7 +150,7 @@ export const checkIn = async (req: Request, res: Response) => {
             is_paid: true,
             notes: `Fast-Track Payment for Monthly Fee`,
             created_by_id: createdById,
-            parent_id: debitEntry.id
+            parent_ledger_id: debitEntry.id
           },
         });
       }
