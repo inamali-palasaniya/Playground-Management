@@ -129,12 +129,23 @@ export const getUsers = async (req: Request, res: Response) => {
             where.role = role;
         }
 
+        if (user_type) {
+            where.user_type = user_type;
+        }
+
         // Filter by Plan properties (ID, Name, Frequency) via active subscription
         if (plan_id || plan_name || payment_frequency) {
             where.subscriptions = {
                 some: {
                     ...(plan_id ? { plan_id: parseInt(plan_id as string) } : {}),
-                    ...(plan_name ? { plan: { name: plan_name as string } } : {}),
+                    ...(plan_name ? { 
+                        plan: { 
+                            name: { 
+                                contains: plan_name as string, 
+                                mode: 'insensitive' 
+                            } 
+                        } 
+                    } : {}),
                     ...(payment_frequency ? { payment_frequency: payment_frequency as any } : {}),
                     status: 'ACTIVE'
                 }

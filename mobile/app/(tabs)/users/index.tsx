@@ -657,7 +657,10 @@ export default function PeopleScreen() {
                                 }
                             >
                                 <Menu.Item onPress={() => { setSelectedPlanName(null); setMenuPlan(false); }} title="All Plans" />
-                                {Array.from(new Set(plans.map(p => p.name))).map(name => (
+                                {Array.from(new Set(plans.map(p => {
+                                    // Strip "Monthly", "Daily", "Monthly ", "Daily " (case insensitive)
+                                    return p.name.replace(/(Monthly|Daily)\s*/i, '').trim();
+                                }))).map(name => (
                                     <Menu.Item key={name} onPress={() => { setSelectedPlanName(name); setMenuPlan(false); }} title={name} />
                                 ))}
                             </Menu>
