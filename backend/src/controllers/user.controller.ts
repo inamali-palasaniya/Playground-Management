@@ -118,7 +118,7 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const getUsers = async (req: Request, res: Response) => {
     try {
-        const { group_id, user_type, filter, status, punch_status, role, plan_id } = req.query;
+        const { group_id, user_type, filter, status, punch_status, role, plan_id, payment_frequency, plan_name } = req.query;
         const where: any = {};
 
         if (group_id) {
@@ -129,15 +129,13 @@ export const getUsers = async (req: Request, res: Response) => {
             where.role = role;
         }
 
-        if (user_type) {
-            where.user_type = user_type;
-        }
-
-        // Filter by specific plan (via plan_id)
-        if (plan_id) {
+        // Filter by Plan properties (ID, Name, Frequency) via active subscription
+        if (plan_id || plan_name || payment_frequency) {
             where.subscriptions = {
                 some: {
-                    plan_id: parseInt(plan_id as string),
+                    ...(plan_id ? { plan_id: parseInt(plan_id as string) } : {}),
+                    ...(plan_name ? { plan: { name: plan_name as string } } : {}),
+                    ...(payment_frequency ? { payment_frequency: payment_frequency as any } : {}),
                     status: 'ACTIVE'
                 }
             };

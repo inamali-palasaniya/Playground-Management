@@ -62,6 +62,8 @@ export default function PeopleScreen() {
     const [selectedPunch, setSelectedPunch] = useState<string | null>(null); // 'IN', 'OUT'
     const [selectedType, setSelectedType] = useState<string | null>(null);
     const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+    const [selectedPlanName, setSelectedPlanName] = useState<string | null>(null);
+    const [selectedFrequency, setSelectedFrequency] = useState<string | null>(null); // 'DAILY', 'MONTHLY'
 
     // Menus Visibility
     const [menuGroup, setMenuGroup] = useState(false);
@@ -70,6 +72,7 @@ export default function PeopleScreen() {
     const [menuPunch, setMenuPunch] = useState(false);
     const [menuType, setMenuType] = useState(false);
     const [menuPlan, setMenuPlan] = useState(false);
+    const [menuFrequency, setMenuFrequency] = useState(false);
     const [menuFinance, setMenuFinance] = useState(false);
 
     const [currentUser, setCurrentUser] = useState<any>(null);
@@ -121,7 +124,8 @@ export default function PeopleScreen() {
                 if (selectedStatus) queryString += `&status=${selectedStatus}`;
                 if (selectedPunch) queryString += `&punch_status=${selectedPunch}`;
                 if (selectedType) queryString += `&user_type=${selectedType}`;
-                if (selectedPlan) queryString += `&plan_id=${selectedPlan.id}`;
+                if (selectedPlanName) queryString += `&plan_name=${encodeURIComponent(selectedPlanName)}`;
+                if (selectedFrequency) queryString += `&payment_frequency=${selectedFrequency}`;
 
                 const usersPromise = apiService.request(`/api/users${queryString}`);
                 const promises: Promise<any>[] = [usersPromise];
@@ -644,17 +648,17 @@ export default function PeopleScreen() {
                                         mode="outlined"
                                         icon="tag-outline"
                                         onPress={() => setMenuPlan(true)}
-                                        selected={!!selectedPlan}
+                                        selected={!!selectedPlanName}
                                         style={styles.filterChip}
                                         showSelectedOverlay
                                     >
-                                        {selectedPlan?.name || "Plan"}
+                                        {selectedPlanName || "Plan"}
                                     </Chip>
                                 }
                             >
-                                <Menu.Item onPress={() => { setSelectedPlan(null); setMenuPlan(false); }} title="All Plans" />
-                                {plans.map(p => (
-                                    <Menu.Item key={p.id} onPress={() => { setSelectedPlan(p); setMenuPlan(false); }} title={p.name} />
+                                <Menu.Item onPress={() => { setSelectedPlanName(null); setMenuPlan(false); }} title="All Plans" />
+                                {Array.from(new Set(plans.map(p => p.name))).map(name => (
+                                    <Menu.Item key={name} onPress={() => { setSelectedPlanName(name); setMenuPlan(false); }} title={name} />
                                 ))}
                             </Menu>
 
@@ -681,6 +685,28 @@ export default function PeopleScreen() {
                                 <Menu.Item onPress={() => { setActiveFilter('NEGATIVE_BALANCE'); setMenuFinance(false); }} title="Due Only" />
                                 <Menu.Item onPress={() => { setActiveFilter('SETTLED'); setMenuFinance(false); }} title="Settled / Paid" />
                                 <Menu.Item onPress={() => { setActiveFilter('EXPIRED'); setMenuFinance(false); }} title="Expired Plan" />
+                            </Menu>
+
+                            {/* Frequency Filter */}
+                            <Menu
+                                visible={menuFrequency}
+                                onDismiss={() => setMenuFrequency(false)}
+                                anchor={
+                                    <Chip
+                                        mode="outlined"
+                                        icon="calendar-clock"
+                                        onPress={() => setMenuFrequency(true)}
+                                        selected={!!selectedFrequency}
+                                        style={styles.filterChip}
+                                        showSelectedOverlay
+                                    >
+                                        {selectedFrequency === 'DAILY' ? 'Daily' : selectedFrequency === 'MONTHLY' ? 'Monthly' : 'Frequency'}
+                                    </Chip>
+                                }
+                            >
+                                <Menu.Item onPress={() => { setSelectedFrequency(null); setMenuFrequency(false); }} title="All Frequencies" />
+                                <Menu.Item onPress={() => { setSelectedFrequency('DAILY'); setMenuFrequency(false); }} title="Daily" />
+                                <Menu.Item onPress={() => { setSelectedFrequency('MONTHLY'); setMenuFrequency(false); }} title="Monthly" />
                             </Menu>
 
                             {/* Legacy "Expired" Chip (if triggered from Dashboard) -> Now handled in Finance Menu, but keeping optional visual indicator or removing if redundant */}

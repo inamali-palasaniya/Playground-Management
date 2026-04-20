@@ -501,7 +501,7 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user, refreshKe
 };
 
 
-const AttendanceRoute = ({ userId, user, isFocused, onUpdate, currentUser, refreshKey }: { userId: number, user?: any, isFocused: boolean, onUpdate?: () => void, currentUser: any, refreshKey?: number }) => {
+const AttendanceRoute = ({ userId, user, setUser, isFocused, onUpdate, currentUser, refreshKey }: { userId: number, user?: any, setUser?: (u: any) => void, isFocused: boolean, onUpdate?: () => void, currentUser: any, refreshKey?: number }) => {
     const isNormalUser = currentUser?.role === 'NORMAL';
     const [attendance, setAttendance] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -542,6 +542,12 @@ const AttendanceRoute = ({ userId, user, isFocused, onUpdate, currentUser, refre
     }, [userId, isFocused, refreshKey]);
 
     const handleCheckIn = async () => {
+        const previousStatus = user?.punch_status || 'OUT';
+        // Optimistic UI Update for User status
+        if (setUser && user) {
+            setUser({ ...user, punch_status: 'IN' });
+        }
+
         try {
             await apiService.checkIn(
                 userId, 
@@ -555,6 +561,10 @@ const AttendanceRoute = ({ userId, user, isFocused, onUpdate, currentUser, refre
             if (onUpdate) onUpdate();
             Alert.alert('Success', 'Check-in recorded');
         } catch (e: any) {
+            // Revert optimistic update on failure
+            if (setUser && user) {
+                setUser({ ...user, punch_status: previousStatus });
+            }
             let errorMessage = 'Check-in failed';
             let existingDetails = '';
 
@@ -563,11 +573,6 @@ const AttendanceRoute = ({ userId, user, isFocused, onUpdate, currentUser, refre
                 try {
                     const parsed = JSON.parse(e.body);
                     if (parsed.error) errorMessage = parsed.error;
-                    if (parsed.existing) {
-                        const inT = parsed.existing.in_time ? format(new Date(parsed.existing.in_time), 'HH:mm') : '-';
-                        const outT = parsed.existing.out_time ? format(new Date(parsed.existing.out_time), 'HH:mm') : '-';
-                        existingDetails = `\nExisting: In: ${inT}, Out: ${outT}`;
-                    }
                 } catch (jsonErr) {
                     errorMessage = e.body;
                 }
@@ -1286,7 +1291,7 @@ export default function UserDetailScreen() {
                     <FineRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} onUpdate={onMutate} refreshKey={refreshKey} />
                 </Tabs.Tab>
                 <Tabs.Tab name="attendance" label="Attendance">
-                    <AttendanceRoute userId={Number(id)} user={user} isFocused={isFocused} onUpdate={onMutate} currentUser={currentUser} refreshKey={refreshKey} />
+                    <AttendanceRoute userId={Number(id)} user={user} setUser={setUser} isFocused={isFocused} onUpdate={onMutate} currentUser={currentUser} refreshKey={refreshKey} />
                 </Tabs.Tab>
                 <Tabs.Tab name="matches" label="Matches">
                     <MatchesRoute userId={Number(id)} isFocused={isFocused} />

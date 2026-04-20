@@ -94,14 +94,14 @@ export const checkIn = async (req: Request, res: Response) => {
       // Create DEBIT
       const debitEntry = await prisma.feeLedger.create({
         data: {
-          user_id: targetUserId,
+          user: { connect: { id: targetUserId } },
           type: 'DAILY_FEE',
           transaction_type: 'DEBIT',
           amount: dailyFee,
           date: checkInDate,
           is_paid: mark_fee_paid ? true : false,
           notes: `Daily fee for ${checkInDate.toISOString().split('T')[0]}`,
-          created_by_id: createdById
+          created_by: createdById ? { connect: { id: createdById } } : undefined
         },
       });
 
@@ -109,15 +109,15 @@ export const checkIn = async (req: Request, res: Response) => {
       if (mark_fee_paid) {
         await prisma.feeLedger.create({
           data: {
-            user_id: targetUserId,
+            user: { connect: { id: targetUserId } },
             type: 'PAYMENT',
             transaction_type: 'CREDIT',
             amount: dailyFee,
             date: checkInDate,
             is_paid: true,
             notes: `Fast-Track Payment for Daily Fee`,
-            created_by_id: createdById,
-            parent_ledger_id: debitEntry.id
+            created_by: createdById ? { connect: { id: createdById } } : undefined,
+            parent_ledger: { connect: { id: debitEntry.id } }
           },
         });
       }
@@ -127,14 +127,14 @@ export const checkIn = async (req: Request, res: Response) => {
       // Create DEBIT
       const debitEntry = await prisma.feeLedger.create({
         data: {
-          user_id: targetUserId,
+          user: { connect: { id: targetUserId } },
           type: 'MONTHLY_FEE',
           transaction_type: 'DEBIT',
           amount: monthlyFee,
           date: checkInDate,
           is_paid: mark_fee_paid ? true : false,
           notes: `Monthly fee (Plan: ${activeSubscription?.plan.name})`,
-          created_by_id: createdById
+          created_by: createdById ? { connect: { id: createdById } } : undefined
         },
       });
 
@@ -142,15 +142,15 @@ export const checkIn = async (req: Request, res: Response) => {
       if (mark_fee_paid) {
         await prisma.feeLedger.create({
           data: {
-            user_id: targetUserId,
+            user: { connect: { id: targetUserId } },
             type: 'SUBSCRIPTION',
             transaction_type: 'CREDIT',
             amount: monthlyFee,
             date: checkInDate,
             is_paid: true,
             notes: `Fast-Track Payment for Monthly Fee`,
-            created_by_id: createdById,
-            parent_ledger_id: debitEntry.id
+            created_by: createdById ? { connect: { id: createdById } } : undefined,
+            parent_ledger: { connect: { id: debitEntry.id } }
           },
         });
       }
