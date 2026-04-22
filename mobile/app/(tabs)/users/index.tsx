@@ -4,6 +4,12 @@ import { View, StyleSheet, FlatList, RefreshControl, Alert, ScrollView, Touchabl
 import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button, Portal, Dialog, Switch, RadioButton, TextInput } from 'react-native-paper';
 import { useRouter, useFocusEffect, useLocalSearchParams, Stack } from 'expo-router';
 import * as Updates from 'expo-updates';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '../../../constants/api';
 import apiService from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { format } from 'date-fns';
@@ -58,6 +64,82 @@ export default function PeopleScreen() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [fabOpen, setFabOpen] = useState(false);
+    const [exportMenuVisible, setExportMenuVisible] = useState(false);
+
+    const getToken = async () => {
+        return Platform.OS === 'web' ? await AsyncStorage.getItem('user_token') : await SecureStore.getItemAsync('user_token');
+    };
+
+    const handleExportUsers = async () => {
+        setExportMenuVisible(false);
+        try {
+            setLoading(true);
+            const token = await getToken();
+            const fileUri = FileSystem.documentDirectory + 'users_export.xlsx';
+            
+            const downloadRes = await FileSystem.downloadAsync(
+                `${API_BASE_URL}/api/users/export`,
+                fileUri,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            if (downloadRes.status !== 200) {
+                throw new Error('Download failed from server');
+            }
+
+            if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(fileUri, { mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', dialogTitle: 'Exported Users' });
+            } else {
+                Alert.alert('Success', 'File exported successfully but sharing is not available.');
+            }
+        } catch (error: any) {
+            console.error('Export Error:', error);
+            Alert.alert('Export Failed', 'Unable to export users.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleImportUsers = async () => {
+        setExportMenuVisible(false);
+        try {
+            const result = await DocumentPicker.getDocumentAsync({
+                type: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel', '*/*'],
+                copyToCacheDirectory: true
+            });
+
+            if (result.canceled || !result.assets || result.assets.length === 0) return;
+
+            setLoading(true);
+            const file = result.assets[0];
+            const token = await getToken();
+
+            const uploadRes = await FileSystem.uploadAsync(
+                `${API_BASE_URL}/api/users/import`,
+                file.uri,
+                {
+                    httpMethod: 'POST',
+                    uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+                    fieldName: 'file',
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            if (uploadRes.status === 200) {
+                const resBody = JSON.parse(uploadRes.body);
+                Alert.alert('Import Success', `Imported successfully.\nCreated: ${resBody.created}\nUpdated: ${resBody.updated}`);
+                loadData();
+            } else {
+                const errorBody = JSON.parse(uploadRes.body);
+                throw new Error(errorBody.error || 'Server error');
+            }
+        } catch (error: any) {
+            console.error('Import Error:', error);
+            Alert.alert('Import Failed', error.message || 'Unable to import users.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Filters State
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
@@ -531,6 +613,25 @@ export default function PeopleScreen() {
                             value={searchQuery}
                             style={[styles.searchBar, { flex: 1, marginRight: 8 }]}
                         />
+                        {canViewUsers && currentUser?.role === 'MANAGEMENT' && (
+                            <Menu
+                                visible={exportMenuVisible}
+                                onDismiss={() => setExportMenuVisible(false)}
+                                anchor={
+                                    <IconButton
+                                        icon="file-excel"
+                                        mode="contained"
+                                        containerColor="#e8f5e9"
+                                        iconColor="#2e7d32"
+                                        size={24}
+                                        onPress={() => setExportMenuVisible(true)}
+                                    />
+                                }
+                            >
+                                <Menu.Item leadingIcon="download" onPress={handleExportUsers} title="Export Users" />
+                                <Menu.Item leadingIcon="upload" onPress={handleImportUsers} title="Import Users" />
+                            </Menu>
+                        )}
                         <IconButton
                             icon="cloud-download-outline"
                             mode="contained"
