@@ -732,7 +732,7 @@ export const exportUsers = async (req: Request, res: Response) => {
                 age: user.age,
                 user_type: user.user_type,
                 plan_id: activeSub?.plan_id || null,
-                payment_frequency: user.payment_frequency,
+                payment_frequency: (user as any).payment_frequency,
                 password: '', // leave empty, only used for import
                 is_active: user.is_active
             });
@@ -756,7 +756,7 @@ export const importUsers = async (req: Request, res: Response) => {
         }
 
         const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(req.file.buffer);
+        await workbook.xlsx.load(req.file.buffer as any);
 
         const sheet = workbook.getWorksheet(1);
         if (!sheet) {
@@ -875,7 +875,8 @@ export const importUsers = async (req: Request, res: Response) => {
                                      user_id: userId,
                                      plan_id: planIdInt,
                                      status: 'ACTIVE',
-                                     start_date: new Date()
+                                     start_date: new Date(),
+                                     amount_paid: 0
                                  }
                              });
                          }
@@ -902,7 +903,8 @@ export const importUsers = async (req: Request, res: Response) => {
                              user_id: user.id,
                              plan_id: parseInt(data.plan_id),
                              status: 'ACTIVE',
-                             start_date: new Date()
+                             start_date: new Date(),
+                             amount_paid: 0
                          }
                      });
                 }
