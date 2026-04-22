@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../utils/prisma.js';
 import bcrypt from 'bcrypt';
 import { AuditService } from '../services/audit.service.js';
+import ExcelJS from 'exceljs';
 
 export const createUser = async (req: Request, res: Response) => {
     try {
@@ -689,3 +690,232 @@ export const deleteUser = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to delete user', details: error.message });
     }
 };
+
+export const exportUsers = async (req: Request, res: Response) => {
+    try {
+        const users = await prisma.user.findMany({
+            include: {
+                group: true,
+                subscriptions: {
+                    include: { plan: true }
+                }
+            }
+        });
+
+        const workbook = new ExcelJS.Workbook();
+        const sheet = workbook.addWorksheet('Users');
+
+        sheet.columns = [
+            { header: 'user_id', key: 'user_id', width: 10 },
+            { header: 'name', key: 'name', width: 20 },
+            { header: 'phone', key: 'phone', width: 15 },
+            { header: 'email', key: 'email', width: 25 },
+            { header: 'role', key: 'role', width: 15 },
+            { header: 'group_id', key: 'group_id', width: 10 },
+            { header: 'age', key: 'age', width: 10 },
+            { header: 'user_type', key: 'user_type', width: 15 },
+            { header: 'plan_id', key: 'plan_id', width: 10 },
+            { header: 'payment_frequency', key: 'payment_frequency', width: 15 },
+            { header: 'password', key: 'password', width: 20 },
+            { header: 'is_active', key: 'is_active', width: 10 }
+        ];
+
+        users.forEach(user => {
+            const activeSub = user.subscriptions?.find((sub: any) => sub.status === 'ACTIVE');
+            sheet.addRow({
+                user_id: user.id,
+                name: user.name,
+                phone: user.phone,
+                email: user.email,
+                role: user.role,
+                group_id: user.group_id,
+                age: user.age,
+                user_type: user.user_type,
+                plan_id: activeSub?.plan_id || null,
+                payment_frequency: user.payment_frequency,
+                password: '', // leave empty, only used for import
+                is_active: user.is_active
+            });
+        });
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=users.xlsx');
+
+        await workbook.xlsx.write(res);
+        res.end();
+    } catch (error: any) {
+        console.error('Error exporting users:', error);
+        res.status(500).json({ error: 'Failed to export users', details: error.message });
+    }
+};
+
+export const importUsers = async (req: Request, res: Response) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No Excel file uploaded.' });
+        }
+
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(req.file.buffer);
+
+        const sheet = workbook.getWorksheet(1);
+        if (!sheet) {
+            return res.status(400).json({ error: 'Excel file is empty or invalid.' });
+        }
+
+        const rows: any[] = [];
+        sheet.eachRow((row, rowNumber) => {
+            if (rowNumber > 1) { // Skip header
+                const rowData = {
+                    user_id: row.getCell(1).value?.toString()?.trim() || null,
+                    name: row.getCell(2).value?.toString()?.trim() || null,
+                    phone: row.getCell(3).value?.toString()?.trim() || null,
+                    email: row.getCell(4).value?.toString()?.trim() || null,
+                    role: row.getCell(5).value?.toString()?.trim() || null,
+                    group_id: row.getCell(6).value?.toString()?.trim() || null,
+                    age: row.getCell(7).value?.toString()?.trim() || null,
+                    user_type: row.getCell(8).value?.toString()?.trim() || null,
+                    plan_id: row.getCell(9).value?.toString()?.trim() || null,
+                    payment_frequency: row.getCell(10).value?.toString()?.trim() || null,
+                    password: row.getCell(11).value?.toString()?.trim() || null,
+                    is_active: row.getCell(12).value?.toString()?.trim() || null
+                };
+                rows.push(rowData);
+            }
+        });
+
+        let createdCount = 0;
+        let updatedCount = 0;
+        const performedBy = (req as any).user?.userId || 1;
+
+        for (const data of rows) {
+            if (!data.name || !data.phone) {
+                continue; // Skip invalid rows
+            }
+
+            let hashedPassword = undefined;
+            if (data.password) {
+                hashedPassword = await bcrypt.hash(data.password, 10);
+            }
+
+            let role = 'NORMAL';
+            if (data.role && data.role.toUpperCase() === 'MANAGEMENT') {
+                role = 'MANAGEMENT';
+            } else if (data.role && data.role.toUpperCase() === 'NORMAL') {
+                role = 'NORMAL';
+            }
+
+            // Determine permissions based on role
+            let permissions: any[] = [];
+            if (role === 'MANAGEMENT') {
+                const modules = ['dashboard', 'user', 'attendance', 'finance', 'tournament', 'expense', 'report', 'notification', 'settings', 'role'];
+                permissions = modules.map(mod => ({
+                    module_name: mod,
+                    can_view: true,
+                    can_add: true,
+                    can_edit: true,
+                    can_delete: true
+                }));
+            } else {
+                permissions = [
+                    { module_name: 'dashboard', can_view: true, can_add: false, can_edit: false, can_delete: false },
+                    { module_name: 'user', can_view: true, can_add: false, can_edit: false, can_delete: false }
+                ];
+            }
+
+            const userData: any = {
+                name: data.name,
+                phone: data.phone,
+                email: data.email || null,
+                role: role,
+                group_id: data.group_id ? parseInt(data.group_id) : null,
+                age: data.age ? parseInt(data.age) : null,
+                user_type: data.user_type || 'PLAYER',
+                payment_frequency: data.payment_frequency || 'MONTHLY',
+                is_active: data.is_active === 'false' ? false : true
+            };
+
+            if (hashedPassword) {
+                userData.password = hashedPassword;
+            }
+
+            if (data.user_id) {
+                // Update existing user
+                const userId = parseInt(data.user_id);
+                const existingUser = await prisma.user.findUnique({ where: { id: userId } });
+                
+                if (existingUser) {
+                    await prisma.user.update({
+                        where: { id: userId },
+                        data: userData
+                    });
+
+                    // Update permissions
+                    await prisma.permission.deleteMany({ where: { user_id: userId } });
+                    if (permissions.length > 0) {
+                        await prisma.permission.createMany({
+                            data: permissions.map(p => ({
+                                user_id: userId,
+                                ...p
+                            }))
+                        });
+                    }
+
+                    if (data.plan_id) {
+                         const planIdInt = parseInt(data.plan_id);
+                         const activeSub = await prisma.subscription.findFirst({
+                            where: { user_id: userId, status: 'ACTIVE' }
+                         });
+                         if (!activeSub || activeSub.plan_id !== planIdInt) {
+                             if (activeSub) {
+                                 await prisma.subscription.update({ where: { id: activeSub.id }, data: { status: 'CANCELLED' } });
+                             }
+                             await prisma.subscription.create({
+                                 data: {
+                                     user_id: userId,
+                                     plan_id: planIdInt,
+                                     status: 'ACTIVE',
+                                     start_date: new Date()
+                                 }
+                             });
+                         }
+                    }
+
+                    await AuditService.logAction('USER', userId, 'UPDATE', performedBy, { note: 'Updated via Excel Import' });
+                    updatedCount++;
+                }
+            } else {
+                // Create new user
+                const user = await prisma.user.create({
+                    data: {
+                        ...userData,
+                        created_by_id: performedBy,
+                        permissions: {
+                            create: permissions
+                        }
+                    }
+                });
+
+                if (data.plan_id) {
+                     await prisma.subscription.create({
+                         data: {
+                             user_id: user.id,
+                             plan_id: parseInt(data.plan_id),
+                             status: 'ACTIVE',
+                             start_date: new Date()
+                         }
+                     });
+                }
+
+                await AuditService.logAction('USER', user.id, 'CREATE', performedBy, { note: 'Created via Excel Import' });
+                createdCount++;
+            }
+        }
+
+        res.json({ message: 'Excel import completed', created: createdCount, updated: updatedCount });
+    } catch (error: any) {
+        console.error('Error importing users:', error);
+        res.status(500).json({ error: 'Failed to import users', details: error.message });
+    }
+};
+
