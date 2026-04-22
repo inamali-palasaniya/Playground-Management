@@ -380,7 +380,7 @@ export const updateLedgerEntry = async (req: Request, res: Response) => {
         res.json(updated);
 
         const performedBy = (req as any).user?.userId || 1;
-        await AuditService.logAction('LEDGER', updated.id, 'UPDATE', performedBy, { amount, notes, is_paid });
+        await AuditService.logUpdate('LEDGER', updated.id, performedBy, original, req.body);
     } catch (error) {
         console.error('Update Ledger Error:', error);
         res.status(500).json({ error: 'Failed to update ledger entry' });
@@ -425,7 +425,10 @@ export const deleteLedgerEntry = async (req: Request, res: Response) => {
             }
         }
 
-        // 3. Delete the ledger entry
+        // 3. Delete the ledger entry (and its children)
+        if (entry.transaction_type === 'DEBIT') {
+            await prisma.feeLedger.deleteMany({ where: { parent_ledger_id: entryId } });
+        }
         await prisma.feeLedger.delete({ where: { id: entryId } });
 
         // 4. If it was a child payment, recalculate parent status

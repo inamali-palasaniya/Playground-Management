@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { View, StyleSheet, ScrollView, useWindowDimensions, Alert, Platform, TouchableOpacity, StatusBar } from 'react-native';
-import { Text, Avatar, Button, Card, useTheme, DataTable, FAB, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Menu, Divider, Chip, Switch } from 'react-native-paper';
+import { Text, Avatar, Button, Card, useTheme, DataTable, FAB, ActivityIndicator, IconButton, Portal, Dialog, TextInput, Menu, Divider, Chip, Switch, RadioButton } from 'react-native-paper';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Tabs, MaterialTabBar } from 'react-native-collapsible-tab-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +15,7 @@ import { generateReceipt, shareReceiptFile } from '../../../utils/receiptGenerat
 import { ErrorDialog } from '../../../components/ErrorDialog';
 import { useAuth } from '../../../context/AuthContext';
 import { AuthService } from '../../../services/auth.service';
+import { AuditLogs } from '../../../components/AuditLogs';
 import { LinearGradient } from 'expo-linear-gradient';
 
 // --- Sub-Components for Tabs ---
@@ -49,7 +50,7 @@ const PermissionsRoute = ({ userId, permissions, onUpdate, canEdit, userRole, cu
     return (
         <View style={{ flex: 1 }}>
             <Tabs.ScrollView style={[{ flex: 1 }, { flex: 1 }]}>
-                <View style={{ paddingHorizontal: 16, paddingBottom: 100 }}>
+                <View style={{ padding: 16, paddingTop: 20, paddingBottom: 100 }}>
                     <PermissionSelector
                         permissions={permissions || []}
                         onChange={handleSave}
@@ -115,7 +116,7 @@ const FineRoute = ({ userId, isFocused, currentUser, onUpdate, refreshKey }: { u
     return (
         <View style={{ flex: 1 }}>
             <Tabs.ScrollView style={[{ flex: 1 }, { flex: 1 }]}>
-                <View style={{ paddingHorizontal: 16, paddingBottom: 100 }}>
+                <View style={{ padding: 16, paddingTop: 20, paddingBottom: 100 }}>
                     {fines.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No fines found.</Text> : (
                         fines.map((item) => (
                             <Card key={item.id} style={{ marginBottom: 10, backgroundColor: "white", elevation: 2, borderRadius: 8 }}>
@@ -306,7 +307,7 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user, refreshKe
     return (
         <View style={{ flex: 1 }}>
             <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
-                <View style={{ paddingHorizontal: 16, paddingBottom: 100 }}>
+                <View style={{ padding: 16, paddingTop: 20, paddingBottom: 100 }}>
                     {/* Filters */}
                     <View style={{ marginBottom: 10 }}>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
@@ -362,10 +363,19 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user, refreshKe
                                                 {item.children && item.children.length > 0 && (
                                                     <View style={{ marginTop: 8, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#eee' }}>
                                                         {item.children.map((child: any) => (
-                                                            <View key={child.id} style={{ marginBottom: 4 }}>
-                                                                <Text variant="bodySmall" style={{ color: 'green' }}>
+                                                            <View key={child.id} style={{ marginBottom: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                                <Text variant="bodySmall" style={{ color: 'green', flex: 1 }}>
                                                                     Paid ₹{child.amount} on {format(new Date(child.date), 'dd MMM')} <Text style={{ fontSize: 10, color: '#ccc' }}>PMT-{child.id}</Text>
                                                                 </Text>
+                                                                {AuthService.hasPermission(currentUser, 'payment', 'delete') && (
+                                                                    <IconButton 
+                                                                        icon="delete-outline" 
+                                                                        size={14} 
+                                                                        iconColor="red" 
+                                                                        style={{ margin: 0, padding: 0 }} 
+                                                                        onPress={() => handleDelete(child.id)} 
+                                                                    />
+                                                                )}
                                                             </View>
                                                         ))}
                                                     </View>
@@ -501,18 +511,14 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user, refreshKe
 };
 
 
-const AttendanceRoute = ({ userId, user, setUser, isFocused, onUpdate, currentUser, refreshKey }: { userId: number, user?: any, setUser?: (u: any) => void, isFocused: boolean, onUpdate?: () => void, currentUser: any, refreshKey?: number }) => {
+const AttendanceRoute = ({ userId, user, setUser, isFocused, onUpdate, currentUser, refreshKey, onPunchPress }: { userId: number, user?: any, setUser?: (u: any) => void, isFocused: boolean, onUpdate?: () => void, currentUser: any, refreshKey?: number, onPunchPress: () => void }) => {
     const isNormalUser = currentUser?.role === 'NORMAL';
     const [attendance, setAttendance] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [errorVisible, setErrorVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
 
-    // Check-In State
-    const [showCheckInDialog, setShowCheckInDialog] = useState(false);
-    const [checkInDate, setCheckInDate] = useState(new Date());
-    const [bookFeeDebit, setBookFeeDebit] = useState(true);
-    const [markFeePaid, setMarkFeePaid] = useState(false);
+    // Edit State (Check-in state moved to parent)
 
     // Edit State
     const [editingRecord, setEditingRecord] = useState<any>(null);
@@ -541,50 +547,7 @@ const AttendanceRoute = ({ userId, user, setUser, isFocused, onUpdate, currentUs
         if (isFocused) loadAttendance();
     }, [userId, isFocused, refreshKey]);
 
-    const handleCheckIn = async () => {
-        const previousStatus = user?.punch_status || 'OUT';
-        // Optimistic UI Update for User status
-        if (setUser && user) {
-            setUser({ ...user, punch_status: 'IN' });
-        }
-
-        try {
-            await apiService.checkIn(
-                userId, 
-                checkInDate.toISOString(),
-                bookFeeDebit,
-                markFeePaid,
-                user?.payment_frequency === 'MONTHLY'
-            );
-            setShowCheckInDialog(false);
-            loadAttendance();
-            if (onUpdate) onUpdate();
-            Alert.alert('Success', 'Check-in recorded');
-        } catch (e: any) {
-            // Revert optimistic update on failure
-            if (setUser && user) {
-                setUser({ ...user, punch_status: previousStatus });
-            }
-            let errorMessage = 'Check-in failed';
-            let existingDetails = '';
-
-            // Parse error body if available
-            if (e.body) {
-                try {
-                    const parsed = JSON.parse(e.body);
-                    if (parsed.error) errorMessage = parsed.error;
-                } catch (jsonErr) {
-                    errorMessage = e.body;
-                }
-            }
-
-            if (errorMessage.includes('Already checked in')) {
-                Alert.alert('Duplicate Attendance', `${errorMessage}${existingDetails}\n\nYou can edit the existing record instead.`);
-            } else {
-                Alert.alert('Error', errorMessage);
-            }
-        }
-    };
+    // handleCheckIn moved to parent
 
     const handleEditStart = (record: any) => {
         setEditingRecord(record);
@@ -621,25 +584,17 @@ const AttendanceRoute = ({ userId, user, setUser, isFocused, onUpdate, currentUs
         }
     };
 
-    const showPicker = (mode: 'date' | 'time', target: 'checkin' | 'edit_in' | 'edit_out') => {
+    const showPicker = (mode: 'date' | 'time', target: 'edit_in' | 'edit_out') => {
         setPickerMode(mode);
         setPickerTarget(target);
-        setShowDatePicker(true); // Using single state for visibility, though name is showDatePicker
+        setShowDatePicker(true);
     };
 
     const handlePickerChange = (event: any, selectedDate?: Date) => {
         setShowDatePicker(false);
         if (!selectedDate) return;
 
-        if (pickerTarget === 'checkin') {
-            const newDate = new Date(checkInDate);
-            if (pickerMode === 'date') {
-                newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-            } else {
-                newDate.setHours(selectedDate.getHours(), selectedDate.getMinutes());
-            }
-            setCheckInDate(newDate);
-        } else if (pickerTarget === 'edit_in') {
+        if (pickerTarget === 'edit_in') {
             const newDate = new Date(editInTime);
             if (pickerMode === 'date') {
                 newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
@@ -662,7 +617,7 @@ const AttendanceRoute = ({ userId, user, setUser, isFocused, onUpdate, currentUs
     return (
         <View style={{ flex: 1 }}>
             <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
-                <View style={{ paddingHorizontal: 16, paddingBottom: 100 }}>
+                <View style={{ padding: 16, paddingTop: 20, paddingBottom: 100 }}>
                     {attendance.length === 0 ? <Text style={{ textAlign: 'center', marginTop: 20 }}>No attendance records.</Text> : (
                         <View style={{ gap: 10 }}>
                             {attendance.map((record) => (
@@ -740,57 +695,14 @@ const AttendanceRoute = ({ userId, user, setUser, isFocused, onUpdate, currentUs
                     icon="account-clock"
                     label="Manual Check-In"
                     style={{ position: "absolute", margin: 16, right: 0, bottom: 0, backgroundColor: "#6200ee" }}
-                    onPress={() => {
-                        setCheckInDate(new Date());
-                        setShowCheckInDialog(true);
-                    }}
+                    onPress={onPunchPress}
                     visible={isFocused}
                 />
             )}
+            
+            {/* Check-in dialog removed from here, now in parent */}
 
-            {/* Check In Dialog */}
-            <Portal>
-                <Dialog visible={showCheckInDialog} onDismiss={() => setShowCheckInDialog(false)}>
-                    <Dialog.Title>Manual Check-In</Dialog.Title>
-                    <Dialog.Content>
-                        <Text variant="bodyMedium" style={{ marginBottom: 10 }}>Select Date & Time:</Text>
-                        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
-                            <Button mode="outlined" onPress={() => showPicker('date', 'checkin')}>
-                                {format(checkInDate, 'dd MMM yyyy')}
-                            </Button>
-                            <Button mode="outlined" onPress={() => showPicker('time', 'checkin')}>
-                                {format(checkInDate, 'HH:mm')}
-                            </Button>
-                        </View>
-                        
-                        {(user?.payment_frequency === 'DAILY' || user?.payment_frequency === 'MONTHLY') && (
-                            <View style={{ marginTop: 15 }}>
-                                <Text style={{ marginBottom: 10, color: 'gray' }}>Fast-track `{user.payment_frequency === 'MONTHLY' ? 'Monthly' : 'Daily'}` billing for this punch:</Text>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                                    <View>
-                                        <Text variant="titleMedium">Book Fee</Text>
-                                        <Text variant="bodySmall" style={{ color: 'gray' }}>Record as DEBIT</Text>
-                                    </View>
-                                    <Switch value={bookFeeDebit} onValueChange={setBookFeeDebit} />
-                                </View>
-                                {bookFeeDebit && (
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <View>
-                                            <Text variant="titleMedium">Mark Paid</Text>
-                                            <Text variant="bodySmall" style={{ color: 'gray' }}>Instant payment (CREDIT)</Text>
-                                        </View>
-                                        <Switch value={markFeePaid} onValueChange={setMarkFeePaid} />
-                                    </View>
-                                )}
-                            </View>
-                        )}
-                    </Dialog.Content>
-                    <Dialog.Actions>
-                        <Button onPress={() => setShowCheckInDialog(false)}>Cancel</Button>
-                        <Button onPress={handleCheckIn}>Check In</Button>
-                    </Dialog.Actions>
-                </Dialog>
-            </Portal>
+            {/* Edit Dialog moved below */}
 
             {/* Edit Dialog */}
             <Portal>
@@ -844,9 +756,8 @@ const AttendanceRoute = ({ userId, user, setUser, isFocused, onUpdate, currentUs
             {showDatePicker && (
                 <DateTimePicker
                     value={
-                        pickerTarget === 'checkin' ? checkInDate :
-                            pickerTarget === 'edit_in' ? editInTime :
-                                (editOutTime || new Date())
+                        pickerTarget === 'edit_in' ? editInTime :
+                            (editOutTime || new Date())
                     }
                     mode={pickerMode}
                     display="default"
@@ -891,7 +802,7 @@ const MatchesRoute = ({ userId, isFocused }: { userId: number, isFocused: boolea
     return (
         <View style={{ flex: 1 }}>
             <Tabs.ScrollView style={[styles.tabContent, { flex: 1 }]}>
-                <View style={{ paddingHorizontal: 16, paddingBottom: 100 }}>
+                <View style={{ padding: 16, paddingTop: 20, paddingBottom: 100 }}>
                     {matches.length === 0 ? (
                     <View style={{ alignItems: 'center', marginTop: 40 }}>
                         <MaterialCommunityIcons name="cricket" size={48} color="#ccc" />
@@ -962,6 +873,16 @@ export default function UserDetailScreen() {
     const [errorVisible, setErrorVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [refreshKey, setRefreshKey] = useState(0);
+    const [auditVisible, setAuditVisible] = useState(false);
+
+    // Check-In State (Lifted from AttendanceRoute)
+    const [showCheckInDialog, setShowCheckInDialog] = useState(false);
+    const [checkInDate, setCheckInDate] = useState(new Date());
+    const [bookFeeDebit, setBookFeeDebit] = useState(true);
+    const [markFeePaid, setMarkFeePaid] = useState(false);
+    const [checkInAmount, setCheckInAmount] = useState('');
+    const [punchTransactionType, setPunchTransactionType] = useState<'DEBIT' | 'CREDIT'>('DEBIT');
+    const [showDatePicker, setShowDatePicker] = useState(false);
 
     // Calculate duration
     const [todaysAttendance, setTodaysAttendance] = useState<any>(null);
@@ -1019,9 +940,42 @@ export default function UserDetailScreen() {
 
     const refreshUser = useCallback(() => {
         if (id) {
+            setRefreshKey(k => k + 1); // Trigger sub-tabs refresh
             apiService.getUserById(Number(id)).then((data: any) => setUser(data));
         }
     }, [id]);
+
+    const handleCheckIn = async () => {
+        if (!user) return;
+        const previousStatus = user.punch_status || 'OUT';
+        
+        // Optimistic UI Update
+        setUser({ ...user, punch_status: 'IN' });
+
+        try {
+            await apiService.checkIn(
+                user.id, 
+                checkInDate.toISOString(),
+                bookFeeDebit,
+                markFeePaid,
+                user.payment_frequency === 'MONTHLY',
+                checkInAmount ? parseFloat(checkInAmount) : undefined
+            );
+            setShowCheckInDialog(false);
+            onMutate();
+            Alert.alert('Success', 'Check-in recorded');
+        } catch (e: any) {
+            setUser({ ...user, punch_status: previousStatus });
+            let errorMessage = 'Check-in failed';
+            if (e.body) {
+                try {
+                    const parsed = JSON.parse(e.body);
+                    if (parsed.error) errorMessage = parsed.error;
+                } catch (jsonErr) {}
+            }
+            Alert.alert('Error', errorMessage);
+        }
+    };
 
     // Called after any mutation (add/edit/delete) in any tab.
     // Increments refreshKey so ALL tabs re-fetch, and also refreshes the header.
@@ -1029,6 +983,43 @@ export default function UserDetailScreen() {
         setRefreshKey(k => k + 1);
         refreshUser();
     }, [refreshUser]);
+
+    const showPicker = (mode: 'date' | 'time', target: 'checkin') => {
+        // Picker logic for UserDetailScreen
+        setShowDatePicker(true);
+    };
+
+    const onPunchPressHeader = () => {
+        if (!user) return;
+        setCheckInDate(new Date());
+        
+        const isDaily = user.payment_frequency === 'DAILY';
+        const isMonthly = user.payment_frequency === 'MONTHLY';
+        const isFirstOfMonth = new Date().getDate() === 1;
+
+        setCheckInAmount(user.plan_rate ? user.plan_rate.toString() : '');
+        setPunchTransactionType('DEBIT');
+
+        if (isMonthly) {
+            if (user.is_subscription_paid) {
+                setBookFeeDebit(false);
+                setMarkFeePaid(false); // Already paid this month
+            } else {
+                setBookFeeDebit(true);
+                setMarkFeePaid(true); // Default to ON for monthly if not paid
+            }
+        } else if (user.is_paid_today) {
+            setBookFeeDebit(false);
+            setMarkFeePaid(false);
+        } else if (isDaily) {
+            setBookFeeDebit(true);
+            setMarkFeePaid(true);
+        } else {
+            setBookFeeDebit(true);
+            setMarkFeePaid(false);
+        }
+        setShowCheckInDialog(true);
+    };
 
     // Header Menu State
     const [menuVisible, setMenuVisible] = useState(false);
@@ -1043,168 +1034,159 @@ export default function UserDetailScreen() {
             <View style={{ pointerEvents: 'box-none' }}>
                 <LinearGradient
                     colors={[theme.colors.primary, '#1976d2']}
-                    style={[styles.headerGradient, { paddingTop: 5 }]}
+                    style={[styles.headerGradient, { paddingBottom: 60, paddingTop: insets.top + 10 }]}
                 >
-                    <View style={{ paddingBottom: 10, alignItems: 'center' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20 }}>
                         <Avatar.Text
-                            size={56}
+                            size={48}
                             label={(user?.name || '??').substring(0, 2).toUpperCase()}
                             style={{ backgroundColor: 'white', elevation: 4 }}
                             color={theme.colors.primary}
-                            labelStyle={{ fontWeight: 'bold' }}
+                            labelStyle={{ fontWeight: 'bold', fontSize: 18 }}
                         />
-                        <Text variant="titleLarge" style={{ color: 'white', fontWeight: 'bold', marginTop: 4 }}>{user.name}</Text>
-                        <Text variant="bodySmall" style={{ color: 'rgba(255,255,255,0.9)' }}>{user.role === 'SUPER_ADMIN' ? 'Super Admin' : user.role || 'User'}</Text>
+                        <View style={{ marginLeft: 15, flex: 1 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Text variant="titleMedium" style={{ color: 'white', fontWeight: 'bold' }}>{user.name}</Text>
+                                {AuthService.hasPermission(currentUser, 'audit', 'view') && (
+                                    <IconButton 
+                                        icon="history" 
+                                        iconColor="rgba(255,255,255,0.7)" 
+                                        size={18} 
+                                        style={{ margin: 0, marginLeft: 4 }} 
+                                        onPress={() => setAuditVisible(true)} 
+                                    />
+                                )}
+                            </View>
+                            <Text variant="bodySmall" style={{ color: 'rgba(255,255,255,0.9)', fontSize: 11 }}>{user.role === 'SUPER_ADMIN' ? 'Super Admin' : user.role || 'User'}</Text>
+                        </View>
+                        <View style={{ alignItems: 'flex-end' }}>
+                             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 }}>
+                                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: todaysAttendance?.out_time ? '#4CAF50' : (todaysAttendance ? '#FFC107' : '#FFFFFF'), marginRight: 6 }} />
+                                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+                                    {todaysAttendance ? (todaysAttendance.out_time ? 'DONE' : 'IN') : 'OUT'}
+                                </Text>
+                            </View>
+                            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10, marginTop: 2 }}>{loggedTime}</Text>
+                        </View>
                     </View>
                 </LinearGradient>
 
-                {/* Floating Contact Card & Status */}
-                <View style={styles.floatingCard}>
+                <View style={[styles.floatingCard, { marginTop: -40, padding: 12 }]}>
+                    {/* Contact & Status Grid */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+                        <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }} onPress={() => user.phone && Linking.openURL(`tel:${user.phone}`)}>
+                            <MaterialCommunityIcons name="phone" size={16} color={theme.colors.primary} style={{ marginRight: 6 }} />
+                            <Text variant="bodySmall" numberOfLines={1} style={{ flex: 1 }}>{user.phone || 'N/A'}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={{ flex: 1, flexDirection: 'row', alignItems: 'center', marginLeft: 10 }} onPress={() => user.email && Linking.openURL(`mailto:${user.email}`)}>
+                            <MaterialCommunityIcons name="email" size={16} color={theme.colors.primary} style={{ marginRight: 6 }} />
+                            <Text variant="bodySmall" numberOfLines={1} style={{ flex: 1 }}>{user.email || 'N/A'}</Text>
+                        </TouchableOpacity>
+                    </View>
 
-                    {/* Contact Details */}
-                    <View style={{ marginBottom: 15 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                            <MaterialCommunityIcons name="phone" size={20} color={theme.colors.primary} style={{ marginRight: 10 }} />
-                            <Text variant="bodyMedium" style={{ flex: 1, color: '#333' }} onPress={() => user.phone && Linking.openURL(`tel:${user.phone}`)}>
-                                {user.phone || 'No Phone'}
-                            </Text>
-                            {user.phone && (
-                                <IconButton
-                                    icon="whatsapp"
-                                    size={20}
-                                    iconColor="#25D366"
-                                    onPress={() => Linking.openURL(`whatsapp://send?phone=${user.phone}`)}
-                                />
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                            <MaterialCommunityIcons name="tag-outline" size={16} color={theme.colors.primary} style={{ marginRight: 6 }} />
+                            <Text variant="bodySmall" style={{ fontWeight: 'bold' }} numberOfLines={1}>{user.subscriptions?.[0]?.plan?.name || user.plan_name || 'No Plan'}</Text>
+                            {user.payment_frequency && (
+                                <View style={{ marginLeft: 6, backgroundColor: user.payment_frequency === 'MONTHLY' ? '#e0f2f1' : '#fff3e0', paddingHorizontal: 4, paddingVertical: 2, borderRadius: 4 }}>
+                                    <Text style={{ fontSize: 9, color: user.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100', fontWeight: 'bold' }}>{user.payment_frequency}</Text>
+                                </View>
                             )}
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <MaterialCommunityIcons name="email" size={20} color={theme.colors.primary} style={{ marginRight: 10 }} />
-                            <Text variant="bodyMedium" style={{ flex: 1, color: '#333' }} onPress={() => user.email && Linking.openURL(`mailto:${user.email}`)}>
-                                {user.email || 'No Email'}
-                            </Text>
-                        </View>
-                    </View>
-
-                    <Divider style={{ marginBottom: 15 }} />
-
-                    {/* Subscription Details */}
-                    {(user.plan_name || user.payment_frequency) && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, justifyContent: 'space-between', backgroundColor: '#f0f0f0', padding: 10, borderRadius: 8 }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <MaterialCommunityIcons name="tag-outline" size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
-                                <View>
-                                    <Text variant="bodySmall" style={{ color: 'gray', fontSize: 10 }}>Current Plan</Text>
-                                    <Text variant="bodyMedium" style={{ fontWeight: 'bold', color: '#333' }}>{user.subscriptions?.[0]?.plan?.name || user.plan_name || 'No Plan'}</Text>
-                                </View>
-                            </View>
-
-                            {user.payment_frequency && (
-                                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: user.payment_frequency === 'MONTHLY' ? '#e0f2f1' : '#fff3e0', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
-                                    <MaterialCommunityIcons
-                                        name={user.payment_frequency === 'MONTHLY' ? 'calendar-month' : 'calendar-today'}
-                                        size={14}
-                                        color={user.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100'}
-                                        style={{ marginRight: 4 }}
-                                    />
-                                    <Text style={{ fontSize: 11, color: user.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100', fontWeight: 'bold' }}>
-                                        {user.payment_frequency}
-                                    </Text>
-                                    {user.payment_frequency === 'MONTHLY' && (
-                                        <View style={{ marginLeft: 6, borderLeftWidth: 1, borderLeftColor: 'rgba(0,0,0,0.1)', paddingLeft: 6 }}>
-                                            <MaterialCommunityIcons
-                                                name={user.is_subscription_paid ? 'check-decagram' : 'alert-circle-outline'}
-                                                size={16}
-                                                color={user.is_subscription_paid ? '#4CAF50' : '#F44336'}
-                                            />
-                                        </View>
-                                    )}
-                                </View>
+                            <Text variant="labelSmall" style={{ color: 'gray', marginRight: 6 }}>Status:</Text>
+                            {user.role === 'SUPER_ADMIN' ? (
+                                <Text style={{ color: 'green', fontSize: 11, fontWeight: 'bold' }}>Active</Text>
+                            ) : (
+                                <Switch
+                                    value={user.is_active}
+                                    onValueChange={(val) => {
+                                        if (!AuthService.hasPermission(currentUser, 'user', 'edit')) return Alert.alert("Denied", "No permission.");
+                                        apiService.updateUser(user.id, { is_active: val } as any).then(() => refreshUser())
+                                    }}
+                                    style={{ transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }] }}
+                                />
                             )}
                         </View>
-                    )}
+                    </View>
 
-                    {/* Actions Row: Attendance & Status */}
-                    <View style={{ gap: 10 }}>
-                        {/* Attendance Action */}
-                        <View style={{ marginTop: 12, padding: 16, backgroundColor: '#f8f9fa', borderRadius: 12, borderWidth: 1, borderColor: '#eeeeee' }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <View>
-                                    <Text variant="labelSmall" style={{ color: 'gray', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Attendance Status</Text>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: todaysAttendance?.out_time ? 'green' : (todaysAttendance ? 'orange' : 'gray'), marginRight: 8 }} />
-                                        <Text variant="titleSmall" style={{ fontWeight: 'bold', color: '#333' }}>
-                                            {todaysAttendance ? (todaysAttendance.out_time ? 'Checked Out' : 'Checked In') : 'Not Present'}
-                                        </Text>
-                                    </View>
-                                </View>
-                                <Button
-                                    mode={todaysAttendance && !todaysAttendance.out_time ? "outlined" : "contained"}
-                                    textColor={todaysAttendance && !todaysAttendance.out_time ? "#d32f2f" : "white"}
-                                    buttonColor={todaysAttendance && !todaysAttendance.out_time ? "white" : theme.colors.primary}
-                                    style={{ borderColor: todaysAttendance && !todaysAttendance.out_time ? '#d32f2f' : theme.colors.primary, borderRadius: 20 }}
-                                    contentStyle={{ paddingHorizontal: 20, height: 40 }}
-                                    labelStyle={{ fontSize: 13, fontWeight: 'bold' }}
-                                    onPress={async () => {
-                                        const canPunchOthers = AuthService.hasPermission(currentUser, 'attendance', 'add');
-                                        const isSelf = currentUser?.id === user.id;
+                    <Divider style={{ marginBottom: 12 }} />
 
-                                        if (!isSelf && !canPunchOthers) {
-                                            Alert.alert("Permission Denied", "You don't have permission to punch for other users.");
-                                            return;
-                                        }
-
-                                        try {
-                                            if (todaysAttendance && !todaysAttendance.out_time) {
-                                                await apiService.checkOut(user.id);
-                                            } else {
-                                                await apiService.checkIn(user.id);
-                                            }
-                                            refreshUser();
-                                        } catch (error: any) {
-                                            Alert.alert("Error", error.message || "Action failed");
-                                        }
-                                    }}
-                                >
-                                    {todaysAttendance && !todaysAttendance.out_time ? 'Check Out' : 'Check In'}
-                                </Button>
+                    {/* Compact Financial Stats */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <View style={{ flexDirection: 'row', flex: 1, justifyContent: 'space-between' }}>
+                            <View style={{ alignItems: 'center', flex: 1 }}>
+                                <Text style={{ fontSize: 10, color: 'gray' }}>Paid</Text>
+                                <Text style={{ fontSize: 12, fontWeight: 'bold', color: 'green' }}>₹{user.total_credits || 0}</Text>
+                            </View>
+                            <View style={{ alignItems: 'center', flex: 1, borderLeftWidth: 1, borderLeftColor: '#f0f0f0' }}>
+                                <Text style={{ fontSize: 10, color: 'gray' }}>Expense</Text>
+                                <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#d32f2f' }}>₹{user.total_debits || 0}</Text>
+                            </View>
+                            <View style={{ alignItems: 'center', flex: 1, borderLeftWidth: 1, borderLeftColor: '#f0f0f0' }}>
+                                <Text style={{ fontSize: 10, color: 'gray' }}>{user.balance > 0 ? 'Due' : 'Advance'}</Text>
+                                <Text style={{ fontSize: 12, fontWeight: 'bold', color: user.balance > 0 ? 'red' : 'green' }}>₹{Math.abs(user.balance || 0)}</Text>
                             </View>
                         </View>
-
-                        {/* Status Toggle Row */}
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 5 }}>
-                            <Text variant="labelMedium" style={{ color: 'gray' }}>Account Status</Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                {user.role === 'SUPER_ADMIN' ? (
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e8f5e9', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
-                                        <MaterialCommunityIcons name="check-circle" size={14} color="green" />
-                                        <Text style={{ marginLeft: 4, color: 'green', fontSize: 12, fontWeight: 'bold' }}>Active</Text>
-                                    </View>
-                                ) : (
-                                    <View style={{ flexDirection: 'row', borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: '#eee' }}>
-                                        <TouchableOpacity
-                                            onPress={() => {
-                                                if (!AuthService.hasPermission(currentUser, 'user', 'edit')) return Alert.alert("Denied", "No permission to edit users.");
-                                                apiService.updateUser(user.id, { is_active: true } as any).then(() => refreshUser())
-                                            }}
-                                            style={{ backgroundColor: user.is_active ? 'green' : 'white', paddingHorizontal: 12, paddingVertical: 6 }}
-                                        >
-                                            <Text style={{ color: user.is_active ? 'white' : 'gray', fontSize: 11, fontWeight: 'bold' }}>Active</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            onPress={() => {
-                                                if (!AuthService.hasPermission(currentUser, 'user', 'edit')) return Alert.alert("Denied", "No permission to edit users.");
-                                                apiService.updateUser(user.id, { is_active: false } as any).then(() => refreshUser())
-                                            }}
-                                            style={{ backgroundColor: !user.is_active ? 'red' : 'white', paddingHorizontal: 12, paddingVertical: 6 }}
-                                        >
-                                            <Text style={{ color: !user.is_active ? 'white' : 'gray', fontSize: 11, fontWeight: 'bold' }}>Inactive</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                )}
-                            </View>
+                        
+                        <View style={{ flex: 1, alignItems: 'flex-end', justifyContent: 'center' }}>
+                            <TouchableOpacity
+                                onPress={async () => {
+                                    const canPunchOthers = AuthService.hasPermission(currentUser, 'attendance', 'add');
+                                    const isSelf = currentUser?.id === user.id;
+                                    if (!isSelf && !canPunchOthers) return Alert.alert("Denied", "No permission.");
+                                    
+                                    if (todaysAttendance && !todaysAttendance.out_time) {
+                                        try { await apiService.checkOut(user.id); onMutate(); } catch (e: any) { Alert.alert("Error", e.message); }
+                                    } else {
+                                        onPunchPressHeader();
+                                    }
+                                }}
+                                style={{
+                                    backgroundColor: todaysAttendance && !todaysAttendance.out_time ? 'transparent' : theme.colors.primary,
+                                    borderWidth: todaysAttendance && !todaysAttendance.out_time ? 1 : 0,
+                                    borderColor: theme.colors.primary,
+                                    borderRadius: 8,
+                                    paddingHorizontal: 12,
+                                    paddingVertical: 6,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    minWidth: 70
+                                }}
+                            >
+                                <MaterialCommunityIcons 
+                                    name={todaysAttendance && !todaysAttendance.out_time ? "logout" : "login"} 
+                                    size={14} 
+                                    color={todaysAttendance && !todaysAttendance.out_time ? theme.colors.primary : 'white'} 
+                                    style={{ marginRight: 4 }}
+                                />
+                                <Text style={{ 
+                                    color: todaysAttendance && !todaysAttendance.out_time ? theme.colors.primary : 'white', 
+                                    fontSize: 11, 
+                                    fontWeight: 'bold' 
+                                }}>
+                                    {todaysAttendance && !todaysAttendance.out_time ? 'OUT' : 'IN'}
+                                </Text>
+                            </TouchableOpacity>
                         </View>
                     </View>
+
+                    {/* Donation Summary (Mini) */}
+                    {((user.donation_debit || 0) > 0 || (user.donation_credit || 0) > 0) && (
+                        <View style={{ marginTop: 6, padding: 6, backgroundColor: '#fdfdfd', borderRadius: 6, borderWidth: 0.5, borderColor: '#eee', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <MaterialCommunityIcons name="hand-heart" size={14} color="#2e7d32" style={{ marginRight: 6 }} />
+                                <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#2e7d32' }}>Donation:</Text>
+                            </View>
+                            <Text style={{ fontSize: 10, color: '#1976D2' }}>Cmt: <Text style={{ fontWeight: 'bold' }}>₹{user.donation_debit || 0}</Text></Text>
+                            <Text style={{ fontSize: 10, color: '#2E7D32' }}>Paid: <Text style={{ fontWeight: 'bold' }}>₹{user.donation_credit || 0}</Text></Text>
+                            <Text style={{ fontSize: 10, color: (user.donation_debit - user.donation_credit) > 0 ? '#D32F2F' : '#666' }}>Due: <Text style={{ fontWeight: 'bold' }}>₹{Math.max(0, (user.donation_debit || 0) - (user.donation_credit || 0))}</Text></Text>
+                        </View>
+                    )}
                 </View>
+
 
                 {/* Subscription Warning */}
                 {user.subscription_status === 'EXPIRED' && (
@@ -1213,48 +1195,6 @@ export default function UserDetailScreen() {
                         <Text style={{ marginLeft: 10, color: 'red', fontWeight: 'bold' }}>Subscription Expired</Text>
                     </View>
                 )}
-
-                {/* Info Card Section */}
-                <Card style={{ margin: 12, borderRadius: 12, elevation: 4 }}>
-                    <Card.Content>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                            <MaterialCommunityIcons name="bus-side" size={24} color={theme.colors.primary} />
-                            <Text variant="titleMedium" style={{ marginLeft: 10, fontWeight: 'bold' }}>Subscription & Financials</Text>
-                        </View>
-
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
-                            <View>
-                                <Text variant="labelSmall" style={{ color: 'gray' }}>Current Plan</Text>
-                                <Text variant="bodyLarge" style={{ fontWeight: 'bold' }}>{user.subscriptions?.[0]?.plan?.name || user.plan_name || 'No Plan'}</Text>
-                            </View>
-                            <View style={{ alignItems: 'flex-end' }}>
-                                <Text variant="labelSmall" style={{ color: 'gray' }}>Rate</Text>
-                                <Text variant="bodyLarge" style={{ color: theme.colors.primary }}>₹{user.subscriptions?.[0]?.plan?.rate_monthly || 0}/month</Text>
-                            </View>
-                        </View>
-
-                        <View style={{ flexDirection: 'row', paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#f0f0f0' }}>
-                            <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#f0f0f0' }}>
-                                <Text variant="labelSmall" style={{ color: 'gray' }}>Total Paid</Text>
-                                <Text variant="titleMedium" style={{ color: 'green', fontWeight: 'bold' }}>
-                                    ₹{user.total_credits || 0}
-                                </Text>
-                            </View>
-                            <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: '#f0f0f0' }}>
-                                <Text variant="labelSmall" style={{ color: 'gray' }}>Total Expenses</Text>
-                                <Text variant="titleMedium" style={{ color: '#d32f2f', fontWeight: 'bold' }}>
-                                    ₹{user.total_debits || 0}
-                                </Text>
-                            </View>
-                            <View style={{ flex: 1, alignItems: 'center' }}>
-                                <Text variant="labelSmall" style={{ color: 'gray' }}>{user.balance > 0 ? 'Due' : 'Advance'}</Text>
-                                <Text variant="titleMedium" style={{ color: user.balance > 0 ? 'red' : 'green', fontWeight: 'bold' }}>
-                                    ₹{Math.abs(user.balance || 0)}
-                                </Text>
-                            </View>
-                        </View>
-                    </Card.Content>
-                </Card>
             </View>
         );
     };
@@ -1291,7 +1231,7 @@ export default function UserDetailScreen() {
                     <FineRoute userId={Number(id)} isFocused={isFocused} currentUser={currentUser} onUpdate={onMutate} refreshKey={refreshKey} />
                 </Tabs.Tab>
                 <Tabs.Tab name="attendance" label="Attendance">
-                    <AttendanceRoute userId={Number(id)} user={user} setUser={setUser} isFocused={isFocused} onUpdate={onMutate} currentUser={currentUser} refreshKey={refreshKey} />
+                    <AttendanceRoute userId={Number(id)} user={user} setUser={setUser} isFocused={isFocused} onUpdate={onMutate} currentUser={currentUser} refreshKey={refreshKey} onPunchPress={onPunchPressHeader} />
                 </Tabs.Tab>
                 <Tabs.Tab name="matches" label="Matches">
                     <MatchesRoute userId={Number(id)} isFocused={isFocused} />
@@ -1314,6 +1254,107 @@ export default function UserDetailScreen() {
                     setErrorVisible(false);
                     if (errorMessage.includes('load user details')) router.back();
                 }}
+            />
+
+            {/* Check In Dialog */}
+            <Portal>
+                <Dialog visible={showCheckInDialog} onDismiss={() => setShowCheckInDialog(false)}>
+                    <Dialog.Title>Record Check-In</Dialog.Title>
+                    <Dialog.Content>
+                        <Text variant="bodyMedium" style={{ marginBottom: 10 }}>Select Date & Time:</Text>
+                        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+                            <Button mode="outlined" onPress={() => setShowDatePicker(true)}>
+                                {format(checkInDate, 'dd MMM yyyy')}
+                            </Button>
+                            <Button mode="outlined" onPress={() => setShowDatePicker(true)}>
+                                {format(checkInDate, 'HH:mm')}
+                            </Button>
+                        </View>
+                        
+                        {(user?.payment_frequency === 'DAILY' || user?.payment_frequency === 'MONTHLY') && (
+                            <View style={{ marginTop: 15 }}>
+                                <Text style={{ marginBottom: 10, color: 'gray' }}>Fast-track `{user.payment_frequency.toLowerCase()}` billing for this punch:</Text>
+                                
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                                    <View>
+                                        <Text variant="titleMedium">Record Bill/Payment</Text>
+                                        <Text variant="bodySmall" style={{ color: 'gray' }}>Toggle off to only check-in</Text>
+                                    </View>
+                                    <Switch 
+                                        value={bookFeeDebit} 
+                                        onValueChange={(val) => {
+                                            setBookFeeDebit(val);
+                                            if(!val) setMarkFeePaid(false);
+                                        }} 
+                                    />
+                                </View>
+
+                                {bookFeeDebit && (
+                                    <View style={{ marginTop: 10 }}>
+                                        <Text variant="labelLarge" style={{ marginBottom: 8 }}>Type</Text>
+                                        <RadioButton.Group 
+                                            onValueChange={value => {
+                                                setPunchTransactionType(value as any);
+                                                setMarkFeePaid(value === 'CREDIT');
+                                            }} 
+                                            value={punchTransactionType}
+                                        >
+                                            <View style={{ flexDirection: 'row', gap: 10 }}>
+                                                <TouchableOpacity 
+                                                    style={{ flexDirection: 'row', alignItems: 'center' }} 
+                                                    onPress={() => { setPunchTransactionType('DEBIT'); setMarkFeePaid(false); }}
+                                                >
+                                                    <RadioButton value="DEBIT" />
+                                                    <Text>Debit (Charge)</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity 
+                                                    style={{ flexDirection: 'row', alignItems: 'center' }}
+                                                    onPress={() => { setPunchTransactionType('CREDIT'); setMarkFeePaid(true); }}
+                                                >
+                                                    <RadioButton value="CREDIT" />
+                                                    <Text>Credit (Paid)</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </RadioButton.Group>
+
+                                        <TextInput
+                                            label="Amount"
+                                            value={checkInAmount}
+                                            onChangeText={setCheckInAmount}
+                                            keyboardType="numeric"
+                                            mode="outlined"
+                                            style={{ marginTop: 15, backgroundColor: 'white' }}
+                                        />
+                                    </View>
+                                )}
+                            </View>
+                        )}
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button onPress={() => setShowCheckInDialog(false)}>Cancel</Button>
+                        <Button onPress={handleCheckIn}>Check In</Button>
+                    </Dialog.Actions>
+                </Dialog>
+
+                {showDatePicker && (
+                    <DateTimePicker
+                        value={checkInDate}
+                        mode="datetime"
+                        display="default"
+                        onChange={(event, selectedDate) => {
+                            setShowDatePicker(false);
+                            if (selectedDate) setCheckInDate(selectedDate);
+                        }}
+                    />
+                )}
+            </Portal>
+
+            <AuditLogs 
+                visible={auditVisible}
+                onDismiss={() => setAuditVisible(false)}
+                entityType="USER"
+                entityId={Number(id)}
+                title="User History"
             />
         </View>
     );

@@ -1,15 +1,16 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
-import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button, Divider } from 'react-native-paper';
-import { useRouter, useFocusEffect } from 'expo-router';
-import apiService from '../../../services/api.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { AuthService } from '../../../services/auth.service';
-import HeaderProfile from '../../../components/HeaderProfile';
-import { useAuth } from '../../../context/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Avatar, Button, Card, IconButton, Text, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ErrorDialog } from '../../../components/ErrorDialog';
+import HeaderProfile from '../../../components/HeaderProfile';
+import { useAuth } from '../../../context/AuthContext';
+import apiService from '../../../services/api.service';
+import { AuthService } from '../../../services/auth.service';
 
 export default function DashboardScreen() {
     const theme = useTheme();
@@ -23,16 +24,12 @@ export default function DashboardScreen() {
     const [attendance, setAttendance] = useState<any>(null);
     const [errorVisible, setErrorVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [errorDetails, setErrorDetails] = useState('');
 
     const loadData = async () => {
         try {
             setLoading(true);
             const currentUser = authUser || await AuthService.getUser(); // Fallback
-
-            if (!currentUser) {
-                setLoading(false);
-                return;
-            }
 
             if (!currentUser) {
                 setLoading(false);
@@ -63,6 +60,7 @@ export default function DashboardScreen() {
         } catch (error: any) {
             console.error('Failed to load dashboard data:', error);
             setErrorMessage(error.message || 'Failed to load dashboard data');
+            setErrorDetails(error.data?.details || error.body || '');
             setErrorVisible(true);
         } finally {
             setLoading(false);
@@ -92,171 +90,142 @@ export default function DashboardScreen() {
             contentContainerStyle={styles.content}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
-            {/* Restored Custom Header */}
-            <View style={{ marginBottom: 20 }}>
+            {/* Compact Header */}
+            <View style={styles.topSection}>
                 <HeaderProfile />
             </View>
 
-            <View style={styles.header}>
-                <Text variant="headlineMedium" style={styles.greeting}>
-                    {user ? `Welcome, ${user.name}` : 'Overview'}
-                </Text>
-                <Text variant="bodyLarge" style={styles.date}>
-                    {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </Text>
-            </View>
+            {/* My Status Card - Personal summary for current user */}
+            {user && (
+                <Card style={[styles.card, { overflow: 'hidden', marginBottom: 12 }]}>
+                    <LinearGradient colors={['#e8eaf6', '#fff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 12 }}>
+                        {/* Top row: Avatar + Name/Plan + Details nav icon */}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                            <Avatar.Text size={38} label={(user.name || '?').substring(0, 2).toUpperCase()} style={{ backgroundColor: theme.colors.primary }} labelStyle={{ fontSize: 15, fontWeight: 'bold' }} />
+                            <View style={{ marginLeft: 10, flex: 1 }}>
+                                <Text style={{ fontWeight: 'bold', fontSize: 15, color: '#1a237e' }} numberOfLines={1}>{user.name}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 }}>
+                                    <Text style={{ fontSize: 11, color: 'gray' }}>{user.plan_name || 'No Plan'}</Text>
+                                    {user.payment_frequency && <Text style={{ fontSize: 10, color: '#7986cb', fontWeight: 'bold' }}>· {user.payment_frequency}</Text>}
+                                    {user.group?.name && <Text style={{ fontSize: 10, color: '#546e7a' }}>· {user.group.name}</Text>}
+                                </View>
+                            </View>
+                            <TouchableOpacity
+                                style={{ padding: 6, borderRadius: 20, backgroundColor: theme.colors.primary + '15' }}
+                                onPress={() => router.push({ pathname: '/management/user/[id]', params: { id: user.id } })}
+                            >
+                                <MaterialCommunityIcons name="account-details" size={22} color={theme.colors.primary} />
+                            </TouchableOpacity>
+                        </View>
+                        {/* Stats row: Paid | Due — clean, no redundant punch status */}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12 }}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 10, color: 'gray' }}>Paid</Text>
+                                <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#2e7d32' }}>₹{user.total_credits || 0}</Text>
+                            </View>
+                            <View style={{ width: 1, height: 32, backgroundColor: '#c5cae9', marginHorizontal: 12 }} />
+                            <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 10, color: 'gray' }}>{(user.balance || 0) > 0 ? 'Due' : 'Advance'}</Text>
+                                <Text style={{ fontSize: 18, fontWeight: 'bold', color: (user.balance || 0) > 0 ? '#c62828' : '#2e7d32' }}>₹{Math.abs(user.balance || 0)}</Text>
+                            </View>
+                        </View>
+                    </LinearGradient>
+                </Card>
+            )}
 
             {loading && !refreshing ? (
                 <ActivityIndicator size="large" style={styles.loader} />
             ) : (
                 <>
-                    {/* Personal Status Card (Visible for everyone) */}
-                    {user && (
-                        <Card style={[styles.card, { backgroundColor: user.punch_status === 'IN' ? '#e8f5e9' : '#ffebee', marginBottom: 16 }]}>
-                            <Card.Content>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <View>
-                                        <Text variant="titleLarge" style={{ fontWeight: 'bold' }}>
-                                            {user.punch_status === 'IN' ? 'You are CHECKED IN' : 'You are CHECKED OUT'}
-                                        </Text>
-                                        <Text variant="bodyMedium" style={{ color: 'gray' }}>
-                                            {user.punch_status === 'IN' ? 'Enjoy your time at the turf!' : 'See you next time!'}
-                                        </Text>
-                                    </View>
-                                    <Avatar.Icon
-                                        size={48}
-                                        icon={user.punch_status === 'IN' ? 'clock-check' : 'clock-out'}
-                                        color="white"
-                                        style={{ backgroundColor: user.punch_status === 'IN' ? '#4CAF50' : '#F44336' }}
-                                    />
-                                </View>
 
-                                <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
-                                    <Button
-                                        mode="contained"
-                                        style={{ flex: 1, backgroundColor: user.punch_status === 'IN' ? '#F44336' : '#4CAF50' }}
-                                        onPress={async () => {
-                                            try {
-                                                if (user.punch_status === 'IN') {
-                                                    await apiService.checkOut(user.id);
-                                                } else {
-                                                    await apiService.checkIn(user.id);
-                                                }
-                                                loadData(); // Refresh to show new status
-                                            } catch (error: any) {
-                                                console.log("Punch error:", error);
-                                                let msg = 'Punch failed';
-
-                                                if (error.body) {
-                                                    try {
-                                                        const parsed = JSON.parse(error.body);
-                                                        if (parsed.error) msg = parsed.error;
-                                                    } catch (e) {
-                                                        msg = error.body;
-                                                    }
-                                                } else if (error.message) {
-                                                    msg = error.message;
-                                                }
-
-                                                if (msg.includes('Already checked in')) {
-                                                    alert('You are already checked in for today!');
-                                                } else {
-                                                    alert(msg);
-                                                }
-                                            }
-                                        }}
-                                    >
-                                        {user.punch_status === 'IN' ? 'Check Out' : 'Check In'}
-                                    </Button>
-                                    <Button
-                                        mode="contained-tonal"
-                                        style={{ flex: 1 }}
-                                        icon="account-details"
-                                        onPress={() => router.push(`/management/user/${user.id}`)}
-                                    >
-                                        My Details
-                                    </Button>
-                                </View>
-                            </Card.Content>
-                        </Card>
-                    )}
-
-                    {/* Live Studio Status - Detailed Breakdown */}
+                    {/* Live Studio Status - Iconic Grid Breakdown */}
                     {AuthService.hasPermission(authUser, 'attendance', 'view') && attendance && (
-                        <Card style={[styles.card, { backgroundColor: '#e3f2fd', marginBottom: 16 }]}>
-                            <Card.Content>
-                                <Text variant="titleMedium" style={{ marginBottom: 12, fontWeight: 'bold', color: '#1565c0' }}>
-                                    <MaterialCommunityIcons name="broadcast" size={20} /> Live Studio Status
-                                </Text>
+                            <Card style={[styles.card, { overflow: 'hidden' }]}>
+                                <LinearGradient colors={['#e3f2fd', '#fff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 12 }}>
+                                    <View style={styles.cardHeader}>
+                                        <Text variant="titleMedium" style={{ fontWeight: 'bold', color: '#1565c0' }}>
+                                            <MaterialCommunityIcons name="broadcast" size={20} /> Live Studio
+                                        </Text>
+                                        <IconButton icon="refresh" size={18} onPress={loadData} style={{ margin: -10 }} />
+                                    </View>
 
-                                {/* Overall Total - Clickable */}
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#bbdefb' }}>
-                                    <TouchableOpacity
-                                        style={{ alignItems: 'center', flex: 1 }}
-                                        onPress={() => router.push('/users')}
-                                    >
-                                        <Text variant="displaySmall" style={{ fontWeight: 'bold' }}>{attendance.total_users || 0}</Text>
-                                        <Text variant="bodySmall">All Users</Text>
-                                        <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
-                                            <TouchableOpacity onPress={() => router.push('/users?status=ACTIVE')}>
-                                                <Text style={{ fontSize: 10, color: 'green' }}>Active: {attendance.active_users || 0}</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity onPress={() => router.push('/users?status=INACTIVE')}>
-                                                <Text style={{ fontSize: 10, color: 'grey' }}>Inactive: {attendance.inactive_users || 0}</Text>
-                                            </TouchableOpacity>
-                                        </View>
+                                    {/* Overall Totals Row */}
+                                    <View style={styles.totalsRow}>
+                                        <TouchableOpacity style={styles.totalItem} onPress={() => router.push('/users')}>
+                                            <MaterialCommunityIcons name="account-group" size={24} color="#1976d2" />
+                                            <Text style={styles.totalValue}>{attendance.total_users || 0}</Text>
+                                            <Text style={styles.totalLabel}>Users</Text>
                                     </TouchableOpacity>
-
-                                    <View style={{ width: 1, height: 40, backgroundColor: '#bbdefb' }} />
-
-                                    <TouchableOpacity
-                                        style={{ alignItems: 'center', flex: 1 }}
-                                        onPress={() => router.push('/users?punch_status=IN')}
-                                    >
-                                        <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: '#2e7d32' }}>{attendance.today_in || 0}</Text>
-                                        <Text variant="bodySmall" style={{ color: '#2e7d32', fontWeight: 'bold' }}>Total IN</Text>
-                                    </TouchableOpacity>
-
-                                    <View style={{ width: 1, height: 40, backgroundColor: '#bbdefb' }} />
-
-                                    <TouchableOpacity
-                                        style={{ alignItems: 'center', flex: 1 }}
-                                        onPress={() => router.push('/users?punch_status=OUT')}
-                                    >
-                                        <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: '#c62828' }}>{attendance.today_out || 0}</Text>
-                                        <Text variant="bodySmall" style={{ color: '#c62828', fontWeight: 'bold' }}>Total OUT</Text>
+                                        <View style={styles.divider} />
+                                        <TouchableOpacity style={styles.totalItem} onPress={() => router.push('/users?punch_status=IN')}>
+                                            <MaterialCommunityIcons name="login" size={24} color="#2e7d32" />
+                                            <Text style={[styles.totalValue, { color: '#2e7d32' }]}>{attendance.today_in || 0}</Text>
+                                            <Text style={[styles.totalLabel, { color: '#2e7d32' }]}>Total IN</Text>
+                                        </TouchableOpacity>
+                                        <View style={styles.divider} />
+                                        <TouchableOpacity style={styles.totalItem} onPress={() => router.push('/users?punch_status=OUT')}>
+                                            <MaterialCommunityIcons name="logout" size={24} color="#c62828" />
+                                            <Text style={[styles.totalValue, { color: '#c62828' }]}>{attendance.today_out || 0}</Text>
+                                            <Text style={[styles.totalLabel, { color: '#c62828' }]}>Total OUT</Text>
                                     </TouchableOpacity>
                                 </View>
 
-                                {attendance.breakdown_by_role?.map((item: any, index: number) => (
-                                    <View key={`role-${index}`} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center', borderBottomWidth: index === attendance.breakdown_by_role.length - 1 ? 0 : 0.5, borderBottomColor: '#eee', paddingBottom: 8 }}>
-                                        <TouchableOpacity
-                                            onPress={() => router.push(`/users?role=${item.role}`)}
-                                            style={{ flex: 1 }}
-                                        >
-                                            <Text style={{ fontWeight: 'bold', color: '#1565c0', textTransform: 'capitalize' }}>
-                                                {item.role.replace('_', ' ')}
-                                            </Text>
-                                        </TouchableOpacity>
-                                        <View style={{ flexDirection: 'row', gap: 15 }}>
-                                            <TouchableOpacity onPress={() => router.push(`/users?role=${item.role}&punch_status=IN`)}>
-                                                <Text style={{ color: '#2e7d32', fontWeight: 'bold' }}>IN: {item.in}</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity onPress={() => router.push(`/users?role=${item.role}&punch_status=OUT`)}>
-                                                <Text style={{ color: '#c62828', fontWeight: 'bold' }}>OUT: {item.out}</Text>
-                                            </TouchableOpacity>
+                                    {/* Role Breakdown - Horizontal Pill Row */}
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 4 }}>
+                                        <View style={{ flexDirection: 'row', gap: 8, paddingVertical: 2 }}>
+                                            {attendance.breakdown_by_role?.map((item: any, index: number) => {
+                                                const roleIcons: Record<string, string> = {
+                                                    'SUPER_ADMIN': 'account-star',
+                                                    'MANAGEMENT': 'account-tie',
+                                                    'STAFF': 'account-wrench',
+                                                    'USER': 'account',
+                                                    'NORMAL': 'account-outline'
+                                                };
+                                                const roleColors: Record<string, string> = {
+                                                    'SUPER_ADMIN': '#7b1fa2',
+                                                    'MANAGEMENT': '#1565c0',
+                                                    'STAFF': '#00695c',
+                                                    'USER': '#37474f',
+                                                    'NORMAL': '#37474f'
+                                                };
+                                                const color = roleColors[item.role] || '#37474f';
+                                                return (
+                                                    <TouchableOpacity
+                                                    key={`role-${index}`}
+                                                    style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6, elevation: 1, gap: 5, borderWidth: 1, borderColor: color + '30' }}
+                                                    onPress={() => router.push(`/users?role=${item.role}`)}
+                                                >
+                                                    <MaterialCommunityIcons name={(roleIcons[item.role] || 'account') as any} size={13} color={color} />
+                                                    <Text style={{ fontSize: 10, fontWeight: 'bold', color, textTransform: 'capitalize' }}>
+                                                        {item.role.replace('_', ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                                                    </Text>
+                                                    <View style={{ flexDirection: 'row', gap: 4 }}>
+                                                        <View style={{ backgroundColor: '#e8f5e9', borderRadius: 8, paddingHorizontal: 5, paddingVertical: 1 }}>
+                                                            <Text style={{ fontSize: 9, fontWeight: 'bold', color: '#2e7d32' }}>{item.in}↑</Text>
+                                                        </View>
+                                                        <View style={{ backgroundColor: '#ffebee', borderRadius: 8, paddingHorizontal: 5, paddingVertical: 1 }}>
+                                                            <Text style={{ fontSize: 9, fontWeight: 'bold', color: '#c62828' }}>{item.out}↓</Text>
+                                                        </View>
+                                                    </View>
+                                                </TouchableOpacity>
+                                            );
+                                        })}
                                         </View>
-                                    </View>
-                                ))}
-                            </Card.Content>
+                                    </ScrollView>
+                                </LinearGradient>
                         </Card>
                     )}
 
                     {/* Alerts & Actions Widget */}
                     {AuthService.hasPermission(authUser, 'user', 'view') && (
-                        <Card style={[styles.card, { marginBottom: 16 }]}>
-                            <Card.Title title="Alerts & Actions" left={(props) => <MaterialCommunityIcons {...props} name="bell-ring" color="#f57c00" />} />
-                            <Card.Content style={{ gap: 10 }}>
+                            <Card style={[styles.card, { marginBottom: 12 }]}>
+                                <Card.Title
+                                    title="Alerts & Actions"
+                                    titleStyle={{ fontSize: 14, fontWeight: 'bold' }}
+                                    leftStyle={{ marginRight: -10 }}
+                                    left={(props) => <MaterialCommunityIcons {...props} size={20} name="bell-ring" color="#f57c00" />}
+                                />
+                                <Card.Content style={{ gap: 6, marginTop: -10 }}>
                                 {attendance?.expired_monthly_count > 0 && (
                                     <Button
                                         mode="contained-tonal"
@@ -299,134 +268,140 @@ export default function DashboardScreen() {
 
                     {/* Cricket Module Entry */}
                     {AuthService.hasPermission(authUser, 'cricket_scoring', 'view') && (
-                        <Card style={[styles.card, { marginBottom: 16 }]}>
-                            <Card.Title
-                                title="Cricket Turf Manager"
-                                left={(props) => <MaterialCommunityIcons {...props} name="cricket" color={theme.colors.primary} />}
-                                right={(props) => <IconButton {...props} icon="chevron-right" onPress={() => router.push('/management/cricket')} />}
-                            />
-                            <Card.Content>
-                                <Text variant="bodyMedium" style={{ color: 'gray', marginBottom: 10 }}>Manage tournaments, teams, and live scoring.</Text>
-                                <Button
-                                    mode="contained"
-                                    onPress={() => router.push('/management/cricket')}
-                                    icon="arrow-right"
-                                >
-                                    Go to Cricket Dashboard
-                                </Button>
-                            </Card.Content>
-                        </Card>
+                            <TouchableOpacity style={[styles.card, { overflow: 'hidden' }]} onPress={() => router.push('/management/cricket')} activeOpacity={0.8}>
+                                <LinearGradient colors={['#e8f4fd', '#fff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 12, flexDirection: 'row', alignItems: 'center' }}>
+                                    <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: theme.colors.primary + '20', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                                        <MaterialCommunityIcons name="cricket" size={26} color={theme.colors.primary} />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{ fontWeight: 'bold', fontSize: 14, color: '#1565c0' }}>Cricket Turf Manager</Text>
+                                        <Text style={{ fontSize: 11, color: 'gray', marginTop: 2 }}>Tournaments · Teams · Live Scoring</Text>
+                                        <View style={{ flexDirection: 'row', gap: 6, marginTop: 6 }}>
+                                            {['Tournaments', 'Teams', 'Matches'].map(f => (
+                                                <View key={f} style={{ backgroundColor: theme.colors.primary + '15', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 }}>
+                                                    <Text style={{ fontSize: 9, color: theme.colors.primary, fontWeight: 'bold' }}>{f}</Text>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    </View>
+                                    <MaterialCommunityIcons name="chevron-right" size={22} color="#bbb" />
+                                </LinearGradient>
+                            </TouchableOpacity>
                     )}
 
                     {/* Financial Summary Card */}
-                    <Card style={styles.card}>
-                        <Card.Content>
+                    <Card style={[styles.card, { overflow: 'hidden' }]}>
+                        <LinearGradient colors={['#e8f5e9', '#fff']} start={{x:0,y:0}} end={{x:1,y:1}} style={{ padding: 12 }}>
+                            {/* Header row with title + action buttons */}
                             <View style={styles.cardHeader}>
-                                <Text variant="titleMedium" style={styles.cardTitle}>
-                                    {AuthService.hasPermission(authUser, 'finance', 'view') ? 'Financial Summary' : 'My Financials'}
-                                </Text>
-                                <MaterialCommunityIcons name="finance" size={24} color={theme.colors.primary} />
-                            </View>
-
-                            <View style={styles.statRow}>
-                                {AuthService.hasPermission(authUser, 'finance', 'view') ? (
-                                    <View style={styles.statItem}>
-                                        <Text variant="labelMedium" style={styles.statLabel}>Income</Text>
-                                        <Text variant="titleLarge" style={[styles.statValue, { color: 'green' }]}>
-                                            {formatCurrency(financials?.total_income)}
-                                        </Text>
-                                    </View>
-                                ) : (
-                                    <View style={styles.statItem}>
-                                        <Text variant="labelMedium" style={styles.statLabel}>Total Paid</Text>
-                                        <Text variant="titleLarge" style={[styles.statValue, { color: 'green' }]}>
-                                            {formatCurrency(financials?.total_charges)}
-                                        </Text>
-                                    </View>
-                                )}
-
-                                <View style={styles.statItem}>
-                                    <Text variant="labelMedium" style={styles.statLabel}>
-                                        {AuthService.hasPermission(authUser, 'expense', 'view') || AuthService.hasPermission(authUser, 'finance', 'view') ? 'Expenses' : 'Outstanding'}
-                                    </Text>
-                                    <Text variant="titleLarge" style={[styles.statValue, { color: AuthService.hasPermission(authUser, 'expense', 'view') ? 'red' : 'orange' }]}>
-                                        {formatCurrency(!AuthService.hasPermission(authUser, 'finance', 'view') ? financials?.outstanding_balance : financials?.total_expenses)}
-                                    </Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                    <MaterialCommunityIcons name="finance" size={16} color="#2e7d32" />
+                                    <Text style={{ fontWeight: 'bold', fontSize: 13, color: '#2e7d32' }}>Financial Summary</Text>
                                 </View>
-                            </View>
-
-                            {AuthService.hasPermission(authUser, 'finance', 'view') && (
-                                <View style={[styles.statRow, { marginTop: 16 }]}>
-                                    <View style={styles.statItem}>
-                                        <Text variant="labelMedium" style={styles.statLabel}>Net Profit</Text>
-                                        <Text variant="titleLarge" style={[styles.statValue, { color: theme.colors.primary }]}>
-                                            {formatCurrency(financials?.net_profit)}
-                                        </Text>
-                                    </View>
-                                    <View style={styles.statItem}>
-                                        <Text variant="labelMedium" style={styles.statLabel}>Outstanding</Text>
-                                        <Text variant="titleLarge" style={[styles.statValue, { color: 'orange' }]}>
-                                            {formatCurrency(financials?.outstanding_balance)}
-                                        </Text>
-                                    </View>
-                                </View>
-                            )}
-
-                            {(AuthService.hasPermission(authUser, 'finance', 'view') || AuthService.hasPermission(authUser, 'expense', 'view')) && (
-                                <View style={{ flexDirection: 'row', gap: 10, marginTop: 15 }}>
+                                <View style={{ flexDirection: 'row', gap: 6 }}>
                                     {AuthService.hasPermission(authUser, 'finance', 'view') && (
-                                        <Button mode="contained-tonal" icon="cash-plus" style={{ flex: 1 }} onPress={() => router.push('/management/ledgers')}>
-                                            Payments
-                                        </Button>
+                                        <TouchableOpacity style={{ backgroundColor: '#e8f5e9', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, flexDirection: 'row', alignItems: 'center', gap: 3 }} onPress={() => router.push('/management/ledgers')}>
+                                            <MaterialCommunityIcons name="cash-plus" size={12} color="#2e7d32" />
+                                            <Text style={{ fontSize: 10, color: '#2e7d32', fontWeight: 'bold' }}>Payments</Text>
+                                        </TouchableOpacity>
                                     )}
                                     {AuthService.hasPermission(authUser, 'expense', 'view') && (
-                                        <Button mode="contained-tonal" icon="cash-minus" style={{ flex: 1 }} buttonColor="#ffebee" textColor="#d32f2f" onPress={() => router.push('/management/expenses')}>
-                                            Expenses
-                                        </Button>
+                                        <TouchableOpacity style={{ backgroundColor: '#ffebee', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, flexDirection: 'row', alignItems: 'center', gap: 3 }} onPress={() => router.push('/management/expenses')}>
+                                            <MaterialCommunityIcons name="cash-minus" size={12} color="#c62828" />
+                                            <Text style={{ fontSize: 10, color: '#c62828', fontWeight: 'bold' }}>Expenses</Text>
+                                        </TouchableOpacity>
                                     )}
                                 </View>
-                            )}
-                        </Card.Content>
+                            </View>
+                            {/* Single row: Income | Expenses | Net Profit | Outstanding */}
+                            <View style={{ flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.75)', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 8 }}>
+                                {AuthService.hasPermission(authUser, 'finance', 'view') ? (
+                                    <>
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            <Text style={{ fontSize: 9, color: 'gray', marginBottom: 2 }}>Income</Text>
+                                            <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#2e7d32' }} numberOfLines={1} adjustsFontSizeToFit>{formatCurrency(financials?.total_income)}</Text>
+                                        </View>
+                                        <View style={{ width: 1, backgroundColor: '#c8e6c9', marginHorizontal: 4 }} />
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            <Text style={{ fontSize: 9, color: 'gray', marginBottom: 2 }}>Expenses</Text>
+                                            <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#c62828' }} numberOfLines={1} adjustsFontSizeToFit>{formatCurrency(financials?.total_expenses)}</Text>
+                                        </View>
+                                        <View style={{ width: 1, backgroundColor: '#c8e6c9', marginHorizontal: 4 }} />
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            <Text style={{ fontSize: 9, color: 'gray', marginBottom: 2 }}>Net Profit</Text>
+                                            <Text style={{ fontSize: 14, fontWeight: 'bold', color: theme.colors.primary }} numberOfLines={1} adjustsFontSizeToFit>{formatCurrency(financials?.net_profit)}</Text>
+                                        </View>
+                                        <View style={{ width: 1, backgroundColor: '#c8e6c9', marginHorizontal: 4 }} />
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            <Text style={{ fontSize: 9, color: 'gray', marginBottom: 2 }}>Outstanding</Text>
+                                            <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#f57c00' }} numberOfLines={1} adjustsFontSizeToFit>{formatCurrency(financials?.outstanding_balance)}</Text>
+                                        </View>
+                                    </>
+                                ) : (
+                                    <>
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            <Text style={{ fontSize: 9, color: 'gray', marginBottom: 2 }}>Total Paid</Text>
+                                            <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#2e7d32' }} numberOfLines={1} adjustsFontSizeToFit>{formatCurrency(financials?.total_charges)}</Text>
+                                        </View>
+                                        <View style={{ width: 1, backgroundColor: '#c8e6c9', marginHorizontal: 4 }} />
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            <Text style={{ fontSize: 9, color: 'gray', marginBottom: 2 }}>Outstanding</Text>
+                                            <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#f57c00' }} numberOfLines={1} adjustsFontSizeToFit>{formatCurrency(financials?.outstanding_balance)}</Text>
+                                        </View>
+                                    </>
+                                )}
+                            </View>
+                        </LinearGradient>
                     </Card>
 
                     {/* Attendance Stats Card */}
-                    <Card style={styles.card}>
-                        <Card.Content>
+                        <Card style={[styles.card, { overflow: 'hidden' }]}>
+                            <LinearGradient colors={['#fff3e0', '#fff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 12 }}>
                             <View style={styles.cardHeader}>
-                                <Text variant="titleMedium" style={styles.cardTitle}>Attendance Stats</Text>
-                                <MaterialCommunityIcons name="calendar-check" size={24} color={theme.colors.primary} />
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                        <MaterialCommunityIcons name="calendar-check" size={18} color="#e65100" />
+                                        <Text style={{ fontWeight: 'bold', fontSize: 14, color: '#e65100' }}>Attendance Stats</Text>
+                                    </View>
+                                </View>
+                                {/* Attendance Rate Mini Bar */}
+                                {(() => {
+                                    const rate = attendance?.attendance_rate || 0; return (
+                                        <View style={{ marginBottom: 12 }}>
+                                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                                                <Text style={{ fontSize: 11, color: 'gray' }}>Present Rate</Text>
+                                                <Text style={{ fontSize: 11, fontWeight: 'bold', color: rate > 70 ? '#2e7d32' : rate > 40 ? '#f57c00' : '#c62828' }}>{rate.toFixed(1)}%</Text>
+                                            </View>
+                                        <View style={{ height: 6, backgroundColor: '#ffe0b2', borderRadius: 3 }}>
+                                            <View style={{ height: 6, width: `${Math.min(rate, 100)}%` as any, backgroundColor: rate > 70 ? '#4caf50' : rate > 40 ? '#ff9800' : '#f44336', borderRadius: 3 }} />
+                                        </View>
+                                </View>
+                                );
+                                })()}
+                                <View style={{ flexDirection: 'row', gap: 8 }}>
+                                    <View style={[styles.attStatTile, { borderLeftColor: '#e65100' }]}>
+                                        <MaterialCommunityIcons name="calendar-multiple" size={18} color="#e65100" />
+                                        <Text style={styles.finStatValue}>{attendance?.total_attendance || 0}</Text>
+                                        <Text style={styles.finStatLabel}>Total Visits</Text>
+                                    </View>
+                                    <View style={[styles.attStatTile, { borderLeftColor: '#1565c0' }]}>
+                                        <MaterialCommunityIcons name="account-multiple" size={18} color="#1565c0" />
+                                        <Text style={styles.finStatValue}>{AuthService.hasPermission(authUser, 'attendance', 'view') ? attendance?.unique_users || 0 : attendance?.present_count || 0}</Text>
+                                        <Text style={styles.finStatLabel}>{AuthService.hasPermission(authUser, 'attendance', 'view') ? 'Unique Users' : 'Days Present'}</Text>
+                                    </View>
+                                    <View style={[styles.attStatTile, { borderLeftColor: '#7b1fa2' }]}>
+                                        <MaterialCommunityIcons name="chart-bar" size={18} color="#7b1fa2" />
+                                        <Text style={styles.finStatValue}>{attendance?.avg_daily_attendance || 0}</Text>
+                                        <Text style={styles.finStatLabel}>Avg Daily</Text>
+                                </View>
                             </View>
-
-                            <View style={styles.statRow}>
-                                <View style={styles.statItem}>
-                                    <Text variant="labelMedium" style={styles.statLabel}>Total Visits</Text>
-                                    <Text variant="titleLarge" style={styles.statValue}>{attendance?.total_attendance || 0}</Text>
-                                </View>
-                                <View style={styles.statItem}>
-                                    <Text variant="labelMedium" style={styles.statLabel}>Present Rate</Text>
-                                    <Text variant="titleLarge" style={styles.statValue}>{attendance?.attendance_rate?.toFixed(1) || 0}%</Text>
-                                </View>
-                            </View>
-
-                            <View style={[styles.statRow, { marginTop: 16 }]}>
-                                <View style={styles.statItem}>
-                                    <Text variant="labelMedium" style={styles.statLabel}>{AuthService.hasPermission(authUser, 'attendance', 'view') ? 'Unique Users' : 'Days Present'}</Text>
-                                    <Text variant="titleLarge" style={styles.statValue}>
-                                        {AuthService.hasPermission(authUser, 'attendance', 'view') ? attendance?.unique_users || 0 : attendance?.present_count || 0}
-                                    </Text>
-                                </View>
-                                <View style={styles.statItem}>
-                                    <Text variant="labelMedium" style={styles.statLabel}>Avg Daily</Text>
-                                    <Text variant="titleLarge" style={styles.statValue}>{attendance?.avg_daily_attendance || 0}</Text>
-                                </View>
-                            </View>
-                        </Card.Content>
+                            </LinearGradient>
                     </Card>
                 </>
             )}
             <ErrorDialog
                 visible={errorVisible}
                 message={errorMessage}
+                details={errorDetails}
                 onDismiss={() => setErrorVisible(false)}
             />
         </ScrollView>
@@ -442,24 +417,11 @@ const styles = StyleSheet.create({
         padding: 16,
         paddingBottom: 120, // Increased to avoid overlap with bottom navigation
     },
-    header: {
-        marginBottom: 20,
-        marginTop: 10,
-    },
-    headerTitle: {
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    sectionTitle: {
-        marginBottom: 12,
-        fontWeight: 'bold',
-        color: '#555',
-        marginTop: 10,
-    },
-    grid: {
+    topSection: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+        paddingBottom: 8,
     },
     card: {
         width: '100%',
@@ -468,41 +430,67 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         elevation: 2,
     },
-    cardContent: {
-        flexDirection: 'column',
-        alignItems: 'flex-start',
+    totalsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.6)',
+        borderRadius: 12,
         padding: 12,
+        marginBottom: 12,
     },
-    iconContainer: {
-        padding: 8,
-        borderRadius: 8,
-        marginBottom: 8,
-    },
-    textContainer: {
+    totalItem: {
+        alignItems: 'center',
         flex: 1,
     },
-    cardTitle: {
-        fontSize: 12,
-        color: 'gray',
-        marginBottom: 4,
-    },
-    cardValue: {
-        fontSize: 18,
+    totalValue: {
+        fontSize: 20,
         fontWeight: 'bold',
-    },
-    subValue: {
-        fontSize: 10,
-        color: 'gray',
         marginTop: 2,
     },
-    // New styles for the updated layout
-    greeting: {
+    totalLabel: {
+        fontSize: 10,
+        color: '#666',
         fontWeight: 'bold',
-        color: '#333',
     },
-    date: {
-        color: 'gray',
-        marginTop: 4,
+    divider: {
+        width: 1,
+        height: 30,
+        backgroundColor: '#bbdefb',
+    },
+    roleGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    roleCard: {
+        width: '48.5%',
+        backgroundColor: 'white',
+        borderRadius: 8,
+        padding: 8,
+        marginBottom: 8,
+        elevation: 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+    },
+    roleName: {
+        fontSize: 11,
+        fontWeight: 'bold',
+        color: '#1565c0',
+        marginLeft: 4,
+        textTransform: 'uppercase',
+    },
+    roleIn: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: '#2e7d32',
+    },
+    roleOut: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: '#c62828',
     },
     loader: {
         marginTop: 40,
@@ -511,22 +499,46 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: 12,
     },
     statRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop: 8,
+        marginTop: 4,
     },
     statItem: {
         flex: 1,
         alignItems: 'center',
     },
-    statLabel: {
-        color: 'gray',
-        marginBottom: 4,
+    finStatTile: {
+        flex: 1,
+        minWidth: '45%',
+        backgroundColor: 'white',
+        borderRadius: 8,
+        padding: 8,
+        alignItems: 'center',
+        elevation: 1,
+        borderLeftWidth: 3,
+        borderLeftColor: '#2e7d32',
     },
-    statValue: {
+    finStatValue: {
+        fontSize: 15,
         fontWeight: 'bold',
+        color: '#1a237e',
+        marginTop: 3,
+    },
+    finStatLabel: {
+        fontSize: 10,
+        color: 'gray',
+        marginTop: 2,
+    },
+    attStatTile: {
+        flex: 1,
+        backgroundColor: 'white',
+        borderRadius: 8,
+        padding: 8,
+        alignItems: 'center',
+        elevation: 1,
+        borderLeftWidth: 3,
     },
 });

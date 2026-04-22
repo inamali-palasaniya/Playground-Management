@@ -7,10 +7,11 @@ interface ErrorDialogProps {
     visible: boolean;
     title?: string;
     message: string;
+    details?: string;
     onDismiss: () => void;
 }
 
-export const ErrorDialog = ({ visible, title = 'Error', message, onDismiss }: ErrorDialogProps) => {
+export const ErrorDialog = ({ visible, title = 'Error', message, details, onDismiss }: ErrorDialogProps) => {
     const theme = useTheme();
 
     return (
@@ -24,6 +25,12 @@ export const ErrorDialog = ({ visible, title = 'Error', message, onDismiss }: Er
                 </Dialog.Title>
                 <Dialog.Content>
                     <Text variant="bodyMedium" style={styles.message}>{message}</Text>
+                    {details && (
+                        <View style={styles.detailsContainer}>
+                            <Text style={styles.detailsTitle}>Technical Details:</Text>
+                            <Text style={styles.detailsText}>{details}</Text>
+                        </View>
+                    )}
                 </Dialog.Content>
                 <Dialog.Actions>
                     <Button onPress={onDismiss} mode="contained" buttonColor={theme.colors.error}>
@@ -56,5 +63,24 @@ const styles = StyleSheet.create({
     message: {
         marginTop: 10,
         color: '#444',
+    },
+    detailsContainer: {
+        marginTop: 15,
+        padding: 10,
+        backgroundColor: '#f5f5f5',
+        borderRadius: 8,
+        borderLeftWidth: 3,
+        borderLeftColor: '#ccc',
+    },
+    detailsTitle: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: '#666',
+        marginBottom: 4,
+    },
+    detailsText: {
+        fontSize: 10,
+        color: '#888',
+        fontFamily: 'monospace',
     },
 });

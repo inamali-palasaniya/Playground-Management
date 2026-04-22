@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma.js';
+import { AuditService } from '../services/audit.service.js';
 
 // Tournament CRUD
 export const getTournaments = async (req: Request, res: Response) => {
@@ -84,6 +85,9 @@ export const createTournament = async (req: Request, res: Response) => {
     });
 
     res.status(201).json(tournament);
+    
+    const performedBy = (req as any).user?.userId || 1;
+    await AuditService.logAction('TOURNAMENT', tournament.id, 'CREATE', performedBy, { name: tournament.name });
   } catch (error) {
     console.error('Error creating tournament:', error);
     res.status(500).json({ error: 'Failed to create tournament' });
@@ -95,6 +99,7 @@ export const updateTournament = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, start_date, end_date } = req.body;
 
+    const original = await prisma.tournament.findUnique({ where: { id: parseInt(id) } });
     const tournament = await prisma.tournament.update({
       where: { id: parseInt(id) },
       data: {
@@ -108,6 +113,9 @@ export const updateTournament = async (req: Request, res: Response) => {
     });
 
     res.json(tournament);
+
+    const performedBy = (req as any).user?.userId || 1;
+    await AuditService.logUpdate('TOURNAMENT', tournament.id, performedBy, original, { name, start_date, end_date });
   } catch (error) {
     console.error('Error updating tournament:', error);
     res.status(500).json({ error: 'Failed to update tournament' });
@@ -123,6 +131,9 @@ export const deleteTournament = async (req: Request, res: Response) => {
     });
 
     res.json({ message: 'Tournament deleted successfully' });
+
+    const performedBy = (req as any).user?.userId || 1;
+    await AuditService.logAction('TOURNAMENT', parseInt(id), 'DELETE', performedBy, { id });
   } catch (error) {
     console.error('Error deleting tournament:', error);
     res.status(500).json({ error: 'Failed to delete tournament' });

@@ -297,10 +297,10 @@ class ApiService {
     }
 
     // Attendance endpoints (Unchanged)
-    async checkIn(user_id: number, date?: string, book_fee_debit?: boolean, mark_fee_paid?: boolean, is_monthly?: boolean): Promise<any> {
+    async checkIn(user_id: number, date?: string, book_fee_debit?: boolean, mark_fee_paid?: boolean, is_monthly?: boolean, amount?: number): Promise<any> {
         return this.request<any>('/api/attendance/check-in', {
             method: 'POST',
-            body: JSON.stringify({ user_id, date, book_fee_debit, mark_fee_paid, is_monthly }),
+            body: JSON.stringify({ user_id, date, book_fee_debit, mark_fee_paid, is_monthly, amount }),
         });
     }
 

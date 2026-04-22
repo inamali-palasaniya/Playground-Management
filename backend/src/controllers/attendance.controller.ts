@@ -4,7 +4,7 @@ import { AuditService } from '../services/audit.service.js';
 
 export const checkIn = async (req: Request, res: Response) => {
   try {
-    const { user_id, date, lat, lng, book_fee_debit, mark_fee_paid, is_monthly } = req.body;
+    const { user_id, date, lat, lng, book_fee_debit, mark_fee_paid, is_monthly, amount } = req.body;
     // Prefer user_id from auth if available, else from body (admin mode or unprotected)
     // For now keeping user_id from body for flexibility or matching existing API style
     const targetUserId = user_id ? parseInt(user_id) : (req as any).user?.userId;
@@ -59,11 +59,15 @@ export const checkIn = async (req: Request, res: Response) => {
     // Calculate fees if requested
     if (activeSubscription?.plan && book_fee_debit) {
       if (activeSubscription.payment_frequency === 'DAILY' || !is_monthly) {
-        if (activeSubscription.plan.rate_daily && activeSubscription.plan.rate_daily > 0) {
+        if (amount !== undefined) {
+          dailyFee = parseFloat(amount);
+        } else if (activeSubscription.plan.rate_daily && activeSubscription.plan.rate_daily > 0) {
           dailyFee = activeSubscription.plan.rate_daily;
         }
       } else if (activeSubscription.payment_frequency === 'MONTHLY' || is_monthly) {
-        if (activeSubscription.plan.rate_monthly && activeSubscription.plan.rate_monthly > 0) {
+        if (amount !== undefined) {
+          monthlyFee = parseFloat(amount);
+        } else if (activeSubscription.plan.rate_monthly && activeSubscription.plan.rate_monthly > 0) {
           monthlyFee = activeSubscription.plan.rate_monthly;
         }
       }
@@ -91,22 +95,8 @@ export const checkIn = async (req: Request, res: Response) => {
 
     // Fast-track billing execution
     if (dailyFee > 0) {
-      // Create DEBIT
-      const debitEntry = await prisma.feeLedger.create({
-        data: {
-          user: { connect: { id: targetUserId } },
-          type: 'DAILY_FEE',
-          transaction_type: 'DEBIT',
-          amount: dailyFee,
-          date: checkInDate,
-          is_paid: mark_fee_paid ? true : false,
-          notes: `Daily fee for ${checkInDate.toISOString().split('T')[0]}`,
-          created_by: createdById ? { connect: { id: createdById } } : undefined
-        },
-      });
-
-      // Create CREDIT if paid directly
       if (mark_fee_paid) {
+        // Create single CREDIT if paid directly
         await prisma.feeLedger.create({
           data: {
             user: { connect: { id: targetUserId } },
@@ -115,31 +105,30 @@ export const checkIn = async (req: Request, res: Response) => {
             amount: dailyFee,
             date: checkInDate,
             is_paid: true,
-            notes: `Fast-Track Payment for Daily Fee`,
-            created_by: createdById ? { connect: { id: createdById } } : undefined,
-            parent_ledger: { connect: { id: debitEntry.id } }
+            notes: `Check-in Payment (Daily Fee)`,
+            created_by: createdById ? { connect: { id: createdById } } : undefined
+          },
+        });
+      } else {
+        // Create single DEBIT if unpaid
+        await prisma.feeLedger.create({
+          data: {
+            user: { connect: { id: targetUserId } },
+            type: 'DAILY_FEE',
+            transaction_type: 'DEBIT',
+            amount: dailyFee,
+            date: checkInDate,
+            is_paid: false,
+            notes: `Daily fee for ${checkInDate.toISOString().split('T')[0]}`,
+            created_by: createdById ? { connect: { id: createdById } } : undefined
           },
         });
       }
     }
 
     if (monthlyFee > 0) {
-      // Create DEBIT
-      const debitEntry = await prisma.feeLedger.create({
-        data: {
-          user: { connect: { id: targetUserId } },
-          type: 'MONTHLY_FEE',
-          transaction_type: 'DEBIT',
-          amount: monthlyFee,
-          date: checkInDate,
-          is_paid: mark_fee_paid ? true : false,
-          notes: `Monthly fee (Plan: ${activeSubscription?.plan.name})`,
-          created_by: createdById ? { connect: { id: createdById } } : undefined
-        },
-      });
-
-      // Create CREDIT if paid directly
       if (mark_fee_paid) {
+        // Create single CREDIT if paid directly
         await prisma.feeLedger.create({
           data: {
             user: { connect: { id: targetUserId } },
@@ -148,13 +137,35 @@ export const checkIn = async (req: Request, res: Response) => {
             amount: monthlyFee,
             date: checkInDate,
             is_paid: true,
-            notes: `Fast-Track Payment for Monthly Fee`,
-            created_by: createdById ? { connect: { id: createdById } } : undefined,
-            parent_ledger: { connect: { id: debitEntry.id } }
+            notes: `Check-in Payment (Monthly Fee)`,
+            created_by: createdById ? { connect: { id: createdById } } : undefined
+          },
+        });
+      } else {
+        // Create single DEBIT if unpaid
+        await prisma.feeLedger.create({
+          data: {
+            user: { connect: { id: targetUserId } },
+            type: 'MONTHLY_FEE',
+            transaction_type: 'DEBIT',
+            amount: monthlyFee,
+            date: checkInDate,
+            is_paid: false,
+            notes: `Monthly fee (Plan: ${activeSubscription?.plan.name})`,
+            created_by: createdById ? { connect: { id: createdById } } : undefined
           },
         });
       }
     }
+
+    // LOG ACTION
+    const performedBy = createdById || 1;
+    await AuditService.logAction('ATTENDANCE', attendance.id, 'CREATE', performedBy, { 
+        user_id: targetUserId, 
+        daily_fee: dailyFee, 
+        monthly_fee: monthlyFee, 
+        mark_fee_paid 
+    });
 
     res.status(201).json(attendance);
   } catch (error) {
@@ -190,6 +201,10 @@ export const checkOut = async (req: Request, res: Response) => {
         out_time: new Date()
       }
     });
+
+    // LOG ACTION
+    const performedBy = (req as any).user?.userId || 1;
+    await AuditService.logAction('ATTENDANCE', attendance.id, 'UPDATE', performedBy, { action: 'CHECK_OUT', out_time: updated.out_time });
 
     res.json(updated);
   } catch (error) {
@@ -383,7 +398,7 @@ export const updateAttendance = async (req: Request, res: Response) => {
     // Sync Ledger if fee changed -> (Logic handled above)
 
     const performedBy = (req as any).user?.userId || 1;
-    await AuditService.logAction('ATTENDANCE', attendanceId, 'UPDATE', performedBy, { is_present, in_time, out_time, daily_fee_charged });
+    await AuditService.logUpdate('ATTENDANCE', attendanceId, performedBy, original, { is_present, in_time, out_time, daily_fee_charged });
 
     res.json(updated);
   } catch (error) {

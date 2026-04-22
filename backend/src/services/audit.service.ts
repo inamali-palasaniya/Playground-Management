@@ -21,8 +21,36 @@ export class AuditService {
             });
         } catch (error) {
             console.error('Failed to create audit log:', error);
-            // Non-blocking: don't fail the main request if logging fails?
-            // Depends on strictness. For now, just log error.
+        }
+    }
+
+    static async logUpdate(
+        entityType: string,
+        entityId: number,
+        performedBy: number,
+        oldData: any,
+        newData: any
+    ) {
+        const changes: any = {};
+        for (const key in newData) {
+            if (newData[key] !== undefined && newData[key] !== oldData[key]) {
+                // Skip sensitive or non-comparable fields
+                if (key === 'password' || key === 'createdAt' || key === 'updatedAt') continue;
+                
+                // Deep comparison for dates if needed, but for now simple check
+                if (oldData[key] instanceof Date && newData[key] instanceof Date) {
+                    if (oldData[key].getTime() === newData[key].getTime()) continue;
+                }
+
+                changes[key] = {
+                    from: oldData[key],
+                    to: newData[key]
+                };
+            }
+        }
+
+        if (Object.keys(changes).length > 0) {
+            await this.logAction(entityType, entityId, 'UPDATE', performedBy, { changes });
         }
     }
 

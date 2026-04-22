@@ -1,14 +1,14 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { View, StyleSheet, FlatList, RefreshControl, Alert, ScrollView, TouchableOpacity, Platform } from 'react-native';
-import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button, Portal, Dialog, Switch } from 'react-native-paper';
+import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, IconButton, Menu, Button, Portal, Dialog, Switch, RadioButton, TextInput } from 'react-native-paper';
 import { useRouter, useFocusEffect, useLocalSearchParams, Stack } from 'expo-router';
 import * as Updates from 'expo-updates';
 import apiService from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { format } from 'date-fns';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import AuditLogDialog from '../../components/AuditLogDialog';
+import { AuditLogs } from '../../../components/AuditLogs';
 import { ErrorDialog } from '../../../components/ErrorDialog';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { safeFormatDate } from '../../../utils/date.utils';
@@ -28,7 +28,11 @@ interface User {
     created_by_name?: string;
     createdAt?: string;
     payment_frequency?: 'DAILY' | 'MONTHLY' | null;
+    plan_rate?: number;
     is_subscription_paid?: boolean;
+    is_paid_today?: boolean;
+    donation_debit?: number;
+    donation_credit?: number;
 }
 
 interface Group {
@@ -64,6 +68,7 @@ export default function PeopleScreen() {
     const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
     const [selectedPlanName, setSelectedPlanName] = useState<string | null>(null);
     const [selectedFrequency, setSelectedFrequency] = useState<string | null>(null); // 'DAILY', 'MONTHLY'
+    const [selectedDonationStatus, setSelectedDonationStatus] = useState<string | null>(null);
 
     // Menus Visibility
     const [menuGroup, setMenuGroup] = useState(false);
@@ -74,6 +79,7 @@ export default function PeopleScreen() {
     const [menuPlan, setMenuPlan] = useState(false);
     const [menuFrequency, setMenuFrequency] = useState(false);
     const [menuFinance, setMenuFinance] = useState(false);
+    const [menuDonation, setMenuDonation] = useState(false);
 
     const [currentUser, setCurrentUser] = useState<any>(null);
 
@@ -90,6 +96,8 @@ export default function PeopleScreen() {
     const [punchTargetUser, setPunchTargetUser] = useState<User | null>(null);
     const [bookFeeDebit, setBookFeeDebit] = useState(true);
     const [markFeePaid, setMarkFeePaid] = useState(false);
+    const [checkInAmount, setCheckInAmount] = useState('');
+    const [punchTransactionType, setPunchTransactionType] = useState<'DEBIT' | 'CREDIT'>('DEBIT');
 
     const [errorVisible, setErrorVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -126,6 +134,7 @@ export default function PeopleScreen() {
                 if (selectedType) queryString += `&user_type=${selectedType}`;
                 if (selectedPlanName) queryString += `&plan_name=${encodeURIComponent(selectedPlanName)}`;
                 if (selectedFrequency) queryString += `&payment_frequency=${selectedFrequency}`;
+                if (selectedDonationStatus) queryString += `&donationStatus=${selectedDonationStatus}`;
 
                 const usersPromise = apiService.request(`/api/users${queryString}`);
                 const promises: Promise<any>[] = [usersPromise];
@@ -199,7 +208,7 @@ export default function PeopleScreen() {
                 // when we LEAVE the screen or when the params themselves change.
             };
         }, [
-            selectedGroup, selectedRole, selectedStatus, selectedPunch, selectedType, selectedPlan, activeFilter,
+            selectedGroup, selectedRole, selectedStatus, selectedPunch, selectedType, selectedPlan, selectedPlanName, selectedFrequency, selectedDonationStatus, activeFilter,
             paramsSynced // Load data whenever filters or sync status change
         ])
     );
@@ -247,8 +256,33 @@ export default function PeopleScreen() {
         } else {
              // User is OUT, open Punch IN Modal to handle Fast-Track billing
              setPunchTargetUser(item);
-             setBookFeeDebit(true); // Default to booking fee
-             setMarkFeePaid(false); // Default to unpaid
+             
+             const isDaily = item.payment_frequency === 'DAILY';
+             const isMonthly = item.payment_frequency === 'MONTHLY';
+             const isFirstOfMonth = new Date().getDate() === 1;
+
+             setCheckInAmount(item.plan_rate ? item.plan_rate.toString() : '');
+             setPunchTransactionType('DEBIT');
+
+             if (isMonthly) {
+                if (item.is_subscription_paid) {
+                    setBookFeeDebit(false);
+                    setMarkFeePaid(false); // Already paid this month
+                } else {
+                    setBookFeeDebit(true);
+                    setMarkFeePaid(true); // Default to ON for monthly if not paid
+                }
+             } else if (item.is_paid_today) {
+                setBookFeeDebit(false);
+                setMarkFeePaid(false); // Already paid today
+             } else if (isDaily) {
+                setBookFeeDebit(true);
+                setMarkFeePaid(true); // Default to ON for Daily if not paid today
+             } else {
+                setBookFeeDebit(true);
+                setMarkFeePaid(false);
+             }
+
              setPunchModalVisible(true);
         }
     };
@@ -365,7 +399,7 @@ export default function PeopleScreen() {
                     </View>
                 }
                 subtitleStyle={{ marginTop: -2 }}
-                left={(props) => <Avatar.Text {...props} size={40} label={(item.name || 'U').substring(0, 2).toUpperCase()} />}
+                left={(props) => <Avatar.Text {...props} size={40} label={(item.name || 'U').substring(0, 2).toUpperCase()} style={{ backgroundColor: '#e3f2fd' }} color="#1565c0" />}
                 right={(props) => {
                     const canEdit = AuthService.hasPermission(currentUser, 'user', 'edit');
                     const canDelete = AuthService.hasPermission(currentUser, 'user', 'delete');
@@ -373,123 +407,102 @@ export default function PeopleScreen() {
                     const canAudit = AuthService.hasPermission(currentUser, 'audit', 'view');
 
                     return (
-                        <View style={{ marginRight: 8, alignItems: 'flex-end', justifyContent: 'center' }}>
-                            {(canEdit || canDelete || canPunch || canAudit) && (
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    {canPunch && (
-                                        <IconButton
-                                            icon={item.punch_status === 'IN' ? 'logout' : 'login'}
-                                            mode="contained"
-                                            containerColor={item.punch_status === 'IN' ? '#FF5252' : '#2196F3'}
-                                            iconColor="white"
-                                            size={18}
-                                            style={{ margin: 0, marginRight: 4 }}
-                                            onPress={(e) => { e.stopPropagation(); handlePunchClick(item); }}
-                                        />
-                                    )}
-                                    {canEdit && (
-                                        <IconButton
-                                            icon="pencil"
-                                            size={18}
-                                            iconColor="#4CAF50"
-                                            style={{ margin: 0 }}
-                                            onPress={(e) => { e.stopPropagation(); router.push({ pathname: '/management/edit-user', params: { id: item.id } }); }}
-                                        />
-                                    )}
-                                    {canDelete && (
-                                        <IconButton
-                                            icon="delete"
-                                            size={18}
-                                            iconColor="#F44336"
-                                            style={{ margin: 0 }}
-                                            onPress={(e) => { e.stopPropagation(); confirmDelete(item.id, item.name); }}
-                                        />
-                                    )}
-                                    {canAudit && (
-                                        <IconButton
-                                            icon="history"
-                                            size={18}
-                                            iconColor="#607D8B"
-                                            style={{ margin: 0 }}
-                                            onPress={(e) => { e.stopPropagation(); setAuditEntityId(item.id); setAuditVisible(true); }}
-                                        />
-                                    )}
-                                </View>
+                        <View style={{ marginRight: 8, flexDirection: 'row', alignItems: 'center' }}>
+                            {canPunch && (
+                                <IconButton
+                                    icon={item.punch_status === 'IN' ? 'logout' : 'login'}
+                                    mode="contained"
+                                    containerColor={item.punch_status === 'IN' ? '#FF5252' : '#2196F3'}
+                                    iconColor="white"
+                                    size={18}
+                                    style={{ margin: 0, marginRight: 4 }}
+                                    onPress={(e) => { e.stopPropagation(); handlePunchClick(item); }}
+                                />
+                            )}
+                            {canEdit && (
+                                <IconButton
+                                    icon="pencil"
+                                    size={18}
+                                    iconColor="#4CAF50"
+                                    style={{ margin: 0 }}
+                                    onPress={(e) => { e.stopPropagation(); router.push({ pathname: '/management/edit-user', params: { id: item.id } }); }}
+                                />
+                            )}
+                            {canDelete && (
+                                <IconButton
+                                    icon="delete"
+                                    size={18}
+                                    iconColor="#F44336"
+                                    style={{ margin: 0 }}
+                                    onPress={(e) => { e.stopPropagation(); confirmDelete(item.id, item.name); }}
+                                />
+                            )}
+                            {canAudit && (
+                                <IconButton
+                                    icon="history"
+                                    size={18}
+                                    iconColor="#607D8B"
+                                    style={{ margin: 0 }}
+                                    onPress={(e) => { e.stopPropagation(); setAuditEntityId(item.id); setAuditVisible(true); }}
+                                />
                             )}
                         </View>
                     );
                 }}
             />
             <Card.Content>
-                <View style={{ paddingBottom: 4 }}>
-                    {/* Contact Row: Email Left, Phone Right */}
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
-                            {item.email ? (
-                                <>
-                                    <MaterialCommunityIcons name="email-outline" size={14} color="gray" />
-                                    <Text variant="bodySmall" numberOfLines={1} style={{ color: 'gray', marginLeft: 4, flex: 1 }}>{item.email}</Text>
-                                </>
-                            ) : null}
+                {/* Contact Row */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+                        {item.email ? (
+                            <>
+                                <MaterialCommunityIcons name="email-outline" size={14} color="gray" />
+                                <Text variant="bodySmall" numberOfLines={1} style={{ color: 'gray', marginLeft: 4, flex: 1 }}>{item.email}</Text>
+                            </>
+                        ) : null}
+                    </View>
+                    {item.phone && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <MaterialCommunityIcons name="phone-outline" size={14} color="gray" />
+                            <Text variant="bodySmall" style={{ color: 'gray', marginLeft: 4 }}>{item.phone}</Text>
                         </View>
-                        {item.phone && (
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <MaterialCommunityIcons name="phone-outline" size={14} color="gray" />
-                                <Text variant="bodySmall" style={{ color: 'gray', marginLeft: 4 }}>{item.phone}</Text>
-                            </View>
-                        )}
-                    </View>
-
-                    {/* Financials & Plan Row */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e3f2fd', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                            <MaterialCommunityIcons name="tag" size={12} color="#1565c0" style={{ marginRight: 4 }} />
-                            <Text style={{ fontSize: 10, color: '#1565c0', fontWeight: 'bold' }}>{item.plan_name || 'No Plan'}</Text>
-                        </View>
-                        {item.payment_frequency && (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: item.payment_frequency === 'MONTHLY' ? '#e0f2f1' : '#fff3e0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                                <MaterialCommunityIcons
-                                    name={item.payment_frequency === 'MONTHLY' ? 'calendar-month' : 'calendar-today'}
-                                    size={12}
-                                    color={item.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100'}
-                                    style={{ marginRight: 4 }}
-                                />
-                                <Text style={{ fontSize: 10, color: item.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100', fontWeight: 'bold' }}>
-                                    {item.payment_frequency === 'MONTHLY' ? 'Monthly' : 'Daily'}
-                                </Text>
-                            </View>
-                        )}
-                        {item.payment_frequency === 'MONTHLY' && (
-                            <View style={{ marginLeft: 4 }}>
-                                <MaterialCommunityIcons
-                                    name={item.is_subscription_paid ? 'check-decagram' : 'alert-circle-outline'}
-                                    size={16}
-                                    color={item.is_subscription_paid ? '#4CAF50' : '#F44336'}
-                                />
-                            </View>
-                        )}
-                        {item.balance !== undefined && item.balance !== 0 && (
-                            <Text style={{ fontSize: 11, fontWeight: 'bold', color: item.balance > 0 ? '#d32f2f' : '#388e3c' }}>
-                                {item.balance > 0 ? `Due: ₹${item.balance}` : `Adv: ₹${Math.abs(item.balance)}`}
-                            </Text>
-                        )}
-                        {item.deposit_amount !== undefined && item.deposit_amount > 0 && (
-                            <Text style={{ fontSize: 10, color: '#666' }}>Dep: ₹{item.deposit_amount}</Text>
-                        )}
-                    </View>
-
-                    {/* Footer: Created By + Inactive Status */}
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 0.5, borderTopColor: '#f0f0f0', paddingTop: 6 }}>
-                        <Text style={{ fontSize: 10, color: '#999', fontStyle: 'italic' }}>
-                            Added by {item.created_by_name || 'System'} • {safeFormatDate(item.createdAt, 'dd MMM')}
-                        </Text>
-                        {(item as any).is_active === false && (
-                            <View style={{ backgroundColor: '#ffebee', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10 }}>
-                                <Text style={{ color: '#c62828', fontSize: 10, fontWeight: 'bold' }}>Inactive</Text>
-                            </View>
-                        )}
-                    </View>
+                    )}
                 </View>
+
+                {/* Financials & Plan Row */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e3f2fd', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                        <MaterialCommunityIcons name="tag" size={12} color="#1565c0" style={{ marginRight: 4 }} />
+                        <Text style={{ fontSize: 10, color: '#1565c0', fontWeight: 'bold' }}>{item.plan_name || 'No Plan'}</Text>
+                    </View>
+                    {item.payment_frequency && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: item.payment_frequency === 'MONTHLY' ? '#e0f2f1' : '#fff3e0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                            <Text style={{ fontSize: 10, color: item.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100', fontWeight: 'bold' }}>
+                                {item.payment_frequency}
+                            </Text>
+                        </View>
+                    )}
+                    {item.balance !== undefined && item.balance !== 0 && (
+                        <Text style={{ fontSize: 11, fontWeight: 'bold', color: item.balance > 0 ? '#d32f2f' : '#388e3c' }}>
+                            {item.balance > 0 ? `Due: ₹${item.balance}` : `Adv: ₹${Math.abs(item.balance)}`}
+                        </Text>
+                    )}
+                    {item.deposit_amount !== undefined && item.deposit_amount > 0 && (
+                        <Text style={{ fontSize: 10, color: '#666' }}>Dep: ₹{item.deposit_amount}</Text>
+                    )}
+                </View>
+
+                {/* Donation Summary (Compact) */}
+                {((item.donation_debit || 0) > 0 || (item.donation_credit || 0) > 0) && (
+                    <View style={{ marginTop: 2, padding: 6, backgroundColor: '#fdfdfd', borderRadius: 6, borderWidth: 0.5, borderColor: '#eee', flexDirection: 'row', alignItems: 'center' }}>
+                        <MaterialCommunityIcons name="hand-heart" size={14} color="#2e7d32" style={{ marginRight: 8 }} />
+                        <View style={{ flexDirection: 'row', flex: 1, justifyContent: 'space-between' }}>
+                            <Text style={{ fontSize: 10, color: '#1976D2' }}>Cmt: <Text style={{ fontWeight: 'bold' }}>₹{item.donation_debit || 0}</Text></Text>
+                            <Text style={{ fontSize: 10, color: '#2E7D32' }}>Paid: <Text style={{ fontWeight: 'bold' }}>₹{item.donation_credit || 0}</Text></Text>
+                            <Text style={{ fontSize: 10, color: ((item.donation_debit || 0) - (item.donation_credit || 0)) > 0 ? '#D32F2F' : '#666' }}>Due: <Text style={{ fontWeight: 'bold' }}>₹{Math.max(0, (item.donation_debit || 0) - (item.donation_credit || 0))}</Text></Text>
+                        </View>
+                    </View>
+                )}
             </Card.Content>
         </Card>
     );
@@ -667,11 +680,8 @@ export default function PeopleScreen() {
                                 }
                             >
                                 <Menu.Item onPress={() => { setSelectedPlanName(null); setMenuPlan(false); }} title="All Plans" />
-                                {Array.from(new Set(plans.map(p => {
-                                    // Strip "Monthly", "Daily", "Monthly ", "Daily " (case insensitive)
-                                    return p.name.replace(/(Monthly|Daily)\s*/i, '').trim();
-                                }))).map(name => (
-                                    <Menu.Item key={name} onPress={() => { setSelectedPlanName(name); setMenuPlan(false); }} title={name} />
+                                {plans.map(p => (
+                                    <Menu.Item key={p.id} onPress={() => { setSelectedPlanName(p.name); setMenuPlan(false); }} title={p.name} />
                                 ))}
                             </Menu>
 
@@ -722,9 +732,30 @@ export default function PeopleScreen() {
                                 <Menu.Item onPress={() => { setSelectedFrequency('MONTHLY'); setMenuFrequency(false); }} title="Monthly" />
                             </Menu>
 
-                            {/* Legacy "Expired" Chip (if triggered from Dashboard) -> Now handled in Finance Menu, but keeping optional visual indicator or removing if redundant */}
-                            {/* Removing redundant chip as it's now in Finance Menu */}
-
+                            {/* Donation Status Filter */}
+                            <Menu
+                                visible={menuDonation}
+                                onDismiss={() => setMenuDonation(false)}
+                                anchor={
+                                    <Chip
+                                        mode="outlined"
+                                        icon="hand-heart"
+                                        onPress={() => setMenuDonation(true)}
+                                        selected={!!selectedDonationStatus}
+                                        style={styles.filterChip}
+                                        showSelectedOverlay
+                                    >
+                                        {selectedDonationStatus === 'DONOR' ? 'All Donors' :
+                                            selectedDonationStatus === 'PENDING' ? 'Pending' :
+                                                    selectedDonationStatus === 'PAID' ? 'Fully Paid' : 'Donation'}
+                                    </Chip>
+                                }
+                            >
+                                <Menu.Item onPress={() => { setSelectedDonationStatus(null); setMenuDonation(false); }} title="All Users" />
+                                <Menu.Item onPress={() => { setSelectedDonationStatus('DONOR'); setMenuDonation(false); }} title="All Donors" />
+                                <Menu.Item onPress={() => { setSelectedDonationStatus('PENDING'); setMenuDonation(false); }} title="Pending/Partial" />
+                                <Menu.Item onPress={() => { setSelectedDonationStatus('PAID'); setMenuDonation(false); }} title="Fully Paid" />
+                            </Menu>
                         </ScrollView>
                     </View>
                 </View>
@@ -764,43 +795,62 @@ export default function PeopleScreen() {
                 <Dialog visible={punchModalVisible} onDismiss={() => setPunchModalVisible(false)} style={{ backgroundColor: 'white' }}>
                     <Dialog.Title>Punch IN - {punchTargetUser?.name || 'User'}</Dialog.Title>
                     <Dialog.Content>
-                        {punchTargetUser?.payment_frequency === 'DAILY' ? (
+                        {punchTargetUser?.payment_frequency ? (
                             <View>
-                                <Text style={{ marginBottom: 12, color: 'gray' }}>This user is on a Daily plan. A daily fee will be calculated based on their plan configuration.</Text>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                                <Text style={{ marginBottom: 12, color: 'gray' }}>
+                                    Record {punchTargetUser.payment_frequency.toLowerCase()} billing for this check-in.
+                                </Text>
+                                
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                                     <View>
-                                        <Text variant="titleMedium">Book Daily Fee</Text>
-                                        <Text variant="bodySmall" style={{ color: 'gray' }}>Record fee as DEBIT in ledger</Text>
+                                        <Text variant="titleMedium">Record Bill/Payment</Text>
+                                        <Text variant="bodySmall" style={{ color: 'gray' }}>Toggle off to only check-in</Text>
                                     </View>
-                                    <Switch value={bookFeeDebit} onValueChange={setBookFeeDebit} />
+                                    <Switch 
+                                        value={bookFeeDebit} 
+                                        onValueChange={(val) => {
+                                            setBookFeeDebit(val);
+                                            if(!val) setMarkFeePaid(false);
+                                        }} 
+                                    />
                                 </View>
+
                                 {bookFeeDebit && (
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <View>
-                                            <Text variant="titleMedium">Mark Fee as Paid</Text>
-                                            <Text variant="bodySmall" style={{ color: 'gray' }}>Instantly record payment (CREDIT)</Text>
-                                        </View>
-                                        <Switch value={markFeePaid} onValueChange={setMarkFeePaid} />
-                                    </View>
-                                )}
-                            </View>
-                        ) : punchTargetUser?.payment_frequency === 'MONTHLY' ? (
-                            <View>
-                                <Text style={{ marginBottom: 12, color: 'gray' }}>This user is on a Monthly plan. If they haven't been billed this month, you can initiate the charge now to fast-track their monthly fee.</Text>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                                    <View>
-                                        <Text variant="titleMedium">Book Monthly Fee</Text>
-                                        <Text variant="bodySmall" style={{ color: 'gray' }}>Record monthly fee as DEBIT</Text>
-                                    </View>
-                                    <Switch value={bookFeeDebit} onValueChange={setBookFeeDebit} />
-                                </View>
-                                {bookFeeDebit && (
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <View>
-                                            <Text variant="titleMedium">Mark Fee as Paid</Text>
-                                            <Text variant="bodySmall" style={{ color: 'gray' }}>Instantly record payment (CREDIT)</Text>
-                                        </View>
-                                        <Switch value={markFeePaid} onValueChange={setMarkFeePaid} />
+                                    <View style={{ marginTop: 10 }}>
+                                        <Text variant="labelLarge" style={{ marginBottom: 8 }}>Type</Text>
+                                        <RadioButton.Group 
+                                            onValueChange={value => {
+                                                setPunchTransactionType(value as any);
+                                                setMarkFeePaid(value === 'CREDIT');
+                                            }} 
+                                            value={punchTransactionType}
+                                        >
+                                            <View style={{ flexDirection: 'row', gap: 10 }}>
+                                                <TouchableOpacity 
+                                                    style={{ flexDirection: 'row', alignItems: 'center' }} 
+                                                    onPress={() => { setPunchTransactionType('DEBIT'); setMarkFeePaid(false); }}
+                                                >
+                                                    <RadioButton value="DEBIT" />
+                                                    <Text>Debit (Charge)</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity 
+                                                    style={{ flexDirection: 'row', alignItems: 'center' }}
+                                                    onPress={() => { setPunchTransactionType('CREDIT'); setMarkFeePaid(true); }}
+                                                >
+                                                    <RadioButton value="CREDIT" />
+                                                    <Text>Credit (Paid)</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </RadioButton.Group>
+
+                                        <TextInput
+                                            label="Amount"
+                                            value={checkInAmount}
+                                            onChangeText={setCheckInAmount}
+                                            keyboardType="numeric"
+                                            mode="outlined"
+                                            style={{ marginTop: 15, backgroundColor: 'white' }}
+                                        />
                                     </View>
                                 )}
                             </View>
@@ -814,6 +864,14 @@ export default function PeopleScreen() {
                     </Dialog.Actions>
                 </Dialog>
             </Portal>
+
+            <AuditLogs 
+                visible={auditVisible}
+                onDismiss={() => setAuditVisible(false)}
+                entityType="USER"
+                entityId={auditEntityId}
+                title="User History"
+            />
 
             <ErrorDialog
                 visible={errorVisible}

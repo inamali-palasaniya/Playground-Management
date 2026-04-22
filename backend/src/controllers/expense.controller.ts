@@ -68,6 +68,7 @@ export const updateExpense = async (req: Request, res: Response) => {
         const { id } = req.params;
         const { name, category, amount, date, notes } = req.body;
 
+        const original = await prisma.expense.findUnique({ where: { id: parseInt(id) } });
         const expense = await prisma.expense.update({
             where: { id: parseInt(id) },
             data: {
@@ -82,7 +83,7 @@ export const updateExpense = async (req: Request, res: Response) => {
         res.json(expense);
 
         const performedBy = (req as any).user?.userId || 1;
-        await AuditService.logAction('EXPENSE', expense.id, 'UPDATE', performedBy, req.body);
+        await AuditService.logUpdate('EXPENSE', expense.id, performedBy, original, req.body);
     } catch (error) {
         console.error('Error updating expense:', error);
         res.status(500).json({ error: 'Failed to update expense', details: error instanceof Error ? error.message : String(error) });

@@ -118,7 +118,8 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const getUsers = async (req: Request, res: Response) => {
     try {
-        const { group_id, user_type, filter, status, punch_status, role, plan_id, payment_frequency, plan_name } = req.query;
+        const { group_id, user_type, filter, status, punch_status, role, plan_id, payment_frequency, plan_name, donationStatus } = req.query;
+        console.log('getUsers Query:', { group_id, user_type, filter, role, plan_id, payment_frequency, plan_name, donationStatus });
         const where: any = {};
 
         if (group_id) {
@@ -208,6 +209,8 @@ export const getUsers = async (req: Request, res: Response) => {
             };
         }
 
+        console.log('getUsers WHERE clause:', JSON.stringify(where, null, 2));
+
         const users = await prisma.user.findMany({
             where,
             include: {
@@ -257,9 +260,34 @@ export const getUsers = async (req: Request, res: Response) => {
             select: { user_id: true }
         });
 
+        const paidToday = await prisma.feeLedger.findMany({
+            where: {
+                user_id: { in: userIds },
+                transaction_type: 'CREDIT',
+                date: { gte: startOfToday, lte: endOfToday }
+            },
+            select: { user_id: true }
+        });
+
         const debitMap = new Map(debits.map(d => [d.user_id, d._sum.amount || 0]));
         const creditMap = new Map(credits.map(c => [c.user_id, c._sum.amount || 0]));
         const paidSubSet = new Set(paidSubs.map(ps => ps.user_id));
+        const paidTodaySet = new Set(paidToday.map(pt => pt.user_id));
+
+        // Donation Aggregations (Strictly DONATION type)
+        const donationDebits = await prisma.feeLedger.groupBy({
+            by: ['user_id'],
+            where: { user_id: { in: userIds }, transaction_type: 'DEBIT', type: 'DONATION' },
+            _sum: { amount: true }
+        });
+        const donationCredits = await prisma.feeLedger.groupBy({
+            by: ['user_id'],
+            where: { user_id: { in: userIds }, transaction_type: 'CREDIT', type: 'DONATION' },
+            _sum: { amount: true }
+        });
+
+        const donationDebitMap = new Map(donationDebits.map(d => [d.user_id, d._sum.amount || 0]));
+        const donationCreditMap = new Map(donationCredits.map(c => [c.user_id, c._sum.amount || 0]));
 
         const enhancedUsers = users.map(user => {
             const sub = user.subscriptions[0];
@@ -277,9 +305,24 @@ export const getUsers = async (req: Request, res: Response) => {
             const totalCredits = creditMap.get(user.id) || 0;
             const balance = totalDebits - totalCredits;
 
+            const donationDebit = donationDebitMap.get(user.id) || 0;
+            const donationCredit = donationCreditMap.get(user.id) || 0;
+
             // Filters applied after calculation
             if (filter === 'NEGATIVE_BALANCE' && balance <= 0) return null;
             if (filter === 'SETTLED' && balance > 0) return null;
+
+            if (donationStatus) {
+                const totalDonation = donationDebit + donationCredit;
+                const isDonor = donationDebit > 0 || donationCredit > 0;
+                
+                if (donationStatus === 'DONOR' && !isDonor) return null;
+                if (donationStatus === 'PENDING' && (!donationDebit || donationCredit >= donationDebit)) return null;
+                if (donationStatus === 'PAID') {
+                    const isFullyPaid = (donationDebit > 0 && donationCredit >= donationDebit) || (donationDebit === 0 && donationCredit > 0);
+                    if (!isFullyPaid) return null;
+                }
+            }
 
             return {
                 ...user,
@@ -291,7 +334,11 @@ export const getUsers = async (req: Request, res: Response) => {
                 todays_attendance_id: user.attendances[0]?.id || null,
                 punch_status: user.attendances[0] ? (user.attendances[0].out_time ? 'OUT' : 'IN') : 'NONE',
                 payment_frequency: paymentFrequency,
+                plan_rate: paymentFrequency === 'DAILY' ? (plan?.rate_daily || 0) : (plan?.rate_monthly || 0),
                 is_subscription_paid: paidSubSet.has(user.id),
+                is_paid_today: paidTodaySet.has(user.id),
+                donation_debit: donationDebit,
+                donation_credit: donationCredit,
                 created_by_name: (user as any).created_by?.name || 'System'
             };
         }).filter(u => u !== null);
@@ -383,11 +430,23 @@ export const getUserById = async (req: Request, res: Response) => {
             plan_name: planName,
             subscription_status: status,
             payment_frequency: paymentFrequency,
+            plan_rate: paymentFrequency === 'DAILY' ? (plan?.rate_daily || 0) : (plan?.rate_monthly || 0),
             is_subscription_paid: user.fee_ledger.some(t =>
                 t.transaction_type === 'CREDIT' &&
                 t.type === 'SUBSCRIPTION' &&
                 new Date(t.date) >= new Date(new Date().getFullYear(), new Date().getMonth(), 1)
             ),
+            is_paid_today: user.fee_ledger.some(t =>
+                t.transaction_type === 'CREDIT' &&
+                new Date(t.date) >= startOfToday &&
+                new Date(t.date) <= endOfToday
+            ),
+            donation_debit: user.fee_ledger
+                .filter(t => t.transaction_type === 'DEBIT' && (t.type === 'DONATION' || t.type === 'DEPOSIT'))
+                .reduce((sum, t) => sum + t.amount, 0),
+            donation_credit: user.fee_ledger
+                .filter(t => t.transaction_type === 'CREDIT' && (t.type === 'DONATION' || t.type === 'DEPOSIT'))
+                .reduce((sum, t) => sum + t.amount, 0),
             punch_status: punchStatus,
             todays_attendance_id: attendance?.id
         });
@@ -563,11 +622,7 @@ export const updateUser = async (req: Request, res: Response) => {
 
         // AUDIT LOG
         const performedBy = (req as any).user?.userId || 1;
-        // masked data for log
-        const logDetail = { ...updateData };
-        delete logDetail.password;
-
-        await AuditService.logAction('USER', user.id, 'UPDATE', performedBy, logDetail);
+        await AuditService.logUpdate('USER', user.id, performedBy, existingUser, updateData);
 
         res.json({ ...user, token: newToken });
     } catch (error: any) {
