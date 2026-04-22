@@ -5,7 +5,7 @@ import { Text, Searchbar, FAB, Avatar, Card, Chip, ActivityIndicator, useTheme, 
 import { useRouter, useFocusEffect, useLocalSearchParams, Stack } from 'expo-router';
 import * as Updates from 'expo-updates';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import { documentDirectory, downloadAsync, uploadAsync, FileSystemUploadType } from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -75,9 +75,9 @@ export default function PeopleScreen() {
         try {
             setLoading(true);
             const token = await getToken();
-            const fileUri = FileSystem.documentDirectory + 'users_export.xlsx';
+            const fileUri = documentDirectory + 'users_export.xlsx';
             
-            const downloadRes = await FileSystem.downloadAsync(
+            const downloadRes = await downloadAsync(
                 `${API_BASE_URL}/api/users/export`,
                 fileUri,
                 { headers: { Authorization: `Bearer ${token}` } }
@@ -114,12 +114,12 @@ export default function PeopleScreen() {
             const file = result.assets[0];
             const token = await getToken();
 
-            const uploadRes = await FileSystem.uploadAsync(
+            const uploadRes = await uploadAsync(
                 `${API_BASE_URL}/api/users/import`,
                 file.uri,
                 {
                     httpMethod: 'POST',
-                    uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+                    uploadType: FileSystemUploadType.MULTIPART,
                     fieldName: 'file',
                     headers: { Authorization: `Bearer ${token}` }
                 }
