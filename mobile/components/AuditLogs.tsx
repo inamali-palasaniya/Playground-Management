@@ -27,7 +27,7 @@ export const AuditLogs: React.FC<AuditLogsProps> = ({ visible, onDismiss, entity
         setLoading(true);
         try {
             const data = await apiService.request(`/api/logs/entity/${entityType}/${entityId}`);
-            setLogs(data);
+            setLogs((data as any[]) || []);
         } catch (error) {
             console.error('Error loading audit logs:', error);
         } finally {
