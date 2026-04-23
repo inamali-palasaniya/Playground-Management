@@ -778,7 +778,9 @@ export const importUsers = async (req: Request, res: Response) => {
                     plan_id: row.getCell(9).value?.toString()?.trim() || null,
                     payment_frequency: row.getCell(10).value?.toString()?.trim() || null,
                     password: row.getCell(11).value?.toString()?.trim() || null,
-                    is_active: row.getCell(12).value?.toString()?.trim() || null
+                    is_active: row.getCell(12).value?.toString()?.trim() || null,
+                    commit_deposit: parseFloat(row.getCell(13).value?.toString()?.trim() || '0'),
+                    paid_deposit: parseFloat(row.getCell(14).value?.toString()?.trim() || '0')
                 };
                 rows.push(rowData);
             }
@@ -907,6 +909,38 @@ export const importUsers = async (req: Request, res: Response) => {
                              amount_paid: 0
                          }
                      });
+                }
+
+                // Handle Deposit Commitment & Payment for NEW users
+                if (data.commit_deposit > 0) {
+                    const debitEntry = await prisma.feeLedger.create({
+                        data: {
+                            user_id: user.id,
+                            type: 'DONATION',
+                            transaction_type: 'DEBIT',
+                            amount: data.commit_deposit,
+                            date: new Date(),
+                            notes: 'Initial Deposit Commitment (Import)',
+                            is_paid: data.paid_deposit >= data.commit_deposit,
+                            created_by_id: performedBy
+                        }
+                    });
+
+                    if (data.paid_deposit > 0) {
+                        await prisma.feeLedger.create({
+                            data: {
+                                user_id: user.id,
+                                type: 'DEPOSIT',
+                                transaction_type: 'CREDIT',
+                                amount: data.paid_deposit,
+                                date: new Date(),
+                                parent_ledger_id: debitEntry.id,
+                                notes: 'Initial Deposit Payment (Import)',
+                                payment_method: 'CASH',
+                                created_by_id: performedBy
+                            }
+                        });
+                    }
                 }
 
                 await AuditService.logAction('USER', user.id, 'CREATE', performedBy, { note: 'Created via Excel Import' });

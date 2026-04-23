@@ -619,7 +619,7 @@ export default function PeopleScreen() {
                             value={searchQuery}
                             style={[styles.searchBar, { flex: 1, marginRight: 8 }]}
                         />
-                        {canViewUsers && currentUser?.role === 'MANAGEMENT' && (
+                        {canViewUsers && (currentUser?.role === 'MANAGEMENT' || currentUser?.role === 'SUPER_ADMIN') && (
                             <Menu
                                 visible={exportMenuVisible}
                                 onDismiss={() => setExportMenuVisible(false)}

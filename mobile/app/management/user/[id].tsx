@@ -397,16 +397,20 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user, refreshKe
                                                             compact
                                                             labelStyle={{ fontSize: 10, marginVertical: 2, color: 'white' }}
                                                             style={{ marginRight: 8, height: 24 }}
-                                                            onPress={() => router.push({
-                                                                pathname: '/management/add-payment',
-                                                                params: {
-                                                                    userId,
-                                                                    userName: 'User',
-                                                                    linkedChargeId: item.id,
-                                                                    linkedAmount: item.amount,
-                                                                    linkedType: item.type === 'SUBSCRIPTION' ? 'SUBSCRIPTION' : 'PAYMENT'
-                                                                }
-                                                            })}
+                                                            onPress={() => {
+                                                                const paidAmount = (item.children || []).reduce((sum: number, child: any) => sum + child.amount, 0);
+                                                                const remaining = item.amount - paidAmount;
+                                                                router.push({
+                                                                    pathname: '/management/add-payment',
+                                                                    params: {
+                                                                        userId,
+                                                                        userName: user?.name || 'User',
+                                                                        linkedChargeId: item.id,
+                                                                        linkedAmount: Math.max(0, remaining),
+                                                                        linkedType: item.type
+                                                                    }
+                                                                });
+                                                            }}
                                                         >
                                                             Pay
                                                         </Button>

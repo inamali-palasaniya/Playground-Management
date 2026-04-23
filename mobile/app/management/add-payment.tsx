@@ -63,10 +63,15 @@ export default function AddPaymentScreen() {
     const paymentTypes = [
         { label: 'General Payment', value: 'PAYMENT' },
         { label: 'Subscription', value: 'SUBSCRIPTION' },
+        { label: 'Monthly Fee', value: 'MONTHLY_FEE' },
+        { label: 'Daily Fee', value: 'DAILY_FEE' },
         { label: 'Donation', value: 'DONATION' },
         { label: 'Deposit', value: 'DEPOSIT' },
+        { label: 'Fine', value: 'FINE' },
         { label: 'Maintenance', value: 'MAINTENANCE' },
         { label: 'Tournament Fee', value: 'TOURNAMENT_FEE' },
+        { label: 'Manual Fee', value: 'MANUAL_FEE' },
+        { label: 'Other', value: 'OTHER' },
     ];
 
     React.useEffect(() => {
