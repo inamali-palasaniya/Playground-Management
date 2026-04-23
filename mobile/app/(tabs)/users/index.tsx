@@ -221,8 +221,11 @@ export default function PeopleScreen() {
                 const usersPromise = apiService.request(`/api/users${queryString}`);
                 const promises: Promise<any>[] = [usersPromise];
 
-                if (groups.length === 0) promises.push(apiService.request('/api/groups'));
-                if (plans.length === 0) promises.push(apiService.request('/api/subscription-plans'));
+                const needsGroups = groups.length === 0;
+                const needsPlans = plans.length === 0;
+
+                if (needsGroups) promises.push(apiService.request('/api/groups'));
+                if (needsPlans) promises.push(apiService.request('/api/subscription-plans'));
 
                 const results = await Promise.all(promises);
 
@@ -236,14 +239,17 @@ export default function PeopleScreen() {
                 let resultIdx = 0;
                 const usersData = results[resultIdx++];
                 
-                if (groups.length === 0) {
+                if (needsGroups) {
                     const groupsData = results[resultIdx++];
                     if (Array.isArray(groupsData)) setGroups(groupsData);
                 }
                 
-                if (plans.length === 0) {
+                if (needsPlans) {
                     const plansData = results[resultIdx++];
-                    if (Array.isArray(plansData)) setPlans(plansData);
+                    if (Array.isArray(plansData)) {
+                        setPlans(plansData);
+                        console.log('API returned plans:', plansData.length);
+                    }
                 }
 
                 if (Array.isArray(usersData)) {
@@ -781,8 +787,11 @@ export default function PeopleScreen() {
                                 }
                             >
                                 <Menu.Item onPress={() => { setSelectedPlanName(null); setMenuPlan(false); }} title="All Plans" />
-                                {plans.map(p => (
-                                    <Menu.Item key={p.id} onPress={() => { setSelectedPlanName(p.name); setMenuPlan(false); }} title={p.name} />
+                                {Array.from(new Set(plans.map(p => {
+                                    // Strip "Monthly", "Daily", "Monthly ", "Daily " (case insensitive)
+                                    return p.name?.replace(/(Monthly|Daily)\s*/i, '').trim() || p.name;
+                                }))).filter(Boolean).map(name => (
+                                    <Menu.Item key={name} onPress={() => { setSelectedPlanName(name); setMenuPlan(false); }} title={name} />
                                 ))}
                             </Menu>
 
