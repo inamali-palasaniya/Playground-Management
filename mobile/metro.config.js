@@ -11,7 +11,8 @@ if (config.resolver) {
   config.resolver.resolveRequest = (context, moduleName, platform) => {
     if (platform === 'web' && moduleName.includes('codegenNative')) {
       return {
-        type: 'empty',
+        type: 'sourceFile',
+        filePath: require.resolve('./stubs/codegenStub.js'),
       };
     }
     return context.resolveRequest(context, moduleName, platform);
