@@ -454,7 +454,10 @@ export default function PeopleScreen() {
         String(u.phone || '').includes(searchQuery)
     );
 
-    const renderItem = ({ item }: { item: User }) => (
+    const renderItem = ({ item }: { item: User }) => {
+        if (!item || !item.id) return null;
+        try {
+            return (
         <Card
             key={`user-${item.id}-${item.name}-${item.role}`}
             style={[
@@ -879,6 +882,10 @@ export default function PeopleScreen() {
                     keyExtractor={(item) => item.id.toString()}
                     extraData={users}
                     contentContainerStyle={styles.list}
+                    initialNumToRender={10}
+                    maxToRenderPerBatch={10}
+                    windowSize={5}
+                    removeClippedSubviews={true}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                 />
             )}
