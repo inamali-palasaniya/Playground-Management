@@ -807,20 +807,23 @@ export const importUsers = async (req: Request, res: Response) => {
             }
 
             let role = 'NORMAL';
-            if (data.role && data.role.toUpperCase() === 'MANAGEMENT') {
+            const rawRole = String(data.role || '').toUpperCase().trim();
+            if (rawRole === 'MANAGEMENT') {
                 role = 'MANAGEMENT';
-            } else if (data.role && data.role.toUpperCase() === 'SUPER_ADMIN') {
+            } else if (rawRole === 'SUPER_ADMIN') {
                 // Strictly forbid SUPER_ADMIN creation via Excel
                 console.log(`Skipping SUPER_ADMIN creation/update for ${data.name}`);
                 continue; 
-            } else if (data.role && data.role.toUpperCase() === 'NORMAL') {
+            } else if (rawRole === 'NORMAL') {
                 role = 'NORMAL';
+            } else if (rawRole) {
+                role = rawRole; // Allow other roles if they exist in schema
             }
 
-            // Determine permissions based on role
+            // Determine permissions based on role (For NEW users only)
             let permissions: any[] = [];
             if (role === 'MANAGEMENT') {
-                const modules = ['dashboard', 'user', 'attendance', 'finance', 'tournament', 'expense', 'report', 'notification', 'settings', 'role'];
+                const modules = ['dashboard', 'user', 'attendance', 'finance', 'tournament', 'expense', 'report', 'notification', 'settings', 'role', 'cricket_scoring', 'audit'];
                 permissions = modules.map(mod => ({
                     module_name: mod,
                     can_view: true,
@@ -865,21 +868,14 @@ export const importUsers = async (req: Request, res: Response) => {
                     if (!data.group_id) {
                         updatePayload.group = { disconnect: true };
                     }
+                    // Update personal info
                     await prisma.user.update({
                         where: { id: userId },
                         data: updatePayload
                     });
 
-                    // Update permissions
-                    await prisma.permission.deleteMany({ where: { user_id: userId } });
-                    if (permissions.length > 0) {
-                        await prisma.permission.createMany({
-                            data: permissions.map(p => ({
-                                user_id: userId,
-                                ...p
-                            }))
-                        });
-                    }
+                    // PERMISSION UPDATE REMOVED: Existing users keep their manually set permissions.
+                    // Only personal info and group associations are updated here.
 
                     if (data.plan_id) {
                          const planIdInt = parseInt(data.plan_id);
