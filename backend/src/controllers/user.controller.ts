@@ -809,6 +809,10 @@ export const importUsers = async (req: Request, res: Response) => {
             let role = 'NORMAL';
             if (data.role && data.role.toUpperCase() === 'MANAGEMENT') {
                 role = 'MANAGEMENT';
+            } else if (data.role && data.role.toUpperCase() === 'SUPER_ADMIN') {
+                // Strictly forbid SUPER_ADMIN creation via Excel
+                console.log(`Skipping SUPER_ADMIN creation/update for ${data.name}`);
+                continue; 
             } else if (data.role && data.role.toUpperCase() === 'NORMAL') {
                 role = 'NORMAL';
             }
@@ -852,6 +856,11 @@ export const importUsers = async (req: Request, res: Response) => {
                 const existingUser = await prisma.user.findUnique({ where: { id: userId } });
                 
                 if (existingUser) {
+                    // Strictly protect existing SUPER_ADMIN users from being updated via Excel
+                    if (existingUser.role === 'SUPER_ADMIN') {
+                        console.log(`Skipping update for existing SUPER_ADMIN user: ${existingUser.name}`);
+                        continue;
+                    }
                     const updatePayload = { ...userData };
                     if (!data.group_id) {
                         updatePayload.group = { disconnect: true };

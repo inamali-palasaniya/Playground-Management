@@ -450,8 +450,8 @@ export default function PeopleScreen() {
     };
 
     const filteredUsers = users.filter((u: User) =>
-        (u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (u.phone || '').includes(searchQuery)
+        String(u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        String(u.phone || '').includes(searchQuery)
     );
 
     const renderItem = ({ item }: { item: User }) => (
