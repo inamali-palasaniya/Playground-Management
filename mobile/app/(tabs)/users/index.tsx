@@ -462,7 +462,7 @@ export default function PeopleScreen() {
                 {
                     borderLeftWidth: 5,
                     borderLeftColor: item.subscription_status === 'EXPIRED' ? 'red' :
-                        (item.subscription_status === 'ACTIVE' && item.plan_name?.toLowerCase().includes('monthly')) ? 'green' : 'transparent'
+                        (item.subscription_status === 'ACTIVE' && (item.plan_name || '').toLowerCase().includes('monthly')) ? 'green' : 'transparent'
                 }
             ]}
             onPress={() => router.push({ pathname: '/management/user/[id]', params: { id: item.id } })}
@@ -480,14 +480,14 @@ export default function PeopleScreen() {
                         />
                         <Text style={{ fontSize: 12, color: '#555' }}>
                             <Text style={{ fontWeight: item.role === 'SUPER_ADMIN' ? 'bold' : 'normal', color: item.role === 'SUPER_ADMIN' ? '#d32f2f' : '#333' }}>
-                                {item.role === 'SUPER_ADMIN' ? 'Super Admin' : (item.role || 'Unknown')}
+                                {item.role === 'SUPER_ADMIN' ? 'Super Admin' : String(item.role || 'Unknown')}
                             </Text>
                             <Text style={{ color: '#888' }}> • {item.group?.name || 'No Group'}</Text>
                         </Text>
                     </View>
                 }
                 subtitleStyle={{ marginTop: -2 }}
-                left={(props) => <Avatar.Text {...props} size={40} label={(item.name || 'U').substring(0, 2).toUpperCase()} style={{ backgroundColor: '#e3f2fd' }} color="#1565c0" />}
+                left={(props) => <Avatar.Text {...props} size={40} label={String(item.name || 'U').substring(0, 2).toUpperCase()} style={{ backgroundColor: '#e3f2fd' }} color="#1565c0" />}
                 right={(props) => {
                     const canEdit = AuthService.hasPermission(currentUser, 'user', 'edit');
                     const canDelete = AuthService.hasPermission(currentUser, 'user', 'delete');
@@ -908,7 +908,7 @@ export default function PeopleScreen() {
                         {punchTargetUser?.payment_frequency ? (
                             <View>
                                 <Text style={{ marginBottom: 12, color: 'gray' }}>
-                                    Record {punchTargetUser.payment_frequency.toLowerCase()} billing for this check-in.
+                                    Record {String(punchTargetUser.payment_frequency).toLowerCase()} billing for this check-in.
                                 </Text>
                                 
                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
