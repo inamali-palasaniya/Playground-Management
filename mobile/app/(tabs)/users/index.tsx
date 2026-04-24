@@ -489,7 +489,15 @@ export default function PeopleScreen() {
                         </View>
                     }
                     subtitleStyle={{ marginTop: -2 }}
-                    left={(props) => <Avatar.Text {...props} size={40} label={String(item.name || 'U').substring(0, 2).toUpperCase()} style={{ backgroundColor: '#e3f2fd' }} color="#1565c0" />}
+                    left={(props) => (
+                        <Avatar.Text 
+                            {...props} 
+                            size={40} 
+                            label={String(item.name || 'U').trim().substring(0, 1).toUpperCase() || 'U'} 
+                            style={{ backgroundColor: '#e3f2fd' }} 
+                            color="#1565c0" 
+                        />
+                    )}
                     right={(props) => {
                         const canEdit = AuthService.hasPermission(currentUser, 'user', 'edit');
                         const canDelete = AuthService.hasPermission(currentUser, 'user', 'delete');
@@ -609,7 +617,9 @@ export default function PeopleScreen() {
         );
     }
 
-    return (
+    // Final Safety: Wrap entire render in a local try-catch to prevent white screen
+    try {
+        return (
         <View style={styles.container}>
             <View style={styles.headerContainer}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
@@ -876,7 +886,7 @@ export default function PeopleScreen() {
                 <FlatList
                     data={filteredUsers}
                     renderItem={renderItem}
-                    keyExtractor={(item) => item.id.toString()}
+                    keyExtractor={(item, index) => (item?.id?.toString() || `user-${index}`)}
                     extraData={users}
                     contentContainerStyle={styles.list}
                     initialNumToRender={10}
@@ -993,7 +1003,28 @@ export default function PeopleScreen() {
                 onDismiss={() => setErrorVisible(false)}
             />
         </View>
-    );
+        );
+    } catch (renderError: any) {
+        console.error('CRITICAL RENDER ERROR in PeopleScreen:', renderError);
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
+                <MaterialCommunityIcons name="alert-octagon" size={64} color="#d32f2f" />
+                <Text variant="titleLarge" style={{ marginTop: 16, color: '#d32f2f', textAlign: 'center' }}>
+                    Component Render Error
+                </Text>
+                <Text variant="bodyMedium" style={{ marginTop: 8, textAlign: 'center', color: '#666' }}>
+                    {renderError?.message || 'An unexpected error occurred while displaying the user list.'}
+                </Text>
+                <Button 
+                    mode="contained" 
+                    onPress={() => loadData()} 
+                    style={{ marginTop: 24 }}
+                >
+                    Retry Loading
+                </Button>
+            </View>
+        );
+    }
 }
 
 const styles = StyleSheet.create({
