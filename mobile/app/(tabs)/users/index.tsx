@@ -596,7 +596,12 @@ export default function PeopleScreen() {
                 )}
             </Card.Content>
         </Card>
-    );
+            );
+        } catch (e) {
+            console.error('Error rendering user item', e);
+            return null;
+        }
+    };
 
     const canViewUsers = AuthService.hasPermission(currentUser, 'user', 'view');
 
