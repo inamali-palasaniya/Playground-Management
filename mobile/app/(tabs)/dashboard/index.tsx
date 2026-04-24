@@ -7,10 +7,8 @@ import { RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from '
 import { ActivityIndicator, Avatar, Button, Card, IconButton, Text, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ErrorDialog } from '../../../components/ErrorDialog';
-import HeaderProfile from '../../../components/HeaderProfile';
-import { useAuth } from '../../../context/AuthContext';
-import apiService from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
+import { Portal, Dialog, RadioButton, Switch } from 'react-native-paper';
 
 export default function DashboardScreen() {
     const theme = useTheme();
@@ -25,6 +23,11 @@ export default function DashboardScreen() {
     const [errorVisible, setErrorVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [errorDetails, setErrorDetails] = useState('');
+
+    // Punch Modal states for personal attendance
+    const [punchModalVisible, setPunchModalVisible] = useState(false);
+    const [bookFeeDebit, setBookFeeDebit] = useState(true);
+    const [markFeePaid, setMarkFeePaid] = useState(false);
 
     const loadData = async () => {
         try {
@@ -84,38 +87,132 @@ export default function DashboardScreen() {
         return `₹${amount?.toLocaleString('en-IN') || 0}`;
     };
 
+    const handleLogout = async () => {
+        Alert.alert('Logout', 'Are you sure you want to logout?', [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+                text: 'Logout', 
+                style: 'destructive', 
+                onPress: async () => {
+                    await AuthService.logout();
+                    router.replace('/login');
+                }
+            }
+        ]);
+    };
+
+    const handlePunchRequest = () => {
+        if (!user) return;
+        if (user.punch_status === 'IN') {
+            // Straight to checkout for IN status
+            handlePunchConfirm(false, false);
+        } else {
+            // Set defaults based on plan
+            if (user.payment_frequency === 'MONTHLY') {
+                setBookFeeDebit(false);
+                setMarkFeePaid(false);
+            } else {
+                setBookFeeDebit(true);
+                setMarkFeePaid(false);
+            }
+            setPunchModalVisible(true);
+        }
+    };
+
+    const handlePunchConfirm = async (debit: boolean, credit: boolean) => {
+        if (!user) return;
+        setPunchModalVisible(false);
+        const previousStatus = user.punch_status;
+        const newStatus = previousStatus === 'IN' ? 'OUT' : 'IN';
+        
+        // Optimistic UI Update
+        setUser({ ...user, punch_status: newStatus });
+
+        try {
+            if (previousStatus === 'IN') {
+                await apiService.checkOut(user.id);
+            } else {
+                await apiService.checkIn(
+                    user.id, 
+                    new Date().toISOString(), 
+                    debit, 
+                    credit, 
+                    user.payment_frequency === 'MONTHLY'
+                );
+            }
+            // Refresh data to get latest stats after punch
+            loadData();
+        } catch (error: any) {
+            console.error('Punch failed', error);
+            setUser({ ...user, punch_status: previousStatus });
+            
+            let message = 'Failed to update attendance';
+            if (error && error.status === 409) {
+                message = 'You have already been checked in for today.';
+            } else if (error && error.message) {
+                message = typeof error.message === 'string' ? error.message : 'Attendance update failed';
+            }
+            Alert.alert('Attendance Error', message);
+        }
+    };
+
     return (
         <ScrollView
             style={[styles.container, { paddingTop: insets.top }]}
             contentContainerStyle={styles.content}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
-            {/* Compact Header */}
+            {/* Compact Header - Merged into User Card below */}
             <View style={styles.topSection}>
-                <HeaderProfile />
+                {/* HeaderProfile removed as requested to merge logic */}
+                <View style={{ flex: 1 }} />
+                <IconButton 
+                    icon="logout" 
+                    iconColor="#d32f2f" 
+                    size={22} 
+                    onPress={handleLogout}
+                    style={{ margin: 0 }}
+                />
             </View>
 
-            {/* My Status Card - Personal summary for current user */}
+            {/* My Status Card - Enhanced with personal details and actions */}
             {user && (
                 <Card style={[styles.card, { overflow: 'hidden', marginBottom: 12 }]}>
                     <LinearGradient colors={['#e8eaf6', '#fff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 12 }}>
                         {/* Top row: Avatar + Name/Plan + Details nav icon */}
                         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                            <Avatar.Text size={38} label={(user.name || '?').substring(0, 2).toUpperCase()} style={{ backgroundColor: theme.colors.primary }} labelStyle={{ fontSize: 15, fontWeight: 'bold' }} />
-                            <View style={{ marginLeft: 10, flex: 1 }}>
-                                <Text style={{ fontWeight: 'bold', fontSize: 15, color: '#1a237e' }} numberOfLines={1}>{user.name}</Text>
+                            <Avatar.Text size={44} label={String(user.name || '?').substring(0, 2).toUpperCase()} style={{ backgroundColor: theme.colors.primary }} labelStyle={{ fontSize: 18, fontWeight: 'bold' }} />
+                            <View style={{ marginLeft: 12, flex: 1 }}>
+                                <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#1a237e' }} numberOfLines={1}>{user.name}</Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 }}>
                                     <Text style={{ fontSize: 11, color: 'gray' }}>{user.plan_name || 'No Plan'}</Text>
                                     {user.payment_frequency && <Text style={{ fontSize: 10, color: '#7986cb', fontWeight: 'bold' }}>· {user.payment_frequency}</Text>}
                                     {user.group?.name && <Text style={{ fontSize: 10, color: '#546e7a' }}>· {user.group.name}</Text>}
                                 </View>
+                                {/* Added Email & Phone to the card */}
+                                <View style={{ marginTop: 2 }}>
+                                    {user.email && <Text style={{ fontSize: 10, color: '#757575' }}><MaterialCommunityIcons name="email-outline" size={10} /> {user.email}</Text>}
+                                    {user.phone && <Text style={{ fontSize: 10, color: '#757575' }}><MaterialCommunityIcons name="phone-outline" size={10} /> {user.phone}</Text>}
+                                </View>
                             </View>
-                            <TouchableOpacity
-                                style={{ padding: 6, borderRadius: 20, backgroundColor: theme.colors.primary + '15' }}
-                                onPress={() => router.push({ pathname: '/management/user/[id]', params: { id: user.id } })}
-                            >
-                                <MaterialCommunityIcons name="account-details" size={22} color={theme.colors.primary} />
-                            </TouchableOpacity>
+                            <View style={{ flexDirection: 'row', gap: 4 }}>
+                                <TouchableOpacity
+                                    style={{ padding: 8, borderRadius: 20, backgroundColor: user.punch_status === 'IN' ? '#ffebee' : '#e8f5e9' }}
+                                    onPress={handlePunchRequest}
+                                >
+                                    <MaterialCommunityIcons 
+                                        name={user.punch_status === 'IN' ? 'logout' : 'login'} 
+                                        size={22} 
+                                        color={user.punch_status === 'IN' ? '#c62828' : '#2e7d32'} 
+                                    />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={{ padding: 8, borderRadius: 20, backgroundColor: theme.colors.primary + '15' }}
+                                    onPress={() => router.push({ pathname: '/management/user/[id]', params: { id: user.id } })}
+                                >
+                                    <MaterialCommunityIcons name="account-details" size={22} color={theme.colors.primary} />
+                                </TouchableOpacity>
+                            </View>
                         </View>
                         {/* Stats row: Paid | Due — clean, no redundant punch status */}
                         <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12 }}>
@@ -404,6 +501,55 @@ export default function DashboardScreen() {
                 details={errorDetails}
                 onDismiss={() => setErrorVisible(false)}
             />
+
+            {/* Attendance Confirmation Modal (Personal) */}
+            <Portal>
+                <Dialog visible={punchModalVisible} onDismiss={() => setPunchModalVisible(false)}>
+                    <Dialog.Title>Punch IN - {user?.name || 'Self'}</Dialog.Title>
+                    <Dialog.Content>
+                        {user?.payment_frequency ? (
+                            <View>
+                                <Text style={{ marginBottom: 12, color: 'gray' }}>
+                                    Record {String(user.payment_frequency).toLowerCase()} billing for this check-in.
+                                </Text>
+                                
+                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                                    <Text>Book Billing Entry?</Text>
+                                    <Switch value={bookFeeDebit} onValueChange={setBookFeeDebit} />
+                                </View>
+
+                                {bookFeeDebit && (
+                                    <View style={{ marginTop: 10 }}>
+                                        <Text style={{ fontWeight: 'bold', marginBottom: 5 }}>Payment Status:</Text>
+                                        <RadioButton.Group onValueChange={value => setMarkFeePaid(value === 'paid')} value={markFeePaid ? 'paid' : 'unpaid'}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                <RadioButton value="unpaid" />
+                                                <Text>Add to Due Balance</Text>
+                                            </View>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                <RadioButton value="paid" />
+                                                <Text>Mark as Paid (Credit)</Text>
+                                            </View>
+                                        </RadioButton.Group>
+                                    </View>
+                                )}
+                            </View>
+                        ) : (
+                            <Text>Confirm your check-in for today?</Text>
+                        )}
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button onPress={() => setPunchModalVisible(false)}>Cancel</Button>
+                        <Button 
+                            mode="contained" 
+                            onPress={() => handlePunchConfirm(bookFeeDebit, markFeePaid)}
+                            buttonColor="#4CAF50"
+                        >
+                            Confirm IN
+                        </Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
         </ScrollView>
     );
 }
