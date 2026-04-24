@@ -23,7 +23,7 @@ export const createUser = async (req: Request, res: Response) => {
             phone,
             email: email && email.trim() !== '' ? email : null,
             role,
-            group_id: group_id ? parseInt(group_id) : null,
+            ...(group_id ? { group: { connect: { id: parseInt(group_id) } } } : {}),
             age: age ? parseInt(age) : null,
             user_type,
             password: hashedPassword,
@@ -39,7 +39,7 @@ export const createUser = async (req: Request, res: Response) => {
         const user = await prisma.user.create({
             data: {
                 ...userData,
-                created_by_id: (req as any).user?.userId || null,
+                ...((req as any).user?.userId ? { created_by: { connect: { id: (req as any).user.userId } } } : {}),
                 permissions: {
                     create: Array.isArray(permissions) ? permissions.map((p: any) => ({
                         module_name: p.module_name,
@@ -510,7 +510,7 @@ export const updateUser = async (req: Request, res: Response) => {
             phone,
             ...(email !== undefined && { email: email && email.trim() !== '' ? email : null }),
             role,
-            group_id: group_id ? parseInt(group_id) : null,
+            ...(group_id ? { group: { connect: { id: parseInt(group_id) } } } : (group_id === null || group_id === '' ? { group: { disconnect: true } } : {})),
             age: age ? parseInt(age) : null, // Fix: Use 'age' properly if it was missing 
             user_type,
             ...(hashedPassword && { password: hashedPassword }),
@@ -697,6 +697,7 @@ export const exportUsers = async (req: Request, res: Response) => {
             include: {
                 group: true,
                 subscriptions: {
+                    orderBy: { createdAt: 'desc' },
                     include: { plan: true }
                 }
             }
@@ -717,11 +718,14 @@ export const exportUsers = async (req: Request, res: Response) => {
             { header: 'plan_id', key: 'plan_id', width: 10 },
             { header: 'payment_frequency', key: 'payment_frequency', width: 15 },
             { header: 'password', key: 'password', width: 20 },
-            { header: 'is_active', key: 'is_active', width: 10 }
+            { header: 'is_active', key: 'is_active', width: 10 },
+            { header: 'deposit_committed', key: 'deposit_committed', width: 15 },
+            { header: 'deposit_paid', key: 'deposit_paid', width: 15 }
         ];
 
         users.forEach(user => {
             const activeSub = user.subscriptions?.find((sub: any) => sub.status === 'ACTIVE');
+            const recentSub = user.subscriptions?.[0];
             sheet.addRow({
                 user_id: user.id,
                 name: user.name,
@@ -731,10 +735,12 @@ export const exportUsers = async (req: Request, res: Response) => {
                 group_id: user.group_id,
                 age: user.age,
                 user_type: user.user_type,
-                plan_id: activeSub?.plan_id || null,
-                payment_frequency: (user as any).payment_frequency,
+                plan_id: activeSub?.plan_id || recentSub?.plan_id || null,
+                payment_frequency: activeSub?.payment_frequency || recentSub?.payment_frequency || '',
                 password: '', // leave empty, only used for import
-                is_active: user.is_active
+                is_active: user.is_active,
+                deposit_committed: '',
+                deposit_paid: ''
             });
         });
 
@@ -830,10 +836,9 @@ export const importUsers = async (req: Request, res: Response) => {
                 phone: data.phone,
                 email: data.email || null,
                 role: role,
-                group_id: data.group_id ? parseInt(data.group_id) : null,
+                ...(data.group_id ? { group: { connect: { id: parseInt(data.group_id) } } } : {}),
                 age: data.age ? parseInt(data.age) : null,
                 user_type: data.user_type || 'PLAYER',
-                payment_frequency: data.payment_frequency || 'MONTHLY',
                 is_active: data.is_active === 'false' ? false : true
             };
 
@@ -847,9 +852,13 @@ export const importUsers = async (req: Request, res: Response) => {
                 const existingUser = await prisma.user.findUnique({ where: { id: userId } });
                 
                 if (existingUser) {
+                    const updatePayload = { ...userData };
+                    if (!data.group_id) {
+                        updatePayload.group = { disconnect: true };
+                    }
                     await prisma.user.update({
                         where: { id: userId },
-                        data: userData
+                        data: updatePayload
                     });
 
                     // Update permissions
@@ -878,7 +887,8 @@ export const importUsers = async (req: Request, res: Response) => {
                                      plan_id: planIdInt,
                                      status: 'ACTIVE',
                                      start_date: new Date(),
-                                     amount_paid: 0
+                                     amount_paid: 0,
+                                     payment_frequency: data.payment_frequency || 'MONTHLY'
                                  }
                              });
                          }
@@ -892,7 +902,7 @@ export const importUsers = async (req: Request, res: Response) => {
                 const user = await prisma.user.create({
                     data: {
                         ...userData,
-                        created_by_id: performedBy,
+                        ...(performedBy ? { created_by: { connect: { id: performedBy } } } : {}),
                         permissions: {
                             create: permissions
                         }
@@ -906,7 +916,8 @@ export const importUsers = async (req: Request, res: Response) => {
                              plan_id: parseInt(data.plan_id),
                              status: 'ACTIVE',
                              start_date: new Date(),
-                             amount_paid: 0
+                             amount_paid: 0,
+                             payment_frequency: data.payment_frequency || 'MONTHLY'
                          }
                      });
                 }

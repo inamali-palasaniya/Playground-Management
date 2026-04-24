@@ -113,8 +113,8 @@ class ApiService {
             // Extract custom options to avoid passing them to fetch
             const { skipLoader, ...fetchOptions } = options || {};
 
-            // Implement timeout (15 seconds - increased slightly for heavier dashboard queries if any)
-            const timeout = 15000;
+            // Implement timeout (60 seconds - increased for free tier cold starts)
+            const timeout = 60000;
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
 

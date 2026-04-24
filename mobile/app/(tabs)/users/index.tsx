@@ -218,14 +218,14 @@ export default function PeopleScreen() {
                 if (selectedFrequency) queryString += `&payment_frequency=${selectedFrequency}`;
                 if (selectedDonationStatus) queryString += `&donationStatus=${selectedDonationStatus}`;
 
-                const usersPromise = apiService.request(`/api/users${queryString}`);
+                const usersPromise = apiService.request(`/api/users${queryString}`, { skipLoader: true });
                 const promises: Promise<any>[] = [usersPromise];
 
                 const needsGroups = groups.length === 0;
                 const needsPlans = plans.length === 0;
 
-                if (needsGroups) promises.push(apiService.request('/api/groups'));
-                if (needsPlans) promises.push(apiService.request('/api/subscription-plans'));
+                if (needsGroups) promises.push(apiService.request('/api/groups', { skipLoader: true }));
+                if (needsPlans) promises.push(apiService.request('/api/subscription-plans', { skipLoader: true }));
 
                 const results = await Promise.all(promises);
 
@@ -549,7 +549,7 @@ export default function PeopleScreen() {
                             </>
                         ) : null}
                     </View>
-                    {item.phone && (
+                    {!!item.phone && (
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <MaterialCommunityIcons name="phone-outline" size={14} color="gray" />
                             <Text variant="bodySmall" style={{ color: 'gray', marginLeft: 4 }}>{item.phone}</Text>
@@ -563,7 +563,7 @@ export default function PeopleScreen() {
                         <MaterialCommunityIcons name="tag" size={12} color="#1565c0" style={{ marginRight: 4 }} />
                         <Text style={{ fontSize: 10, color: '#1565c0', fontWeight: 'bold' }}>{item.plan_name || 'No Plan'}</Text>
                     </View>
-                    {item.payment_frequency && (
+                    {!!item.payment_frequency && (
                         <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: item.payment_frequency === 'MONTHLY' ? '#e0f2f1' : '#fff3e0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
                             <Text style={{ fontSize: 10, color: item.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100', fontWeight: 'bold' }}>
                                 {item.payment_frequency}
