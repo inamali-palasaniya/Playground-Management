@@ -590,7 +590,7 @@ export default function PeopleScreen() {
 
                     {((item.donation_debit || 0) > 0 || (item.donation_credit || 0) > 0) && (
                         <View style={{ marginTop: 2, padding: 6, backgroundColor: '#fdfdfd', borderRadius: 6, borderWidth: 0.5, borderColor: '#eee', flexDirection: 'row', alignItems: 'center' }}>
-                            <MaterialCommunityIcons name="hand-heart" size={14} color="#2e7d32" style={{ marginRight: 8 }} />
+                            <MaterialCommunityIcons name="bank-transfer" size={14} color="#1565c0" style={{ marginRight: 8 }} />
                             <View style={{ flexDirection: 'row', flex: 1, justifyContent: 'space-between' }}>
                                 <Text style={{ fontSize: 10, color: '#1976D2' }}>Cmt: <Text style={{ fontWeight: 'bold' }}>₹{item.donation_debit || 0}</Text></Text>
                                 <Text style={{ fontSize: 10, color: '#2E7D32' }}>Paid: <Text style={{ fontWeight: 'bold' }}>₹{item.donation_credit || 0}</Text></Text>

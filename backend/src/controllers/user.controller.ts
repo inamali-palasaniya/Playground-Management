@@ -255,7 +255,7 @@ export const getUsers = async (req: Request, res: Response) => {
             where: {
                 user_id: { in: userIds },
                 transaction_type: 'CREDIT',
-                type: 'SUBSCRIPTION',
+                type: 'MONTHLY_FEE',
                 date: { gte: currentMonthStart }
             },
             select: { user_id: true }
@@ -275,15 +275,15 @@ export const getUsers = async (req: Request, res: Response) => {
         const paidSubSet = new Set(paidSubs.map(ps => ps.user_id));
         const paidTodaySet = new Set(paidToday.map(pt => pt.user_id));
 
-        // Donation Aggregations (Strictly DONATION type)
+        // Deposit Aggregations (Strictly DEPOSIT type) - Used for "Donation" summary UI
         const donationDebits = await prisma.feeLedger.groupBy({
             by: ['user_id'],
-            where: { user_id: { in: userIds }, transaction_type: 'DEBIT', type: 'DONATION' },
+            where: { user_id: { in: userIds }, transaction_type: 'DEBIT', type: 'DEPOSIT' },
             _sum: { amount: true }
         });
         const donationCredits = await prisma.feeLedger.groupBy({
             by: ['user_id'],
-            where: { user_id: { in: userIds }, transaction_type: 'CREDIT', type: 'DONATION' },
+            where: { user_id: { in: userIds }, transaction_type: 'CREDIT', type: 'DEPOSIT' },
             _sum: { amount: true }
         });
 
@@ -434,7 +434,7 @@ export const getUserById = async (req: Request, res: Response) => {
             plan_rate: paymentFrequency === 'DAILY' ? (plan?.rate_daily || 0) : (plan?.rate_monthly || 0),
             is_subscription_paid: user.fee_ledger.some(t =>
                 t.transaction_type === 'CREDIT' &&
-                t.type === 'SUBSCRIPTION' &&
+                (t.type === 'MONTHLY_FEE' || t.type === 'YEARLY_FEE') &&
                 new Date(t.date) >= new Date(new Date().getFullYear(), new Date().getMonth(), 1)
             ),
             is_paid_today: user.fee_ledger.some(t =>
@@ -443,10 +443,10 @@ export const getUserById = async (req: Request, res: Response) => {
                 new Date(t.date) <= endOfToday
             ),
             donation_debit: user.fee_ledger
-                .filter(t => t.transaction_type === 'DEBIT' && (t.type === 'DONATION' || t.type === 'DEPOSIT'))
+                .filter(t => t.transaction_type === 'DEBIT' && t.type === 'DEPOSIT')
                 .reduce((sum, t) => sum + t.amount, 0),
             donation_credit: user.fee_ledger
-                .filter(t => t.transaction_type === 'CREDIT' && (t.type === 'DONATION' || t.type === 'DEPOSIT'))
+                .filter(t => t.transaction_type === 'CREDIT' && t.type === 'DEPOSIT')
                 .reduce((sum, t) => sum + t.amount, 0),
             punch_status: punchStatus,
             todays_attendance_id: attendance?.id
@@ -935,7 +935,7 @@ export const importUsers = async (req: Request, res: Response) => {
                     const debitEntry = await prisma.feeLedger.create({
                         data: {
                             user_id: user.id,
-                            type: 'DONATION',
+                            type: 'DEPOSIT',
                             transaction_type: 'DEBIT',
                             amount: data.commit_deposit,
                             date: new Date(),
@@ -949,7 +949,7 @@ export const importUsers = async (req: Request, res: Response) => {
                         await prisma.feeLedger.create({
                             data: {
                                 user_id: user.id,
-                                type: 'DONATION',
+                                type: 'DEPOSIT',
                                 transaction_type: 'CREDIT',
                                 amount: data.paid_deposit,
                                 date: new Date(),

@@ -112,7 +112,7 @@ export default function LedgerListScreen() {
         );
     }
 
-    const types = ['PAYMENT', 'SUBSCRIPTION', 'DONATION', 'DEPOSIT', 'MAINTENANCE', 'TOURNAMENT_FEE'];
+    const types = ['DAILY_FEE', 'MONTHLY_FEE', 'YEARLY_FEE', 'FINE', 'PAYMENT', 'DEPOSIT', 'MAINTENANCE', 'TOURNAMENT_FEE', 'OTHER'];
 
     return (
         <SafeAreaView style={styles.container}>

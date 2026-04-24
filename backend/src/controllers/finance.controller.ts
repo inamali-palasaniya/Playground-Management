@@ -37,8 +37,30 @@ export const addPayment = async (req: Request, res: Response) => {
             }
         }
 
+        // YEARLY_FEE Logic: Check for existing yearly payments if recording any fee/payment
+        if (user_id && ['DAILY_FEE', 'MONTHLY_FEE', 'YEARLY_FEE'].includes(type)) {
+            const yearStart = new Date(paymentDate.getFullYear(), 0, 1);
+            const yearEnd = new Date(paymentDate.getFullYear(), 11, 31, 23, 59, 59);
+            
+            const existingYearly = await prisma.feeLedger.findMany({
+                where: {
+                    user_id: parseInt(user_id),
+                    type: 'YEARLY_FEE',
+                    date: { gte: yearStart, lte: yearEnd }
+                }
+            });
+            
+            if (existingYearly.length > 0 && !req.query.override) {
+                return res.status(409).json({
+                    warning: 'Yearly payment already exists for this year',
+                    details: existingYearly.map(y => ({ date: y.date, amount: y.amount, id: y.id })),
+                    message: 'A yearly payment has already been recorded for this user in the current year. Do you want to record another one?'
+                });
+            }
+        }
+
         let finalNotes = notes || '';
-        if (type === 'SUBSCRIPTION' && billing_period) {
+        if ((type === 'MONTHLY_FEE' || type === 'YEARLY_FEE') && billing_period) {
             finalNotes += ` (For period: ${billing_period})`;
         }
 
@@ -48,7 +70,7 @@ export const addPayment = async (req: Request, res: Response) => {
                 user_id: user_id ? parseInt(user_id) : undefined,
                 team_id: team_id ? parseInt(team_id) : undefined,
                 tournament_id: tournament_id ? parseInt(tournament_id) : undefined,
-                type: type || (txType === 'DEBIT' ? 'MANUAL_FEE' : 'PAYMENT'),
+                type: type || (txType === 'DEBIT' ? 'OTHER' : 'PAYMENT'),
                 transaction_type: txType,
                 payment_method: txType === 'CREDIT' ? (payment_method || 'CASH') : undefined,
                 amount: numericAmount,
@@ -476,7 +498,7 @@ export const checkSubscriptionPayment = async (req: Request, res: Response) => {
 
         const where: any = {
             user_id: parseInt(user_id as string),
-            type: 'SUBSCRIPTION',
+            type: 'MONTHLY_FEE',
             transaction_type: 'CREDIT'
         };
 

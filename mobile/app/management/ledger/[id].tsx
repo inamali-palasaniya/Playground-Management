@@ -194,7 +194,7 @@ export default function LedgerDetailScreen() {
                                             userName: 'User',
                                             linkedChargeId: entry.id,
                                             linkedAmount: remaining, // Suggest remaining amount
-                                            linkedType: entry.type === 'SUBSCRIPTION' ? 'SUBSCRIPTION' : 'PAYMENT'
+                                            linkedType: ['MONTHLY_FEE', 'YEARLY_FEE', 'DAILY_FEE', 'FINE', 'DEPOSIT', 'MAINTENANCE', 'TOURNAMENT_FEE', 'OTHER'].includes(entry.type) ? entry.type : 'PAYMENT'
                                         }
                                     })}
                                 >

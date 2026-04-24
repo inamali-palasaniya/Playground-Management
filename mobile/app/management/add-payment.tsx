@@ -41,7 +41,7 @@ export default function AddPaymentScreen() {
     );
     const [type, setType] = useState<string>(
         isEditing ? (initialType as string || 'PAYMENT') :
-            (params.teamId ? 'TOURNAMENT_FEE' : (linkedType ? linkedType.toString() : 'SUBSCRIPTION'))
+            (params.teamId ? 'TOURNAMENT_FEE' : (linkedType ? linkedType.toString() : 'MONTHLY_FEE'))
     );
     const [notes, setNotes] = useState(
         isEditing ? (initialNotes as string || '') : ''
@@ -62,15 +62,13 @@ export default function AddPaymentScreen() {
 
     const paymentTypes = [
         { label: 'General Payment', value: 'PAYMENT' },
-        { label: 'Subscription', value: 'SUBSCRIPTION' },
         { label: 'Monthly Fee', value: 'MONTHLY_FEE' },
         { label: 'Daily Fee', value: 'DAILY_FEE' },
-        { label: 'Donation', value: 'DONATION' },
+        { label: 'Yearly Fee', value: 'YEARLY_FEE' },
         { label: 'Deposit', value: 'DEPOSIT' },
         { label: 'Fine', value: 'FINE' },
         { label: 'Maintenance', value: 'MAINTENANCE' },
         { label: 'Tournament Fee', value: 'TOURNAMENT_FEE' },
-        { label: 'Manual Fee', value: 'MANUAL_FEE' },
         { label: 'Other', value: 'OTHER' },
     ];
 
@@ -115,7 +113,7 @@ export default function AddPaymentScreen() {
             return;
         }
 
-        const proceedWithPayment = async () => {
+        const proceedWithPayment = async (override: boolean = false) => {
             setLoading(true);
             try {
                 if (isEditing) {
@@ -138,17 +136,28 @@ export default function AddPaymentScreen() {
                         notes,
                         type,
                         date.toISOString(),
-                        type === 'SUBSCRIPTION' ? format(billingMonth, 'MMMM yyyy') : undefined,
+                        (type === 'MONTHLY_FEE' || type === 'YEARLY_FEE') ? format(billingMonth, 'MMMM yyyy') : undefined,
                         linkedChargeId ? parseInt(linkedChargeId as string) : undefined,
                         transactionType,
                         payerType === 'TEAM' ? Number(selectedTeamId) : null,
-                        payerType === 'TEAM' && type === 'TOURNAMENT_FEE' ? Number(selectedTournamentId) : null
+                        payerType === 'TEAM' && type === 'TOURNAMENT_FEE' ? Number(selectedTournamentId) : null,
+                        override
                     );
                     Alert.alert('Success', 'Payment recorded successfully');
                 }
                 router.back();
             } catch (error: any) {
-                if (error.status !== 401) {
+                if (error.status === 409 && error.data?.warning) {
+                    // Handle Backend Warning (YEARLY_FEE check)
+                    Alert.alert(
+                        'Warning',
+                        error.data.message || error.message,
+                        [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Record Anyway', onPress: () => proceedWithPayment(true) }
+                        ]
+                    );
+                } else if (error.status !== 401) {
                     console.error(error);
                     Alert.alert('Error', isEditing ? 'Failed to update' : 'Failed to record payment');
                 }
@@ -158,10 +167,12 @@ export default function AddPaymentScreen() {
         };
 
         // Duplicate Check only for NEW items
-        if (type === 'SUBSCRIPTION' && !isEditing) {
+        if ((type === 'MONTHLY_FEE' || type === 'YEARLY_FEE') && !isEditing) {
             try {
                 setLoading(true);
                 const monthYear = format(billingMonth, 'MMMM yyyy');
+                // The backend now handles the YEARLY_FEE check as well, returning 409
+                // But we keep this local check for SUBSCRIPTION (now MONTHLY_FEE) for UX
                 const existing = await apiService.checkSubscriptionPayment(Number(selectedUserId), monthYear);
                 setLoading(false);
 
@@ -169,10 +180,10 @@ export default function AddPaymentScreen() {
                     const details = existing.map((p: any, i: number) => `${i + 1}. ${format(new Date(p.date), 'dd/MM')} - ₹${p.amount}`).join('\n');
                     Alert.alert(
                         'Duplicate Warning',
-                        `Found ${existing.length} existing subscription payment(s) for ${monthYear}:\n\n${details}\n\nDo you still want to add this payment?`,
+                        `Found ${existing.length} existing ${type === 'YEARLY_FEE' ? 'yearly' : 'monthly'} payment(s) for ${monthYear}:\n\n${details}\n\nDo you still want to add this payment?`,
                         [
                             { text: 'Cancel', style: 'cancel' },
-                            { text: 'Yes, Add Duplicate', onPress: proceedWithPayment }
+                            { text: 'Yes, Add Duplicate', onPress: () => proceedWithPayment() }
                         ]
                     );
                     return;
@@ -361,12 +372,12 @@ export default function AddPaymentScreen() {
                 </Menu>
             </View>
 
-            {/* Subscription Billing Month */}
-            {type === 'SUBSCRIPTION' && (
+            {/* Billing Month / Period */}
+            {(type === 'MONTHLY_FEE' || type === 'YEARLY_FEE') && (
                 <View style={{ marginBottom: 15 }}>
-                    <Text variant="titleMedium" style={styles.label}>Billing Month</Text>
+                    <Text variant="titleMedium" style={styles.label}>{type === 'YEARLY_FEE' ? 'Billing Year' : 'Billing Month'}</Text>
                     <Button mode="outlined" onPress={() => setShowBillingPicker(true)}>
-                        {format(billingMonth, 'MMMM yyyy')}
+                        {type === 'YEARLY_FEE' ? format(billingMonth, 'yyyy') : format(billingMonth, 'MMMM yyyy')}
                     </Button>
                     {showBillingPicker && (
                         <DateTimePicker

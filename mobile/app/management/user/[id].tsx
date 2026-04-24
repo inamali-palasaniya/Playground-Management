@@ -311,7 +311,7 @@ const LedgerRoute = ({ userId, isFocused, currentUser, onUpdate, user, refreshKe
                     {/* Filters */}
                     <View style={{ marginBottom: 10 }}>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
-                            {['ALL', 'SUBSCRIPTION', 'MONTHLY_FEE', 'FINE', 'PAYMENT', 'DONATION', 'TOURNAMENT_FEE', 'DEPOSIT', 'MAINTENANCE', 'OTHER'].map(type => (
+                            {['ALL', 'DAILY_FEE', 'MONTHLY_FEE', 'YEARLY_FEE', 'FINE', 'PAYMENT', 'DEPOSIT', 'MAINTENANCE', 'TOURNAMENT_FEE', 'OTHER'].map(type => (
                                 <Chip
                                     key={type}
                                     selected={selectedType === type}
@@ -1177,12 +1177,12 @@ export default function UserDetailScreen() {
                         </View>
                     </View>
 
-                    {/* Donation Summary (Mini) */}
+                    {/* Deposit Summary (Mini) */}
                     {((user.donation_debit || 0) > 0 || (user.donation_credit || 0) > 0) && (
                         <View style={{ marginTop: 6, padding: 6, backgroundColor: '#fdfdfd', borderRadius: 6, borderWidth: 0.5, borderColor: '#eee', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <MaterialCommunityIcons name="hand-heart" size={14} color="#2e7d32" style={{ marginRight: 6 }} />
-                                <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#2e7d32' }}>Donation:</Text>
+                                <MaterialCommunityIcons name="bank-transfer" size={14} color="#1565c0" style={{ marginRight: 6 }} />
+                                <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#1565c0' }}>Deposit:</Text>
                             </View>
                             <Text style={{ fontSize: 10, color: '#1976D2' }}>Cmt: <Text style={{ fontWeight: 'bold' }}>₹{user.donation_debit || 0}</Text></Text>
                             <Text style={{ fontSize: 10, color: '#2E7D32' }}>Paid: <Text style={{ fontWeight: 'bold' }}>₹{user.donation_credit || 0}</Text></Text>

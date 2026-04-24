@@ -431,8 +431,9 @@ class ApiService {
     }
 
     // Payment endpoints
-    async recordPayment(userId: number | null, amount: number, paymentMethod: string, notes?: string, type?: string, transactionDate?: string, billingPeriod?: string, linkToId?: number, transactionType?: string, teamId?: number | null, tournamentId?: number | null): Promise<any> {
-        return this.request<any>('/api/finance/payment', {
+    async recordPayment(userId: number | null, amount: number, paymentMethod: string, notes?: string, type?: string, transactionDate?: string, billingPeriod?: string, linkToId?: number, transactionType?: string, teamId?: number | null, tournamentId?: number | null, override?: boolean): Promise<any> {
+        const query = override ? '?override=true' : '';
+        return this.request<any>(`/api/finance/payment${query}`, {
             method: 'POST',
             body: JSON.stringify({ user_id: userId, amount, payment_method: paymentMethod, notes, type, transaction_date: transactionDate, billing_period: billingPeriod, link_to_id: linkToId, transaction_type: transactionType, team_id: teamId, tournament_id: tournamentId }),
         });

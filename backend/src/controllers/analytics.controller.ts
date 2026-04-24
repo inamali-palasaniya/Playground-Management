@@ -23,11 +23,12 @@ export const getFinancialSummary = async (req: Request, res: Response) => {
       _sum: { amount: true },
     });
 
-    // Total charges (fees + fines)
+    // Total charges (fees + fines + tournament + maintenance)
     const charges = await prisma.feeLedger.aggregate({
       where: {
         ...where,
-        type: { in: ['DAILY_FEE', 'MONTHLY_FEE', 'FINE'] },
+        type: { in: ['DAILY_FEE', 'MONTHLY_FEE', 'YEARLY_FEE', 'FINE', 'MAINTENANCE', 'TOURNAMENT_FEE', 'OTHER'] },
+        transaction_type: 'DEBIT'
       },
       _sum: { amount: true },
     });
@@ -48,7 +49,8 @@ export const getFinancialSummary = async (req: Request, res: Response) => {
     // Outstanding balance
     const unpaid = await prisma.feeLedger.aggregate({
       where: {
-        type: { in: ['DAILY_FEE', 'MONTHLY_FEE', 'FINE'] },
+        type: { in: ['DAILY_FEE', 'MONTHLY_FEE', 'YEARLY_FEE', 'FINE', 'MAINTENANCE', 'TOURNAMENT_FEE', 'OTHER'] },
+        transaction_type: 'DEBIT',
         is_paid: false,
       },
       _sum: { amount: true },

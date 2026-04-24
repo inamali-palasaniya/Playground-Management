@@ -132,7 +132,7 @@ export const checkIn = async (req: Request, res: Response) => {
         await prisma.feeLedger.create({
           data: {
             user: { connect: { id: targetUserId } },
-            type: 'SUBSCRIPTION',
+            type: 'MONTHLY_FEE',
             transaction_type: 'CREDIT',
             amount: monthlyFee,
             date: checkInDate,
