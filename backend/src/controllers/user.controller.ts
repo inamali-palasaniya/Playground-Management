@@ -949,7 +949,7 @@ export const importUsers = async (req: Request, res: Response) => {
                         await prisma.feeLedger.create({
                             data: {
                                 user_id: user.id,
-                                type: 'DEPOSIT',
+                                type: 'DONATION',
                                 transaction_type: 'CREDIT',
                                 amount: data.paid_deposit,
                                 date: new Date(),
