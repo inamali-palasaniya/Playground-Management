@@ -265,7 +265,7 @@ export default function PeopleScreen() {
                 setErrorVisible(true);
             } else if (error.status !== 401) {
                 console.error('Failed to load data:', error);
-                setErrorMessage(error.message || 'Failed to load user list');
+                setErrorMessage(typeof error.message === 'string' ? error.message : 'Failed to load user list');
                 setErrorVisible(true);
             }
         } finally {
@@ -468,7 +468,7 @@ export default function PeopleScreen() {
             onPress={() => router.push({ pathname: '/management/user/[id]', params: { id: item.id } })}
         >
             <Card.Title
-                title={item.name}
+                title={item.name || 'Unknown User'}
                 titleStyle={{ fontSize: 16, fontWeight: 'bold' }}
                 subtitle={
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -480,7 +480,7 @@ export default function PeopleScreen() {
                         />
                         <Text style={{ fontSize: 12, color: '#555' }}>
                             <Text style={{ fontWeight: item.role === 'SUPER_ADMIN' ? 'bold' : 'normal', color: item.role === 'SUPER_ADMIN' ? '#d32f2f' : '#333' }}>
-                                {item.role === 'SUPER_ADMIN' ? 'Super Admin' : item.role}
+                                {item.role === 'SUPER_ADMIN' ? 'Super Admin' : (item.role || 'Unknown')}
                             </Text>
                             <Text style={{ color: '#888' }}> • {item.group?.name || 'No Group'}</Text>
                         </Text>
@@ -676,7 +676,7 @@ export default function PeopleScreen() {
                             >
                                 <Menu.Item onPress={() => { setSelectedGroup(null); setMenuGroup(false); }} title="All Groups" />
                                 {groups.map(g => (
-                                    <Menu.Item key={g.id} onPress={() => { setSelectedGroup(g); setMenuGroup(false); }} title={g.name} />
+                                    <Menu.Item key={g.id} onPress={() => { setSelectedGroup(g); setMenuGroup(false); }} title={g.name || 'Unknown Group'} />
                                 ))}
                             </Menu>
 
