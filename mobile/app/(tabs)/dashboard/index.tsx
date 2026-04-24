@@ -168,36 +168,34 @@ export default function DashboardScreen() {
             <View style={styles.topSection}>
                 {/* HeaderProfile removed as requested to merge logic */}
                 <View style={{ flex: 1 }} />
-                <IconButton 
-                    icon="logout" 
-                    iconColor="#d32f2f" 
-                    size={22} 
-                    onPress={handleLogout}
-                    style={{ margin: 0 }}
-                />
             </View>
 
             {/* My Status Card - Enhanced with personal details and actions */}
             {user && (
                 <Card style={[styles.card, { overflow: 'hidden', marginBottom: 12 }]}>
                     <LinearGradient colors={['#e8eaf6', '#fff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 12 }}>
-                        {/* Top row: Avatar + Name/Plan + Details nav icon */}
+                        {/* Top row: Avatar + Name/Plan + Actions */}
                         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
                             <Avatar.Text size={44} label={String(user.name || '?').substring(0, 2).toUpperCase()} style={{ backgroundColor: theme.colors.primary }} labelStyle={{ fontSize: 18, fontWeight: 'bold' }} />
-                            <View style={{ marginLeft: 12, flex: 1 }}>
+                            
+                            {/* User details section - Entirely clickable */}
+                            <TouchableOpacity 
+                                style={{ marginLeft: 12, flex: 1 }}
+                                onPress={() => router.push({ pathname: '/management/user/[id]', params: { id: user.id } })}
+                            >
                                 <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#1a237e' }} numberOfLines={1}>{user.name}</Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 }}>
                                     <Text style={{ fontSize: 11, color: 'gray' }}>{user.plan_name || 'No Plan'}</Text>
                                     {user.payment_frequency && <Text style={{ fontSize: 10, color: '#7986cb', fontWeight: 'bold' }}>· {user.payment_frequency}</Text>}
                                     {user.group?.name && <Text style={{ fontSize: 10, color: '#546e7a' }}>· {user.group.name}</Text>}
                                 </View>
-                                {/* Added Email & Phone to the card */}
                                 <View style={{ marginTop: 2 }}>
                                     {user.email && <Text style={{ fontSize: 10, color: '#757575' }}><MaterialCommunityIcons name="email-outline" size={10} /> {user.email}</Text>}
                                     {user.phone && <Text style={{ fontSize: 10, color: '#757575' }}><MaterialCommunityIcons name="phone-outline" size={10} /> {user.phone}</Text>}
                                 </View>
-                            </View>
-                            <View style={{ flexDirection: 'row', gap: 4 }}>
+                            </TouchableOpacity>
+
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
                                 <TouchableOpacity
                                     style={{ padding: 8, borderRadius: 20, backgroundColor: user.punch_status === 'IN' ? '#ffebee' : '#e8f5e9' }}
                                     onPress={handlePunchRequest}
@@ -208,11 +206,12 @@ export default function DashboardScreen() {
                                         color={user.punch_status === 'IN' ? '#c62828' : '#2e7d32'} 
                                     />
                                 </TouchableOpacity>
+                                
                                 <TouchableOpacity
-                                    style={{ padding: 8, borderRadius: 20, backgroundColor: theme.colors.primary + '15' }}
-                                    onPress={() => router.push({ pathname: '/management/user/[id]', params: { id: user.id } })}
+                                    style={{ padding: 8, borderRadius: 20, backgroundColor: '#ffebee' }}
+                                    onPress={handleLogout}
                                 >
-                                    <MaterialCommunityIcons name="account-details" size={22} color={theme.colors.primary} />
+                                    <MaterialCommunityIcons name="logout-variant" size={22} color="#d32f2f" />
                                 </TouchableOpacity>
                             </View>
                         </View>

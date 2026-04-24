@@ -461,8 +461,8 @@ export default function PeopleScreen() {
                 styles.card,
                 {
                     borderLeftWidth: 5,
-                    borderLeftColor: item.subscription_status === 'EXPIRED' ? 'red' :
-                        (item.subscription_status === 'ACTIVE' && (item.plan_name || '').toLowerCase().includes('monthly')) ? 'green' : 'transparent'
+                    borderLeftColor: String(item.subscription_status) === 'EXPIRED' ? 'red' :
+                        (String(item.subscription_status) === 'ACTIVE' && String(item.plan_name || '').toLowerCase().includes('monthly')) ? 'green' : 'transparent'
                 }
             ]}
             onPress={() => router.push({ pathname: '/management/user/[id]', params: { id: item.id } })}
@@ -480,7 +480,7 @@ export default function PeopleScreen() {
                         />
                         <Text style={{ fontSize: 12, color: '#555' }}>
                             <Text style={{ fontWeight: item.role === 'SUPER_ADMIN' ? 'bold' : 'normal', color: item.role === 'SUPER_ADMIN' ? '#d32f2f' : '#333' }}>
-                                {item.role === 'SUPER_ADMIN' ? 'Super Admin' : String(item.role || 'Unknown')}
+                                {String(item.role) === 'SUPER_ADMIN' ? 'Super Admin' : String(item.role || 'Unknown')}
                             </Text>
                             <Text style={{ color: '#888' }}> • {item.group?.name || 'No Group'}</Text>
                         </Text>
