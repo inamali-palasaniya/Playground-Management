@@ -694,6 +694,9 @@ export const deleteUser = async (req: Request, res: Response) => {
 export const exportUsers = async (req: Request, res: Response) => {
     try {
         const users = await prisma.user.findMany({
+            where: {
+                role: { not: 'SUPER_ADMIN' }
+            },
             include: {
                 group: true,
                 subscriptions: {
@@ -860,9 +863,9 @@ export const importUsers = async (req: Request, res: Response) => {
                 
                 if (existingUser) {
                     // Strictly protect existing SUPER_ADMIN users from being updated via Excel
+                    // Strictly protect existing SUPER_ADMIN users' roles
                     if (existingUser.role === 'SUPER_ADMIN') {
-                        console.log(`Skipping update for existing SUPER_ADMIN user: ${existingUser.name}`);
-                        continue;
+                        userData.role = 'SUPER_ADMIN'; // Force role preservation
                     }
                     const updatePayload = { ...userData };
                     if (!data.group_id) {
