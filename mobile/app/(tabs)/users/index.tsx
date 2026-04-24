@@ -456,151 +456,143 @@ export default function PeopleScreen() {
 
     const renderItem = ({ item }: { item: User }) => {
         if (!item || !item.id) return null;
-        try {
-            return (
-        <Card
-            key={`user-${item.id}-${item.name}-${item.role}`}
-            style={[
-                styles.card,
-                {
-                    borderLeftWidth: 5,
-                    borderLeftColor: String(item.subscription_status) === 'EXPIRED' ? 'red' :
-                        (String(item.subscription_status) === 'ACTIVE' && String(item.plan_name || '').toLowerCase().includes('monthly')) ? 'green' : 'transparent'
-                }
-            ]}
-            onPress={() => router.push({ pathname: '/management/user/[id]', params: { id: item.id } })}
-        >
-            <Card.Title
-                title={item.name || 'Unknown User'}
-                titleStyle={{ fontSize: 16, fontWeight: 'bold' }}
-                subtitle={
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <MaterialCommunityIcons 
-                             name="circle" 
-                             size={10} 
-                             color={item.punch_status === 'IN' ? '#4CAF50' : '#F44336'} 
-                             style={{ marginRight: 6 }} 
-                        />
-                        <Text style={{ fontSize: 12, color: '#555' }}>
-                            <Text style={{ fontWeight: item.role === 'SUPER_ADMIN' ? 'bold' : 'normal', color: item.role === 'SUPER_ADMIN' ? '#d32f2f' : '#333' }}>
-                                {String(item.role) === 'SUPER_ADMIN' ? 'Super Admin' : String(item.role || 'Unknown')}
-                            </Text>
-                            <Text style={{ color: '#888' }}> • {item.group?.name || 'No Group'}</Text>
-                        </Text>
-                    </View>
-                }
-                subtitleStyle={{ marginTop: -2 }}
-                left={(props) => <Avatar.Text {...props} size={40} label={String(item.name || 'U').substring(0, 2).toUpperCase()} style={{ backgroundColor: '#e3f2fd' }} color="#1565c0" />}
-                right={(props) => {
-                    const canEdit = AuthService.hasPermission(currentUser, 'user', 'edit');
-                    const canDelete = AuthService.hasPermission(currentUser, 'user', 'delete');
-                    const canPunch = AuthService.hasPermission(currentUser, 'attendance', 'add');
-                    const canAudit = AuthService.hasPermission(currentUser, 'audit', 'view');
-
-                    return (
-                        <View style={{ marginRight: 8, flexDirection: 'row', alignItems: 'center' }}>
-                            {canPunch && (
-                                <IconButton
-                                    icon={item.punch_status === 'IN' ? 'logout' : 'login'}
-                                    mode="contained"
-                                    containerColor={item.punch_status === 'IN' ? '#FF5252' : '#2196F3'}
-                                    iconColor="white"
-                                    size={18}
-                                    style={{ margin: 0, marginRight: 4 }}
-                                    onPress={(e) => { e.stopPropagation(); handlePunchClick(item); }}
-                                />
-                            )}
-                            {canEdit && (
-                                <IconButton
-                                    icon="pencil"
-                                    size={18}
-                                    iconColor="#4CAF50"
-                                    style={{ margin: 0 }}
-                                    onPress={(e) => { e.stopPropagation(); router.push({ pathname: '/management/edit-user', params: { id: item.id } }); }}
-                                />
-                            )}
-                            {canDelete && (
-                                <IconButton
-                                    icon="delete"
-                                    size={18}
-                                    iconColor="#F44336"
-                                    style={{ margin: 0 }}
-                                    onPress={(e) => { e.stopPropagation(); confirmDelete(item.id, item.name); }}
-                                />
-                            )}
-                            {canAudit && (
-                                <IconButton
-                                    icon="history"
-                                    size={18}
-                                    iconColor="#607D8B"
-                                    style={{ margin: 0 }}
-                                    onPress={(e) => { e.stopPropagation(); setAuditEntityId(item.id); setAuditVisible(true); }}
-                                />
-                            )}
-                        </View>
-                    );
-                }}
-            />
-            <Card.Content>
-                {/* Contact Row */}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
-                        {item.email ? (
-                            <>
-                                <MaterialCommunityIcons name="email-outline" size={14} color="gray" />
-                                <Text variant="bodySmall" numberOfLines={1} style={{ color: 'gray', marginLeft: 4, flex: 1 }}>{item.email}</Text>
-                            </>
-                        ) : null}
-                    </View>
-                    {!!item.phone && (
+        return (
+            <Card
+                key={`user-${item.id}`}
+                style={[
+                    styles.card,
+                    {
+                        borderLeftWidth: 5,
+                        borderLeftColor: String(item.subscription_status) === 'EXPIRED' ? 'red' :
+                            (String(item.subscription_status) === 'ACTIVE' && String(item.plan_name || '').toLowerCase().includes('monthly')) ? 'green' : 'transparent'
+                    }
+                ]}
+                onPress={() => router.push({ pathname: '/management/user/[id]', params: { id: item.id } })}
+            >
+                <Card.Title
+                    title={item.name || 'Unknown User'}
+                    titleStyle={{ fontSize: 16, fontWeight: 'bold' }}
+                    subtitle={
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <MaterialCommunityIcons name="phone-outline" size={14} color="gray" />
-                            <Text variant="bodySmall" style={{ color: 'gray', marginLeft: 4 }}>{item.phone}</Text>
-                        </View>
-                    )}
-                </View>
-
-                {/* Financials & Plan Row */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e3f2fd', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                        <MaterialCommunityIcons name="tag" size={12} color="#1565c0" style={{ marginRight: 4 }} />
-                        <Text style={{ fontSize: 10, color: '#1565c0', fontWeight: 'bold' }}>{item.plan_name || 'No Plan'}</Text>
-                    </View>
-                    {!!item.payment_frequency && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: item.payment_frequency === 'MONTHLY' ? '#e0f2f1' : '#fff3e0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                            <Text style={{ fontSize: 10, color: item.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100', fontWeight: 'bold' }}>
-                                {item.payment_frequency}
+                            <MaterialCommunityIcons 
+                                 name="circle" 
+                                 size={10} 
+                                 color={item.punch_status === 'IN' ? '#4CAF50' : '#F44336'} 
+                                 style={{ marginRight: 6 }} 
+                            />
+                            <Text style={{ fontSize: 12, color: '#555' }}>
+                                <Text style={{ fontWeight: item.role === 'SUPER_ADMIN' ? 'bold' : 'normal', color: item.role === 'SUPER_ADMIN' ? '#d32f2f' : '#333' }}>
+                                    {String(item.role) === 'SUPER_ADMIN' ? 'Super Admin' : String(item.role || 'Unknown')}
+                                </Text>
+                                <Text style={{ color: '#888' }}> • {item.group?.name || 'No Group'}</Text>
                             </Text>
                         </View>
-                    )}
-                    {item.balance !== undefined && item.balance !== 0 && (
-                        <Text style={{ fontSize: 11, fontWeight: 'bold', color: item.balance > 0 ? '#d32f2f' : '#388e3c' }}>
-                            {item.balance > 0 ? `Due: ₹${item.balance}` : `Adv: ₹${Math.abs(item.balance)}`}
-                        </Text>
-                    )}
-                    {item.deposit_amount !== undefined && item.deposit_amount > 0 && (
-                        <Text style={{ fontSize: 10, color: '#666' }}>Dep: ₹{item.deposit_amount}</Text>
-                    )}
-                </View>
+                    }
+                    subtitleStyle={{ marginTop: -2 }}
+                    left={(props) => <Avatar.Text {...props} size={40} label={String(item.name || 'U').substring(0, 2).toUpperCase()} style={{ backgroundColor: '#e3f2fd' }} color="#1565c0" />}
+                    right={(props) => {
+                        const canEdit = AuthService.hasPermission(currentUser, 'user', 'edit');
+                        const canDelete = AuthService.hasPermission(currentUser, 'user', 'delete');
+                        const canPunch = AuthService.hasPermission(currentUser, 'attendance', 'add');
+                        const canAudit = AuthService.hasPermission(currentUser, 'audit', 'view');
 
-                {/* Donation Summary (Compact) */}
-                {((item.donation_debit || 0) > 0 || (item.donation_credit || 0) > 0) && (
-                    <View style={{ marginTop: 2, padding: 6, backgroundColor: '#fdfdfd', borderRadius: 6, borderWidth: 0.5, borderColor: '#eee', flexDirection: 'row', alignItems: 'center' }}>
-                        <MaterialCommunityIcons name="hand-heart" size={14} color="#2e7d32" style={{ marginRight: 8 }} />
-                        <View style={{ flexDirection: 'row', flex: 1, justifyContent: 'space-between' }}>
-                            <Text style={{ fontSize: 10, color: '#1976D2' }}>Cmt: <Text style={{ fontWeight: 'bold' }}>₹{item.donation_debit || 0}</Text></Text>
-                            <Text style={{ fontSize: 10, color: '#2E7D32' }}>Paid: <Text style={{ fontWeight: 'bold' }}>₹{item.donation_credit || 0}</Text></Text>
-                            <Text style={{ fontSize: 10, color: ((item.donation_debit || 0) - (item.donation_credit || 0)) > 0 ? '#D32F2F' : '#666' }}>Due: <Text style={{ fontWeight: 'bold' }}>₹{Math.max(0, (item.donation_debit || 0) - (item.donation_credit || 0))}</Text></Text>
+                        return (
+                            <View style={{ marginRight: 8, flexDirection: 'row', alignItems: 'center' }}>
+                                {canPunch && (
+                                    <IconButton
+                                        icon={item.punch_status === 'IN' ? 'logout' : 'login'}
+                                        mode="contained"
+                                        containerColor={item.punch_status === 'IN' ? '#FF5252' : '#2196F3'}
+                                        iconColor="white"
+                                        size={18}
+                                        style={{ margin: 0, marginRight: 4 }}
+                                        onPress={(e) => { e.stopPropagation(); handlePunchClick(item); }}
+                                    />
+                                )}
+                                {canEdit && (
+                                    <IconButton
+                                        icon="pencil"
+                                        size={18}
+                                        iconColor="#4CAF50"
+                                        style={{ margin: 0 }}
+                                        onPress={(e) => { e.stopPropagation(); router.push({ pathname: '/management/edit-user', params: { id: item.id } }); }}
+                                    />
+                                )}
+                                {canDelete && (
+                                    <IconButton
+                                        icon="delete"
+                                        size={18}
+                                        iconColor="#F44336"
+                                        style={{ margin: 0 }}
+                                        onPress={(e) => { e.stopPropagation(); confirmDelete(item.id, item.name); }}
+                                    />
+                                )}
+                                {canAudit && (
+                                    <IconButton
+                                        icon="history"
+                                        size={18}
+                                        iconColor="#607D8B"
+                                        style={{ margin: 0 }}
+                                        onPress={(e) => { e.stopPropagation(); setAuditEntityId(item.id); setAuditVisible(true); }}
+                                    />
+                                )}
+                            </View>
+                        );
+                    }}
+                />
+                <Card.Content>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+                            {item.email ? (
+                                <>
+                                    <MaterialCommunityIcons name="email-outline" size={14} color="gray" />
+                                    <Text variant="bodySmall" numberOfLines={1} style={{ color: 'gray', marginLeft: 4, flex: 1 }}>{item.email}</Text>
+                                </>
+                            ) : null}
                         </View>
+                        {!!item.phone && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <MaterialCommunityIcons name="phone-outline" size={14} color="gray" />
+                                <Text variant="bodySmall" style={{ color: 'gray', marginLeft: 4 }}>{item.phone}</Text>
+                            </View>
+                        )}
                     </View>
-                )}
-            </Card.Content>
-        </Card>
-            );
-        } catch (e) {
-            console.error('Error rendering user item', e);
-            return null;
-        }
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#e3f2fd', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                            <MaterialCommunityIcons name="tag" size={12} color="#1565c0" style={{ marginRight: 4 }} />
+                            <Text style={{ fontSize: 10, color: '#1565c0', fontWeight: 'bold' }}>{item.plan_name || 'No Plan'}</Text>
+                        </View>
+                        {!!item.payment_frequency && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: item.payment_frequency === 'MONTHLY' ? '#e0f2f1' : '#fff3e0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                                <Text style={{ fontSize: 10, color: item.payment_frequency === 'MONTHLY' ? '#00695c' : '#e65100', fontWeight: 'bold' }}>
+                                    {item.payment_frequency}
+                                </Text>
+                            </View>
+                        )}
+                        {item.balance !== undefined && item.balance !== 0 && (
+                            <Text style={{ fontSize: 11, fontWeight: 'bold', color: item.balance > 0 ? '#d32f2f' : '#388e3c' }}>
+                                {item.balance > 0 ? `Due: ₹${item.balance}` : `Adv: ₹${Math.abs(item.balance)}`}
+                            </Text>
+                        )}
+                        {item.deposit_amount !== undefined && item.deposit_amount > 0 && (
+                            <Text style={{ fontSize: 10, color: '#666' }}>Dep: ₹{item.deposit_amount}</Text>
+                        )}
+                    </View>
+
+                    {((item.donation_debit || 0) > 0 || (item.donation_credit || 0) > 0) && (
+                        <View style={{ marginTop: 2, padding: 6, backgroundColor: '#fdfdfd', borderRadius: 6, borderWidth: 0.5, borderColor: '#eee', flexDirection: 'row', alignItems: 'center' }}>
+                            <MaterialCommunityIcons name="hand-heart" size={14} color="#2e7d32" style={{ marginRight: 8 }} />
+                            <View style={{ flexDirection: 'row', flex: 1, justifyContent: 'space-between' }}>
+                                <Text style={{ fontSize: 10, color: '#1976D2' }}>Cmt: <Text style={{ fontWeight: 'bold' }}>₹{item.donation_debit || 0}</Text></Text>
+                                <Text style={{ fontSize: 10, color: '#2E7D32' }}>Paid: <Text style={{ fontWeight: 'bold' }}>₹{item.donation_credit || 0}</Text></Text>
+                                <Text style={{ fontSize: 10, color: ((item.donation_debit || 0) - (item.donation_credit || 0)) > 0 ? '#D32F2F' : '#666' }}>Due: <Text style={{ fontWeight: 'bold' }}>₹{Math.max(0, (item.donation_debit || 0) - (item.donation_credit || 0))}</Text></Text>
+                            </View>
+                        </View>
+                    )}
+                </Card.Content>
+            </Card>
+        );
     };
 
     const canViewUsers = AuthService.hasPermission(currentUser, 'user', 'view');
