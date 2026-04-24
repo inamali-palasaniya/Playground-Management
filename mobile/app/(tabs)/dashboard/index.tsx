@@ -3,10 +3,12 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View, Alert } from 'react-native';
 import { ActivityIndicator, Avatar, Button, Card, IconButton, Text, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ErrorDialog } from '../../../components/ErrorDialog';
+import { useAuth } from '../../../context/AuthContext';
+import apiService from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { Portal, Dialog, RadioButton, Switch } from 'react-native-paper';
 
