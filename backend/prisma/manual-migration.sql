@@ -3,7 +3,7 @@
 
 -- Create LedgerType enum
 DO $$ BEGIN
-    CREATE TYPE "LedgerType" AS ENUM ('DAILY_FEE', 'MONTHLY_FEE', 'FINE', 'PAYMENT', 'DEPOSIT');
+    CREATE TYPE "LedgerType" AS ENUM ('DAILY_FEE', 'MONTHLY_FEE', 'YEARLY_FEE', 'FINE', 'PAYMENT', 'DEPOSIT', 'MAINTENANCE', 'TOURNAMENT_FEE', 'OTHER');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;

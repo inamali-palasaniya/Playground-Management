@@ -841,6 +841,10 @@ export const importUsers = async (req: Request, res: Response) => {
                 ];
             }
 
+            let userType = (data.user_type || 'NORMAL').toUpperCase().trim();
+            if (userType === 'NON_EARNING') userType = 'NON_EARNED';
+            if (userType === 'PLAYER') userType = 'NORMAL';
+            
             const userData: any = {
                 name: data.name,
                 phone: data.phone,
@@ -848,7 +852,7 @@ export const importUsers = async (req: Request, res: Response) => {
                 role: role,
                 ...(data.group_id ? { group: { connect: { id: parseInt(data.group_id) } } } : {}),
                 age: data.age ? parseInt(data.age) : null,
-                user_type: data.user_type || 'PLAYER',
+                user_type: userType,
                 is_active: data.is_active === 'false' ? false : true
             };
 

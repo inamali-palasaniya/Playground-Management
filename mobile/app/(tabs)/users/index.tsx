@@ -775,7 +775,7 @@ export default function PeopleScreen() {
                                 }
                             >
                                 <Menu.Item onPress={() => { setSelectedType(null); setMenuType(false); }} title="All Types" />
-                                {['NORMAL', 'STUDENT', 'SALARIED', 'NON_EARNING'].map(t => (
+                                {['NORMAL', 'STUDENT', 'SALARIED', 'NON_EARNED'].map(t => (
                                     <Menu.Item key={t} onPress={() => { setSelectedType(t); setMenuType(false); }} title={t.replace('_', ' ')} />
                                 ))}
                             </Menu>
