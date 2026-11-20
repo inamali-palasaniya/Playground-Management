@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
 import compression from 'compression';
+import prisma from './utils/prisma.js';
 
 
 dotenv.config();
@@ -76,6 +77,21 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 app.get('/', (req, res) => {
     res.send('Sports Community Hub API');
+});
+
+app.get('/api/health', async (req, res) => {
+    try {
+        const userCount = await prisma.user.count();
+        res.json({ status: 'ok', database: 'connected', userCount });
+    } catch (error: any) {
+        console.error('Health check error:', error);
+        res.status(500).json({
+            status: 'error',
+            error: error?.message || 'Database connection error',
+            name: error?.name,
+            code: error?.code
+        });
+    }
 });
 
 const server = http.createServer(app);
