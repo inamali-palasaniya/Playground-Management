@@ -41,6 +41,7 @@ jobs:
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
+          packager: npm
 
       - name: Install dependencies
         if: steps.check-token.outputs.has_token == 'true'
@@ -49,6 +50,7 @@ jobs:
       - name: Publish update
         if: steps.check-token.outputs.has_token == 'true'
         env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_PUBLIC_API_URL: "https://playground-management-nal2.onrender.com"
         run: |
           eas update --channel production --message "Automated update from GitHub Actions: $(git log -1 --pretty=%B)" --non-interactive
