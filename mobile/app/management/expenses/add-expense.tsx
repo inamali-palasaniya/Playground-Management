@@ -67,7 +67,11 @@ export default function AddExpenseScreen() {
             } else {
                 await apiService.createExpense(payload);
             }
-            router.back();
+            if (router.canGoBack()) {
+                router.back();
+            } else {
+                router.replace('/management/expenses');
+            }
         } catch (error: any) {
             Alert.alert('Error', error.message || 'Failed to save expense');
         } finally {
@@ -78,7 +82,7 @@ export default function AddExpenseScreen() {
     return (
         <View style={styles.container}>
             <Appbar.Header style={{ backgroundColor: theme.colors.primary }} elevated>
-                <Appbar.BackAction onPress={() => router.back()} color="white" />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management/expenses')} color="white" />
                 <Appbar.Content title={id ? "Edit Expense" : "Add Expense"} titleStyle={{ color: 'white' }} />
             </Appbar.Header>
 

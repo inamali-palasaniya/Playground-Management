@@ -131,7 +131,7 @@ export default function PlansScreen() {
     return (
         <View style={styles.container}>
             <Appbar.Header style={{ backgroundColor: theme.colors.primary }} elevated>
-                <Appbar.BackAction onPress={() => router.back()} color="white" />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management/masters')} color="white" />
                 <Appbar.Content title="Subscription Plans" titleStyle={{ color: 'white' }} />
             </Appbar.Header>
 

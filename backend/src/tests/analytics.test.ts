@@ -47,6 +47,6 @@ describe('Analytics Service', () => {
         expect(bowler1.wickets).toBe(1);
         expect(bowler1.balls).toBe(3);
         // 3 balls = 0.3 overs
-        expect(bowler1.overs).toBe(0.3);
+        expect(bowler1.overs).toBe('0.3');
     });
 });

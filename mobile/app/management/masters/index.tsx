@@ -26,7 +26,7 @@ export default function MastersScreen() {
     return (
         <View style={styles.container}>
             <Appbar.Header style={{ backgroundColor: theme.colors.primary }} elevated>
-                <Appbar.BackAction onPress={() => router.back()} color="white" />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management')} color="white" />
                 <Appbar.Content title="Manage Masters" titleStyle={{ color: 'white', fontWeight: 'bold' }} />
             </Appbar.Header>
 

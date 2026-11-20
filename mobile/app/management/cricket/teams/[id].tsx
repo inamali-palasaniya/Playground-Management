@@ -87,12 +87,12 @@ export default function TeamDetailScreen() {
     if (!team) return (
         <SafeAreaView style={styles.safeArea}>
             <Appbar.Header elevated>
-                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management/cricket/teams')} />
                 <Appbar.Content title="Team Details" />
             </Appbar.Header>
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
                 <Text variant="titleMedium" style={{ color: '#999', marginBottom: 16 }}>Team not found or was deleted.</Text>
-                <Button mode="contained" onPress={() => router.back()}>Go Back</Button>
+                <Button mode="contained" onPress={() => router.canGoBack() ? router.back() : router.replace('/management/cricket/teams')}>Go Back</Button>
             </View>
         </SafeAreaView>
     );
@@ -100,7 +100,7 @@ export default function TeamDetailScreen() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <Appbar.Header elevated>
-                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management/cricket/teams')} />
                 <Appbar.Content title={team.name} subtitle={team.tournament?.name} />
                 <Appbar.Action icon="refresh" onPress={loadTeam} />
             </Appbar.Header>

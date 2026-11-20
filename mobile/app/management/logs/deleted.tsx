@@ -73,7 +73,7 @@ export default function DeletedLogsScreen() {
     return (
         <View style={styles.container}>
             <Appbar.Header style={{ backgroundColor: theme.colors.primary }} elevated>
-                <Appbar.BackAction onPress={() => router.back()} color="white" />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management')} color="white" />
                 <Appbar.Content title="Deleted Items Log" titleStyle={{ color: 'white' }} />
             </Appbar.Header>
 

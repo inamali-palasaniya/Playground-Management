@@ -88,7 +88,7 @@ export default function ManagementIndex() {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <IconButton icon="arrow-left" onPress={() => router.back()} />
+                <IconButton icon="arrow-left" onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/dashboard')} />
                 <Text variant="headlineMedium" style={styles.headerTitle}>Management Hub</Text>
             </View>
 

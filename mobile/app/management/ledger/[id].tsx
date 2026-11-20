@@ -111,7 +111,7 @@ export default function LedgerDetailScreen() {
     if (!entry) return (
         <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
             <Text variant="titleMedium" style={{ color: '#999', marginBottom: 16 }}>Entry not found or was deleted.</Text>
-            <Button mode="contained" onPress={() => router.back()}>Go Back</Button>
+            <Button mode="contained" onPress={() => router.canGoBack() ? router.back() : router.replace('/management/ledgers')}>Go Back</Button>
         </View>
     );
 
@@ -122,7 +122,7 @@ export default function LedgerDetailScreen() {
     return (
         <ScrollView style={styles.container}>
             <View style={styles.header}>
-                <IconButton icon="arrow-left" onPress={() => router.back()} />
+                <IconButton icon="arrow-left" onPress={() => router.canGoBack() ? router.back() : router.replace('/management/ledgers')} />
                 <Text variant="headlineSmall">Transaction Details #{entry.id}</Text>
                 <View style={{ flex: 1 }} />
                 {/* Main Entry Actions possible here too */}

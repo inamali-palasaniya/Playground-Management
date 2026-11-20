@@ -135,7 +135,7 @@ export default function EditUserScreen() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
-                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/users')} />
                 <Appbar.Content title="Edit User" />
             </Appbar.Header>
             <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>

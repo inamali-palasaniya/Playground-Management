@@ -145,7 +145,11 @@ export default function AddPaymentScreen() {
                     );
                     Alert.alert('Success', 'Payment recorded successfully');
                 }
-                router.back();
+                if (router.canGoBack()) {
+                    router.back();
+                } else {
+                    router.replace('/management/ledgers');
+                }
             } catch (error: any) {
                 if (error.status === 409 && error.data?.warning) {
                     // Handle Backend Warning (YEARLY_FEE check)

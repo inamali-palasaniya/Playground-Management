@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, StyleSheet, ScrollView, Alert, Dimensions, Animated, Easing, RefreshControl } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, Dimensions, Animated, Easing, RefreshControl, TouchableOpacity } from 'react-native';
 import { Text, Button, Card, Divider, ActivityIndicator, IconButton, Surface, Avatar, Chip, SegmentedButtons, DataTable } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { io, Socket } from 'socket.io-client';
@@ -166,16 +166,31 @@ export default function LiveMatchScreen() {
                             {match.overs} Overs Match
                         </Text>
                     </View>
-                    {isAdmin && match.status !== 'COMPLETED' ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        {isAdmin && match.status !== 'COMPLETED' && (
+                            <IconButton
+                                icon="scoreboard"
+                                iconColor="#FFD700"
+                                size={22}
+                                onPress={() => router.push({ pathname: '/management/cricket/scorer', params: { matchId: id } })}
+                            />
+                        )}
+                        {isAdmin && match.status === 'COMPLETED' && (
+                            <IconButton
+                                icon="trophy-outline"
+                                iconColor="#FFD700"
+                                size={22}
+                                onPress={() => router.push(`/(tabs)/scoring/analytics/${id}/awards`)}
+                            />
+                        )}
                         <IconButton
-                            icon="scoreboard"
-                            iconColor="#FFD700"
-                            size={24}
-                            onPress={() => router.push({ pathname: '/management/cricket/scorer', params: { matchId: id } })}
+                            icon="chart-bar"
+                            iconColor="white"
+                            size={22}
+                            onPress={() => router.push(`/(tabs)/scoring/analytics/${id}`)}
                         />
-                    ) : (
-                        <IconButton icon="refresh" iconColor="white" size={24} onPress={onRefresh} />
-                    )}
+                        <IconButton icon="refresh" iconColor="white" size={22} onPress={onRefresh} />
+                    </View>
                 </View>
 
                 {/* Scoreboard Card */}
@@ -215,6 +230,14 @@ export default function LiveMatchScreen() {
                             <Text style={styles.resultText}>🏆 {match.result_description || 'Match Concluded'}</Text>
                             {match.man_of_the_match && (
                                 <Text style={styles.motmText}>Player of the Match: {match.man_of_the_match.name}</Text>
+                            )}
+                            {isAdmin && (
+                                <TouchableOpacity 
+                                    style={{ marginTop: 6, paddingVertical: 4, paddingHorizontal: 12, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 12, alignSelf: 'center' }}
+                                    onPress={() => router.push(`/(tabs)/scoring/analytics/${id}/awards`)}
+                                >
+                                    <Text style={{ color: 'white', fontSize: 11, fontWeight: 'bold' }}>🏅 {match.man_of_the_match ? 'Change Award' : 'Select Man of the Match'}</Text>
+                                </TouchableOpacity>
                             )}
                         </View>
                     ) : currentInningsNum === 2 && target > 0 ? (

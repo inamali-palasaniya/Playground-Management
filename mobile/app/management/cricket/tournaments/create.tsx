@@ -45,7 +45,11 @@ export default function CreateTournamentScreen() {
             }
 
             Alert.alert('Success', `Tournament ${id ? 'updated' : 'created'}!`);
-            router.back();
+            if (router.canGoBack()) {
+                router.back();
+            } else {
+                router.replace('/management/cricket/tournaments');
+            }
         } catch (error) {
             console.error(error);
             Alert.alert('Error', `Failed to ${id ? 'update' : 'create'} tournament`);
@@ -57,7 +61,7 @@ export default function CreateTournamentScreen() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <Appbar.Header elevated>
-                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management/cricket/tournaments')} />
                 <Appbar.Content title={id ? "Edit Tournament" : "New Tournament"} />
             </Appbar.Header>
 

@@ -111,7 +111,7 @@ export default function ExpenseListScreen() {
     return (
         <SafeAreaView style={styles.container}>
             <Appbar.Header style={{ backgroundColor: theme.colors.primary }} elevated>
-                <Appbar.BackAction onPress={() => router.back()} color="white" />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management')} color="white" />
                 <Appbar.Content title="Expenses" titleStyle={{ color: 'white' }} />
                 <Menu
                     visible={filterMenuVisible}

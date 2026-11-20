@@ -78,7 +78,7 @@ export default function TeamListScreen() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
-                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management/cricket')} />
                 <Appbar.Content title="Teams" />
                 <Appbar.Action icon="refresh" onPress={loadTeams} />
             </Appbar.Header>

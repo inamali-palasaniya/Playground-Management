@@ -62,7 +62,11 @@ export default function CreateTeamScreen() {
             }
 
             Alert.alert('Success', `Team ${id ? 'updated' : 'created'}!`);
-            router.back();
+            if (router.canGoBack()) {
+                router.back();
+            } else {
+                router.replace('/management/cricket/teams');
+            }
         } catch (error) {
             console.error(error);
             Alert.alert('Error', `Failed to ${id ? 'save' : 'create'} team`);
@@ -74,7 +78,7 @@ export default function CreateTeamScreen() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <Appbar.Header elevated>
-                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management/cricket/teams')} />
                 <Appbar.Content title={id ? "Edit Team" : "New Team"} />
             </Appbar.Header>
 

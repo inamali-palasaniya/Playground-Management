@@ -71,12 +71,12 @@ export default function TournamentDetailScreen() {
     if (!tournament) return (
         <SafeAreaView style={styles.safeArea}>
             <Appbar.Header>
-                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management/cricket/tournaments')} />
                 <Appbar.Content title="Tournament" />
             </Appbar.Header>
             <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
                 <Text variant="titleMedium" style={{ color: '#999', marginBottom: 16 }}>Tournament not found or was deleted.</Text>
-                <Button mode="contained" onPress={() => router.back()}>Go Back</Button>
+                <Button mode="contained" onPress={() => router.canGoBack() ? router.back() : router.replace('/management/cricket/tournaments')}>Go Back</Button>
             </View>
         </SafeAreaView>
     );
@@ -84,7 +84,7 @@ export default function TournamentDetailScreen() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <Appbar.Header elevated style={{ backgroundColor: 'white' }}>
-                <Appbar.BackAction onPress={() => router.back()} />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management/cricket/tournaments')} />
                 <Appbar.Content title={tournament.name} titleStyle={{ fontWeight: 'bold' }} />
                 <Appbar.Action icon="refresh" onPress={loadData} />
             </Appbar.Header>
