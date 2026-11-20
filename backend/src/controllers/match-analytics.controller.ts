@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma.js';
-import { calculateBattingStats, calculateBowlingStats } from '../services/analytics.service.js';
+import { calculateBattingStats, calculateBowlingStats, calculateInningsBreakdown } from '../services/analytics.service.js';
 
 // Awards
 export const setManOfTheMatch = async (req: Request, res: Response) => {
@@ -201,11 +201,17 @@ export const getMatchStats = async (req: Request, res: Response) => {
     const match = await prisma.match.findUnique({
       where: { id: parseInt(id) },
       include: {
+        tournament: true,
+        team_a: true,
+        team_b: true,
+        man_of_the_match: { select: { id: true, name: true } },
         ball_events: {
             include: {
                 striker: { select: { id: true, name: true } },
                 bowler: { select: { id: true, name: true } },
-            }
+                non_striker: { select: { id: true, name: true } },
+            },
+            orderBy: [{ innings: 'asc' }, { over_number: 'asc' }, { ball_number: 'asc' }]
         },
       },
     });
@@ -214,11 +220,70 @@ export const getMatchStats = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Match not found' });
     }
 
+    // Determine which team batted first based on toss
+    let team1 = match.team_a;
+    let team2 = match.team_b;
+
+    if (match.toss_decision === 'BAT') {
+      team1 = match.toss_winner_id === match.team_a_id ? match.team_a : match.team_b;
+      team2 = match.toss_winner_id === match.team_a_id ? match.team_b : match.team_a;
+    } else if (match.toss_decision === 'BOWL') {
+      team1 = match.toss_winner_id === match.team_a_id ? match.team_b : match.team_a;
+      team2 = match.toss_winner_id === match.team_a_id ? match.team_a : match.team_b;
+    }
+
+    const innings1Balls = match.ball_events.filter(b => b.innings === 1);
+    const innings2Balls = match.ball_events.filter(b => b.innings === 2);
+
+    const innings1 = calculateInningsBreakdown(innings1Balls, team1?.name || 'Team 1', team2?.name || 'Team 2');
+    const innings2 = calculateInningsBreakdown(innings2Balls, team2?.name || 'Team 2', team1?.name || 'Team 1');
+
     const batting = calculateBattingStats(match.ball_events);
     const bowling = calculateBowlingStats(match.ball_events);
 
+    const target = innings1.totalRuns > 0 ? innings1.totalRuns + 1 : null;
+    let requiredRuns = null;
+    let remainingBalls = null;
+    let requiredRunRate = null;
+
+    if (target && match.current_innings === 2) {
+      requiredRuns = Math.max(0, target - innings2.totalRuns);
+      const maxBalls = (match.overs || 20) * 6;
+      remainingBalls = Math.max(0, maxBalls - innings2.balls);
+      if (remainingBalls > 0 && requiredRuns > 0) {
+        requiredRunRate = ((requiredRuns / remainingBalls) * 6).toFixed(2);
+      } else if (requiredRuns <= 0) {
+        requiredRunRate = '0.00';
+      }
+    }
+
     res.json({
       match_id: match.id,
+      match: {
+        id: match.id,
+        status: match.status,
+        overs: match.overs,
+        current_innings: match.current_innings,
+        is_completed: match.is_completed,
+        toss_winner_id: match.toss_winner_id,
+        toss_decision: match.toss_decision,
+        winning_team_id: match.winning_team_id,
+        result_description: match.result_description,
+        man_of_the_match: match.man_of_the_match,
+        tournament: match.tournament,
+        team_a: match.team_a,
+        team_b: match.team_b,
+      },
+      innings1,
+      innings2,
+      stats: {
+        innings1,
+        innings2,
+      },
+      target,
+      requiredRuns,
+      remainingBalls,
+      requiredRunRate,
       batting,
       bowling,
     });

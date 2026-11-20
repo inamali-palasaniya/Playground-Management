@@ -122,7 +122,11 @@ export default function CreateMatchScreen() {
                 await apiService.createMatch(payload);
             }
             Alert.alert('Success', id ? 'Match Updated!' : 'Match Scheduled!');
-            router.replace('/management/cricket/matches');
+            if (router.canGoBack()) {
+                router.back();
+            } else {
+                router.replace('/management/cricket/matches');
+            }
         } catch (error) {
             console.error(error);
             Alert.alert('Error', 'Failed to save match');
@@ -134,7 +138,7 @@ export default function CreateMatchScreen() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
-                <Appbar.BackAction onPress={() => router.replace('/management/cricket/matches')} />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management/cricket/matches')} />
                 <Appbar.Content title={id ? "Edit Match" : "Schedule Match"} />
             </Appbar.Header>
             <ScrollView contentContainerStyle={styles.container}>

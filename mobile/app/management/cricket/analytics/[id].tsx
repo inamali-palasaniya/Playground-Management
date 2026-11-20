@@ -53,104 +53,135 @@ export default function MatchAnalyticsScreen() {
     if (loading && !refreshing) return <ActivityIndicator style={{ flex: 1 }} />;
     if (!match) return <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><Text>Match not found</Text></View>;
 
-    const innings1 = match.stats?.innings1 || {};
-    const innings2 = match.stats?.innings2 || {};
+    const innings1 = match.innings1 || match.stats?.innings1 || {};
+    const innings2 = match.innings2 || match.stats?.innings2 || {};
 
-    const renderSummary = () => (
-        <ScrollView contentContainerStyle={styles.content}>
+    const renderSummary = () => {
+        const teamAName = match.match?.team_a?.name || match.team_a?.name || 'Team A';
+        const teamBName = match.match?.team_b?.name || match.team_b?.name || 'Team B';
+        const resultDesc = match.match?.result_description || match.result_description || 'Match in Progress';
+        const motm = match.match?.man_of_the_match || match.man_of_the_match;
+
+        const i1Runs = innings1.totalRuns !== undefined ? innings1.totalRuns : 0;
+        const i1Wkts = innings1.totalWickets !== undefined ? innings1.totalWickets : 0;
+        const i1Overs = innings1.overs || '0.0';
+
+        const i2Runs = innings2.totalRuns !== undefined ? innings2.totalRuns : 0;
+        const i2Wkts = innings2.totalWickets !== undefined ? innings2.totalWickets : 0;
+        const i2Overs = innings2.overs || '0.0';
+
+        return (
+            <ScrollView contentContainerStyle={styles.content}>
+                <Card style={styles.card}>
+                    <Card.Content>
+                        <Text variant="titleMedium" style={{ textAlign: 'center', marginBottom: 10 }}>Match Result</Text>
+                        <Text variant="headlineSmall" style={{ textAlign: 'center', fontWeight: 'bold', color: theme.colors.primary }}>
+                            {resultDesc}
+                        </Text>
+                        {motm && (
+                            <View style={{ alignItems: 'center', marginTop: 15 }}>
+                                <Text variant="labelMedium">Player of the Match</Text>
+                                <Avatar.Text size={48} label={motm.name.substring(0, 2).toUpperCase()} style={{ marginTop: 5 }} />
+                                <Text variant="titleMedium" style={{ marginTop: 5, fontWeight: 'bold' }}>{motm.name}</Text>
+                            </View>
+                        )}
+                    </Card.Content>
+                </Card>
+
+                <View style={styles.scoreRow}>
+                    <Card style={{ flex: 1, marginRight: 5 }}>
+                        <Card.Content style={{ alignItems: 'center' }}>
+                            <Text variant="labelSmall" style={{ fontWeight: 'bold' }}>{innings1.battingTeam || teamAName}</Text>
+                            <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: '#1E3A8A' }}>
+                                {i1Runs}/{i1Wkts}
+                            </Text>
+                            <Text variant="bodySmall" style={{ color: '#666' }}>({i1Overs} ov)</Text>
+                        </Card.Content>
+                    </Card>
+                    <Card style={{ flex: 1, marginLeft: 5 }}>
+                        <Card.Content style={{ alignItems: 'center' }}>
+                            <Text variant="labelSmall" style={{ fontWeight: 'bold' }}>{innings2.battingTeam || teamBName}</Text>
+                            <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: '#1E3A8A' }}>
+                                {i2Runs}/{i2Wkts}
+                            </Text>
+                            <Text variant="bodySmall" style={{ color: '#666' }}>({i2Overs} ov)</Text>
+                        </Card.Content>
+                    </Card>
+                </View>
+            </ScrollView>
+        );
+    };
+
+    const renderScorecard = (inningsData: any, teamName: string) => {
+        const battingList = Array.isArray(inningsData?.batting) 
+            ? inningsData.batting 
+            : Object.entries(inningsData?.batting || {}).map(([id, s]: any) => ({ id, name: `Player ${id}`, ...s }));
+        
+        const bowlingList = Array.isArray(inningsData?.bowling) 
+            ? inningsData.bowling 
+            : Object.entries(inningsData?.bowling || {}).map(([id, s]: any) => ({ id, name: `Bowler ${id}`, ...s }));
+
+        return (
             <Card style={styles.card}>
-                <Card.Content>
-                    <Text variant="titleMedium" style={{ textAlign: 'center', marginBottom: 10 }}>Match Result</Text>
-                    <Text variant="headlineSmall" style={{ textAlign: 'center', fontWeight: 'bold', color: theme.colors.primary }}>
-                        {match.result_description || 'Match in Progress'}
-                    </Text>
-                    {match.man_of_the_match && (
-                        <View style={{ alignItems: 'center', marginTop: 15 }}>
-                            <Text variant="labelMedium">Man of the Match</Text>
-                            <Avatar.Text size={48} label={match.man_of_the_match.name.substring(0, 2).toUpperCase()} style={{ marginTop: 5 }} />
-                            <Text variant="titleMedium" style={{ marginTop: 5 }}>{match.man_of_the_match.name}</Text>
-                        </View>
-                    )}
-                </Card.Content>
+                <Card.Title 
+                    title={`${teamName} Innings`} 
+                    subtitle={inningsData?.totalRuns !== undefined ? `${inningsData.totalRuns}/${inningsData.totalWickets} (${inningsData.overs} Ov, RR: ${inningsData.runRate})` : ''}
+                />
+                <DataTable>
+                    <DataTable.Header>
+                        <DataTable.Title style={{ flex: 3 }}>Batter</DataTable.Title>
+                        <DataTable.Title numeric>R</DataTable.Title>
+                        <DataTable.Title numeric>B</DataTable.Title>
+                        <DataTable.Title numeric>4s</DataTable.Title>
+                        <DataTable.Title numeric>6s</DataTable.Title>
+                    </DataTable.Header>
+
+                    {battingList.map((player: any) => (
+                        <DataTable.Row key={player.id}>
+                            <DataTable.Cell style={{ flex: 3 }}>
+                                <View>
+                                    <Text variant="bodySmall" style={{ fontWeight: 'bold' }}>{player.name}</Text>
+                                    {player.dismissal && <Text variant="labelSmall" style={{ color: '#888', fontSize: 10 }}>{player.dismissal}</Text>}
+                                </View>
+                            </DataTable.Cell>
+                            <DataTable.Cell numeric><Text style={{ fontWeight: 'bold' }}>{player.runs}</Text></DataTable.Cell>
+                            <DataTable.Cell numeric>{player.balls}</DataTable.Cell>
+                            <DataTable.Cell numeric>{player.fours || player['4s'] || 0}</DataTable.Cell>
+                            <DataTable.Cell numeric>{player.sixes || player['6s'] || 0}</DataTable.Cell>
+                        </DataTable.Row>
+                    ))}
+                </DataTable>
+
+                {inningsData?.extras && (
+                    <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#f8fafc', flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text variant="bodySmall" style={{ fontWeight: 'bold' }}>Extras: {inningsData.extras.total || 0}</Text>
+                        <Text variant="labelSmall" style={{ color: '#666' }}>
+                            (wd {inningsData.extras.wides || 0}, nb {inningsData.extras.noBalls || 0}, b {inningsData.extras.byes || 0}, lb {inningsData.extras.legByes || 0})
+                        </Text>
+                    </View>
+                )}
+
+                <Divider style={{ marginVertical: 10 }} />
+
+                <DataTable>
+                    <DataTable.Header>
+                        <DataTable.Title style={{ flex: 3 }}>Bowler</DataTable.Title>
+                        <DataTable.Title numeric>O</DataTable.Title>
+                        <DataTable.Title numeric>R</DataTable.Title>
+                        <DataTable.Title numeric>W</DataTable.Title>
+                    </DataTable.Header>
+                    {bowlingList.map((player: any) => (
+                        <DataTable.Row key={player.id}>
+                            <DataTable.Cell style={{ flex: 3 }}><Text variant="bodySmall" style={{ fontWeight: 'bold' }}>{player.name}</Text></DataTable.Cell>
+                            <DataTable.Cell numeric>{player.overs}</DataTable.Cell>
+                            <DataTable.Cell numeric>{player.runs}</DataTable.Cell>
+                            <DataTable.Cell numeric><Text style={{ fontWeight: 'bold', color: '#DC2626' }}>{player.wickets}</Text></DataTable.Cell>
+                        </DataTable.Row>
+                    ))}
+                </DataTable>
             </Card>
-
-            <View style={styles.scoreRow}>
-                <Card style={{ flex: 1, marginRight: 5 }}>
-                    <Card.Content style={{ alignItems: 'center' }}>
-                        <Text variant="labelSmall">{match.team_a?.name}</Text>
-                        <Text variant="titleLarge">
-                            {String(Object.values(innings1.batting || {}).reduce((a: any, b: any) => a + b.runs, 0))}/
-                            {String(Object.values(innings2.bowling || {}).reduce((a: any, b: any) => a + b.wickets, 0))}
-                        </Text>
-                    </Card.Content>
-                </Card>
-                <Card style={{ flex: 1, marginLeft: 5 }}>
-                    <Card.Content style={{ alignItems: 'center' }}>
-                        <Text variant="labelSmall">{match.team_b?.name}</Text>
-                        <Text variant="titleLarge">
-                            {String(Object.values(innings2.batting || {}).reduce((a: any, b: any) => a + b.runs, 0))}/
-                            {String(Object.values(innings1.bowling || {}).reduce((a: any, b: any) => a + b.wickets, 0))}
-                        </Text>
-                    </Card.Content>
-                </Card>
-            </View>
-        </ScrollView>
-    );
-
-    const renderScorecard = (inningsData: any, teamName: string) => (
-        <Card style={styles.card}>
-            <Card.Title title={`${teamName} Innings`} />
-            <DataTable>
-                <DataTable.Header>
-                    <DataTable.Title>Batter</DataTable.Title>
-                    <DataTable.Title numeric>R</DataTable.Title>
-                    <DataTable.Title numeric>B</DataTable.Title>
-                    <DataTable.Title numeric>4s</DataTable.Title>
-                    <DataTable.Title numeric>6s</DataTable.Title>
-                </DataTable.Header>
-
-                {Object.entries(inningsData.batting || {}).map(([id, s]: any) => {
-                    // Ideally we have names map. Assuming we can map ids to names from players list or backend returns names in stats (Current implementation returns map by ID).
-                    // We need to find player name from match.team_a/b.players
-                    const allPlayers = [...(match.team_a?.players || []), ...(match.team_b?.players || [])];
-                    const player = allPlayers.find(p => (p.user?.id || p.id) == id);
-                    const name = player?.user?.name || player?.name || 'Unk';
-
-                    return (
-                        <DataTable.Row key={id}>
-                            <DataTable.Cell><Text>{name}</Text></DataTable.Cell>
-                            <DataTable.Cell numeric><Text>{s.runs}</Text></DataTable.Cell>
-                            <DataTable.Cell numeric><Text>{s.balls}</Text></DataTable.Cell>
-                            <DataTable.Cell numeric><Text>{s['4s']}</Text></DataTable.Cell>
-                            <DataTable.Cell numeric><Text>{s['6s']}</Text></DataTable.Cell>
-                        </DataTable.Row>
-                    );
-                })}
-            </DataTable>
-            <Divider />
-            <DataTable>
-                <DataTable.Header>
-                    <DataTable.Title>Bowler</DataTable.Title>
-                    <DataTable.Title numeric>O</DataTable.Title>
-                    <DataTable.Title numeric>R</DataTable.Title>
-                    <DataTable.Title numeric>W</DataTable.Title>
-                </DataTable.Header>
-                {Object.entries(inningsData.bowling || {}).map(([id, s]: any) => {
-                    const allPlayers = [...(match.team_a?.players || []), ...(match.team_b?.players || [])];
-                    const player = allPlayers.find(p => (p.user?.id || p.id) == id);
-                    const name = player?.user?.name || player?.name || 'Unk';
-                    return (
-                        <DataTable.Row key={id}>
-                            <DataTable.Cell><Text>{name}</Text></DataTable.Cell>
-                            <DataTable.Cell numeric><Text>{s.overs}</Text></DataTable.Cell>
-                            <DataTable.Cell numeric><Text>{s.runs}</Text></DataTable.Cell>
-                            <DataTable.Cell numeric><Text>{s.wickets}</Text></DataTable.Cell>
-                        </DataTable.Row>
-                    );
-                })}
-            </DataTable>
-        </Card>
-    );
+        );
+    };
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>

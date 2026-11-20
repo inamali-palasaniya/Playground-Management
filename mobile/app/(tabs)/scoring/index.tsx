@@ -1,6 +1,6 @@
 import { View, FlatList, StyleSheet, RefreshControl, Alert, TouchableOpacity } from 'react-native';
 import { Text, Card, Button, Chip, ActivityIndicator, Appbar, Avatar, useTheme, Surface, Divider, IconButton } from 'react-native-paper';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
 import apiService from '../../../services/api.service';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -36,9 +36,11 @@ export default function ScoringDashboard() {
         }
     };
 
-    useEffect(() => {
-        fetchMatches();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchMatches();
+        }, [])
+    );
 
     const onRefresh = () => {
         setRefreshing(true);

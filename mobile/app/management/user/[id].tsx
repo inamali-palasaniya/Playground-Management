@@ -1038,8 +1038,17 @@ export default function UserDetailScreen() {
             <View style={{ pointerEvents: 'box-none' }}>
                 <LinearGradient
                     colors={[theme.colors.primary, '#1976d2']}
-                    style={[styles.headerGradient, { paddingBottom: 60, paddingTop: insets.top + 10 }]}
+                    style={[styles.headerGradient, { paddingBottom: 60, paddingTop: insets.top + 8 }]}
                 >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, marginBottom: 6 }}>
+                        <IconButton
+                            icon="arrow-left"
+                            iconColor="white"
+                            size={24}
+                            onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/users')}
+                        />
+                        <Text variant="titleMedium" style={{ color: 'white', fontWeight: 'bold' }}>User Details</Text>
+                    </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20 }}>
                         <Avatar.Text
                             size={48}

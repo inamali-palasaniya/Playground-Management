@@ -142,9 +142,17 @@ export const getMatchById = async (req: Request, res: Response) => {
                     include: {
                         bowler: { select: { id: true, name: true } },
                         striker: { select: { id: true, name: true } },
+                        non_striker: { select: { id: true, name: true } },
                     },
                     orderBy: [{ over_number: 'asc' }, { ball_number: 'asc' }],
                 },
+                man_of_the_match: { select: { id: true, name: true } },
+                current_striker: { select: { id: true, name: true } },
+                current_non_striker: { select: { id: true, name: true } },
+                current_bowler: { select: { id: true, name: true } },
+                current_batting_team: { select: { id: true, name: true } },
+                toss_winner: { select: { id: true, name: true } },
+                winning_team: { select: { id: true, name: true } },
             },
         });
 
@@ -231,8 +239,8 @@ export const updateMatch = async (req: Request, res: Response) => {
 
         // Emit update via Socket.IO
         try {
-            const { getIO } = require('../server');
-            const io = getIO();
+            const serverModule = await import('../server.js');
+            const io = serverModule.getIO();
             if (io) {
                 io.to(`match_${id}`).emit('score_update', { type: 'UPDATE', matchId: id });
             }
@@ -289,8 +297,8 @@ export const recordBallEvent = async (req: Request, res: Response) => {
         res.status(201).json(ballEvent);
         // Emit update via Socket.IO
         try {
-            const { getIO } = require('../server');
-            const io = getIO();
+            const serverModule = await import('../server.js');
+            const io = serverModule.getIO();
             if (io) {
                 const room = `match_${match_id}`;
                 console.log(`Emitting BALL update to ${room}`);
@@ -326,12 +334,23 @@ export const undoLastBall = async (req: Request, res: Response) => {
             where: { id: lastBall.id }
         });
 
+        // Restore match live pointers to the state before this ball
+        await prisma.match.update({
+            where: { id: parseInt(id) },
+            data: {
+                current_striker_id: lastBall.striker_id,
+                current_non_striker_id: lastBall.non_striker_id,
+                current_bowler_id: lastBall.bowler_id,
+                current_innings: lastBall.innings
+            }
+        });
+
         res.json({ message: 'Last ball undone successfully' });
 
         // Emit update via Socket.IO
         try {
-            const { getIO } = require('../server');
-            const io = getIO();
+            const serverModule = await import('../server.js');
+            const io = serverModule.getIO();
             if (io) {
                 const room = `match_${id}`;
                 console.log(`Emitting UNDO update to ${room}`);

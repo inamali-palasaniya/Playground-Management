@@ -94,7 +94,7 @@ export default function CricketDashboard() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <Appbar.Header elevated style={{ backgroundColor: 'white' }}>
-                <Appbar.BackAction onPress={() => router.replace('/(tabs)/dashboard')} />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/dashboard')} />
                 <Appbar.Content title="Cricket Manager" titleStyle={{ fontWeight: 'bold' }} />
             </Appbar.Header>
 

@@ -43,8 +43,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
             const token = await AuthService.getToken();
             if (token) {
-                const userData = await AuthService.getUser();
-                setUser(userData);
+                // First load cached user for instant start
+                const cached = await AuthService.getUser();
+                if (cached) setUser(cached);
+                
+                // Then fetch fresh user & permissions from backend
+                const fresh = await AuthService.fetchCurrentUser();
+                if (fresh) setUser(fresh);
             } else {
                 setUser(null);
             }
@@ -84,8 +89,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const refreshUser = async () => {
         try {
-            const userData = await AuthService.getUser();
-            setUser(userData);
+            const freshUser = await AuthService.fetchCurrentUser();
+            if (freshUser) {
+                setUser(freshUser);
+            } else {
+                const userData = await AuthService.getUser();
+                setUser(userData);
+            }
         } catch (error) {
             console.error('Failed to refresh user', error);
         }

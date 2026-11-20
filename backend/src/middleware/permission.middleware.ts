@@ -34,7 +34,7 @@ export const checkPermission = (moduleName: string, action: 'view' | 'add' | 'ed
             }
 
             // 2. Super Admin Bypass
-            if (user.email === '91inamali@gmail.com' || user.role === 'SUPER_ADMIN') {
+            if (user.email?.toLowerCase() === '91inamali@gmail.com' || user.role === 'SUPER_ADMIN') {
                 return next();
             }
 
@@ -43,11 +43,26 @@ export const checkPermission = (moduleName: string, action: 'view' | 'add' | 'ed
                 return res.status(403).json({ error: 'Access denied. Management role required.' });
             }
 
-            // 4. Specific Permission Check (with Alias Support)
+            // 4. Specific Permission Check (with Comprehensive Alias Support)
             const aliases: { [key: string]: string[] } = {
-                'cricket_scoring': ['scoring'],
-                'finance': ['charge', 'payment'],
-                'user': ['users']
+                'cricket_scoring': ['scoring', 'cricket', 'tournament', 'tournaments', 'team', 'teams', 'match', 'matches'],
+                'tournament': ['cricket_scoring', 'scoring', 'tournament', 'tournaments'],
+                'team': ['cricket_scoring', 'scoring', 'team', 'teams'],
+                'match': ['cricket_scoring', 'scoring', 'match', 'matches'],
+                'finance': ['charge', 'charges', 'payment', 'payments', 'ledger', 'ledgers', 'fine', 'fines'],
+                'charge': ['finance', 'payment', 'payments', 'master_fines', 'fine', 'fines'],
+                'payment': ['finance', 'charge', 'payments', 'ledger'],
+                'user': ['users'],
+                'users': ['user'],
+                'audit': ['report', 'reports', 'log', 'logs'],
+                'report': ['audit', 'reports', 'logs'],
+                'logs': ['audit', 'log', 'reports'],
+                'master_plans': ['subscription', 'subscriptions', 'plan', 'plans', 'master'],
+                'subscription': ['master_plans', 'subscriptions', 'plans'],
+                'master_fines': ['fine', 'fines', 'charge', 'finance'],
+                'fine': ['master_fines', 'finance', 'charge'],
+                'master_groups': ['group', 'groups'],
+                'group': ['master_groups', 'groups']
             };
 
             const searchModules = [moduleName, ...(aliases[moduleName] || [])];

@@ -143,7 +143,7 @@ export default function MatchListScreen() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
-                <Appbar.BackAction onPress={() => router.replace('/management/cricket')} />
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management/cricket')} />
                 <Appbar.Content title="Matches" />
                 <Appbar.Action icon="refresh" onPress={loadMatches} />
             </Appbar.Header>

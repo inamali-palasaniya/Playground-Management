@@ -1,7 +1,8 @@
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
-import { Text, Button, Avatar, Divider, useTheme, ActivityIndicator, Card, Chip } from 'react-native-paper';
+import { Text, Button, Avatar, Divider, useTheme, ActivityIndicator, Card, Chip, Appbar } from 'react-native-paper';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../services/api.service';
 import { AuthService } from '../services/auth.service';
 import { useAuth } from '../context/AuthContext';
@@ -54,25 +55,31 @@ export default function ProfileScreen() {
 
     if (loading) {
         return (
-            <View style={styles.centered}>
+            <SafeAreaView style={styles.centered}>
                 <ActivityIndicator size="large" />
-            </View>
+            </SafeAreaView>
         );
     }
 
     if (!currentUser) {
         return (
-            <View style={styles.centered}>
+            <SafeAreaView style={styles.centered}>
                 <Text>No user data found.</Text>
                 <Button mode="contained" onPress={() => router.replace('/login')} style={{ marginTop: 20 }}>
                     Go to Login
                 </Button>
-            </View>
+            </SafeAreaView>
         );
     }
 
     return (
-        <ScrollView style={styles.container}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+            <Appbar.Header style={{ backgroundColor: 'white' }}>
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/dashboard')} />
+                <Appbar.Content title="My Profile" titleStyle={{ fontWeight: 'bold' }} />
+            </Appbar.Header>
+
+            <ScrollView style={styles.container}>
             <View style={styles.header}>
                 <Avatar.Text
                     size={80}
@@ -142,6 +149,7 @@ export default function ProfileScreen() {
                 </Button>
             </View>
         </ScrollView>
+        </SafeAreaView>
     );
 }
 

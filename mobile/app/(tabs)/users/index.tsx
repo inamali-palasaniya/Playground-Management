@@ -621,7 +621,7 @@ export default function PeopleScreen() {
     try {
         return (
         <View style={styles.container}>
-            <View style={styles.headerContainer}>
+            <View style={[styles.headerContainer, { paddingTop: insets.top + 8 }]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
                     <Searchbar
                         placeholder="Search Users"

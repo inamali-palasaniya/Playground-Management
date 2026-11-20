@@ -1,7 +1,8 @@
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
-import { Text, Card, Avatar, Button, DataTable, ActivityIndicator, Divider, Chip } from 'react-native-paper';
+import { Text, Card, Avatar, Button, DataTable, ActivityIndicator, Divider, Chip, Appbar } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import apiService from '../../../../services/api.service';
 
 export default function MatchAnalyticsScreen() {
@@ -33,16 +34,23 @@ export default function MatchAnalyticsScreen() {
 
     if (loading) {
         return (
-            <View style={styles.centered}>
+            <SafeAreaView style={styles.centered}>
                 <ActivityIndicator size="large" />
-            </View>
+            </SafeAreaView>
         );
     }
 
     if (!match || !stats) return null;
 
     return (
-        <ScrollView style={styles.container}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
+            <Appbar.Header style={{ backgroundColor: 'white' }}>
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/scoring')} />
+                <Appbar.Content title="Match Scorecard" titleStyle={{ fontWeight: 'bold' }} />
+                <Appbar.Action icon="refresh" onPress={loadData} />
+            </Appbar.Header>
+
+            <ScrollView style={styles.container}>
             <Card style={styles.summaryCard}>
                 <Card.Content style={{ alignItems: 'center' }}>
                     <Text variant="labelMedium" style={styles.matchDate}>{new Date(match.start_time).toDateString()}</Text>
@@ -141,6 +149,7 @@ export default function MatchAnalyticsScreen() {
             </Card>
             <View style={{ height: 24 }} />
         </ScrollView>
+    </SafeAreaView>
     );
 }
 

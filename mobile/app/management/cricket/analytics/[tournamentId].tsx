@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Appbar, useTheme } from 'react-native-paper';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-
-
-// Local Components (Importing them directly or definition inline if simple, but better to import)
-// Since I created them as files, I'll import them.
-// Note: Material Top Tabs requires navigation container context usually, but in Expo Router we can just use simple state switching for simplicity if avoiding extra dependencies.
-// Let's use simple state switching for 'Tabs' to avoid complex nav setup for this sub-screen.
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PointsTable from './PointsTable';
 import Leaderboard from './Leaderboard';
@@ -19,8 +14,11 @@ export default function AnalyticsScreen() {
     const theme = useTheme();
 
     return (
-        <View style={styles.container}>
-            <Stack.Screen options={{ title: 'Tournament Analytics' }} />
+        <SafeAreaView style={styles.container}>
+            <Appbar.Header style={{ backgroundColor: 'white' }}>
+                <Appbar.BackAction onPress={() => router.canGoBack() ? router.back() : router.replace('/management/cricket/tournaments')} />
+                <Appbar.Content title="Tournament Analytics" titleStyle={{ fontWeight: 'bold' }} />
+            </Appbar.Header>
             
             <View style={styles.tabBar}>
                 <TabButton 
@@ -40,7 +38,7 @@ export default function AnalyticsScreen() {
             <View style={styles.content}>
                 {activeTab === 'points' ? <PointsTable /> : <Leaderboard />}
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -51,8 +49,6 @@ const TabButton = ({ title, active, onPress, color }: any) => (
         </Text>
     </View>
 );
-
-import { Text, TouchableOpacity } from 'react-native';
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: 'white' },
